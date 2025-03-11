@@ -72,7 +72,7 @@ export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutc
   }
   console.log("Step 4: Roll evaluated - finalSum:", finalSum, "finalCategory:", finalCategory, "quantity:", quantity);
 
-  // Step 5: Create Consumable
+  // Step 5: Create or Update Consumable
   const finalRarity = getRarityFromSum(finalSum);
   const linkedItemId = getCompendiumItem(finalCategory, finalSum);
   console.log("Step 5: Attempting to get linked item - finalCategory:", finalCategory, "finalSum:", finalSum, "linkedItemId:", linkedItemId);
@@ -91,11 +91,20 @@ export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutc
     console.log("Step 5: Item data is a plain object, skipping toObject - itemData:", itemData);
   }
 
-  // Always create a new item with the specified quantity
-  itemData.system.quantity = quantity; // Set quantity for the new item
-  console.log("Step 5: Creating new item - itemData:", itemData);
-  await actor.createEmbeddedDocuments("Item", [itemData]);
-  console.log("Step 5: Consumable creation completed.");
+  // Check if the item already exists in the inventory
+  const existingItem = actor.items.find(i => i.name === itemData.name && i.type === "consumable");
+  if (existingItem) {
+    // If the item exists, increase its quantity by the calculated amount
+    const newQuantity = (existingItem.system.quantity || 0) + quantity;
+    console.log("Step 5: Found existing item - existingItem:", existingItem.id, "updating quantity to:", newQuantity);
+    await existingItem.update({ "system.quantity": newQuantity });
+  } else {
+    // If the item doesn't exist, create a new one with the calculated quantity
+    itemData.system.quantity = quantity;
+    console.log("Step 5: Creating new item - itemData:", itemData);
+    await actor.createEmbeddedDocuments("Item", [itemData]);
+  }
+  console.log("Step 5: Consumable creation or update completed.");
 
   // Step 6: Consume Resources
   const baseGoldCost = getBaseGoldCost(rarity);
