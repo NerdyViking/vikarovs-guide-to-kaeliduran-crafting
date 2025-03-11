@@ -1,0 +1,36 @@
+{
+    "name": "vikarovs-guide-to-kaeliduran-crafting",
+    "title": "Vikarov's Guide to Kaeliduran Crafting",
+    "description": "A modular crafting system for Foundry VTT, featuring alchemy and future magic item crafting.",
+    "version": "1.0.0",
+    "author": "Your Name",
+    "esmodules": [
+      "js/shared/inventoryInterfaceButtons.js",
+      "js/alchemy/alchemyInterface.js",
+      "js/alchemy/alchemyInterfaceCompendium.js",
+      "js/alchemy/alchemyInterfaceCauldron.js",
+      "js/alchemy/alchemyCrafting.js",
+      "js/alchemy/reagents.js",
+      "js/workshop/workshopInterface.js",
+      "js/workshop/workshopCrafting.js",
+      "js/workshop/components.js",
+      "js/shared/utils.js"
+    ],
+    "styles": [
+      "css/inventoryInterfaceButtons.css",
+      "css/alchemyInterface.css",
+      "css/workshopInterface.css"
+    ],
+    "templates": [
+      "templates/alchemyInterface.hbs",
+      "templates/workshopInterface.hbs"
+    ],
+    "url": "",
+    "manifest": "",
+    "download": "",
+    "minimumCoreVersion": "12",
+    "compatibleCoreVersion": "12.331",
+    "dependencies": [],
+    "socket": false,
+    "protected": false
+  }

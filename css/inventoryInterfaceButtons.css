@@ -1,0 +1,31 @@
+/* css/inventoryInterfaceButtons.css */
+
+/* Style for the crafting-controls container */
+div.crafting-controls {
+    display: flex;
+    gap: 10px;
+  }
+  
+  /* Style for buttons inside crafting-controls */
+  div.crafting-controls button {
+    display: inline-block;
+    padding: 5px;
+    font-size: 14px;
+    color: #fff; /* Match Foundry's text color */
+    cursor: pointer;
+    text-transform: uppercase; /* Match Foundry's button style (e.g., "Search Inventory") */
+    background: #252830; /* Match the background color of input fields */
+    border: 1px solid transparent; /* Pre-apply border with transparent color */
+    outline: none; /* Remove outline on focus */
+  }
+  
+  /* Hover effect with red border */
+  div.crafting-controls button:hover {
+    border: 1px solid red; /* Red border on hover */
+  }
+  
+  /* Disabled state */
+  div.crafting-controls button:disabled {
+    color: #808080; /* Grayed out for disabled state */
+    cursor: not-allowed;
+  }

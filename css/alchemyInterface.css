@@ -1,0 +1,321 @@
+/* css/alchemyInterface.css */
+
+/* Existing styles for .compendium (previously applied to .sheet-body directly) */
+.alchemy-interface .edit-mode-indicator {
+    color: #ff0000;
+    margin-left: 5px;
+}
+
+.alchemy-interface .compendium {
+    flex: 1;
+    /* Remove overflow-y to disable scrollbars */
+    min-height: fit-content; /* Ensure it can grow to fit content */
+}
+
+.alchemy-interface .rarity-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.alchemy-interface .rarity-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.alchemy-interface .rarity-label {
+    font-size: 1.1em;
+    color: #f0f0e0;
+    text-align: center;
+    margin-bottom: 5px;
+    border-bottom: 1px solid #4b4a44; /* Add line under Cauldron title to match */
+}
+
+.alchemy-interface .outcomes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 0px;
+}
+
+.alchemy-interface .outcome-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0px;
+}
+
+.alchemy-interface .outcome-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.alchemy-interface .unknown-icon {
+    background-color: #333;
+    color: #ccc;
+    border: 1px solid #4b4a44;
+    border-radius: 3px;
+}
+
+.alchemy-interface .item-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border: 1px solid #4b4a44;
+    border-radius: 3px;
+}
+
+.alchemy-interface .outcome-sum {
+    font-size: 0.8em;
+    color: #c9c7b8;
+    text-align: center;
+}
+
+.alchemy-interface .clear-outcome {
+    font-size: 0.7em;
+    padding: 2px 4px;
+    background-color: #4b4a44;
+    color: #f0f0e0;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    height: 20px;
+    width: 45px;
+}
+
+.alchemy-interface .clear-outcome:hover {
+    background-color: #ff0000;
+}
+
+/* New styles for .cauldron */
+.alchemy-interface .cauldron {
+    padding: 10px;
+}
+
+.alchemy-interface .charname {
+    text-align: center; /* Center the title */
+}
+
+.alchemy-interface .charname span {
+    font-size: 1.5em; /* Ensure readability */
+}
+
+.alchemy-interface .cauldron-title {
+    font-size: 2.0em;
+    color: #f0f0e0;
+    text-align: center;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #4b4a44; /* Add line under Cauldron title to match */
+}
+
+.alchemy-interface .reagent-slots {
+    display: flex;
+    justify-content: space-around;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.alchemy-interface .reagent-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100px;
+}
+
+.alchemy-interface .slot-label {
+    font-size: 0.9em;
+    color: #c9c7b8;
+    margin-bottom: 5px;
+}
+
+.alchemy-interface .reagent-drop-zone {
+    width: 60px;
+    height: 60px;
+    background-color: #333;
+    border: 2px dashed #4b4a44;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.alchemy-interface .crafting-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.alchemy-interface .craft-btn,
+.alchemy-interface .clear-btn {
+    padding: 5px 10px;
+    font-size: 0.9em;
+    color: #f0f0e0;
+    background-color: #4b4a44;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.alchemy-interface .craft-btn:hover {
+    background-color: #006400; /* Dark green for craft */
+}
+
+.alchemy-interface .clear-btn:hover {
+    background-color: #ff0000; /* Red for clear */
+}
+
+.alchemy-interface .slotted-item-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border: 1px solid #4b4a44;
+    border-radius: 3px;
+}
+
+.alchemy-interface .interface-tabs .item.active i {
+  color: #ff0000 !important; /* Red color for active tab icon */
+}
+
+.alchemy-interface .interface-tabs .item i {
+  transition: color 0.3s ease; /* Smooth transition for color change */
+}
+
+.alchemy-interface .slotted-item-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
+}
+
+.alchemy-interface .ip-sums {
+  display: flex;
+  justify-content: space-around;
+  margin: 10px 0;
+  font-size: 16px;
+  color: #f0f0e0;
+}
+
+.alchemy-interface .ip-sum {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5px;
+  border-radius: 3px;
+}
+
+.alchemy-interface .ip-sum.highlight {
+  color: #ff0000;
+  text-shadow: 0 0 5px #ff0000, 0 0 10px #ff0000;
+  transition: all 0.3s ease;
+}
+
+.alchemy-interface .ip-label {
+  font-weight: bold;
+}
+
+.alchemy-interface .ip-value {
+  margin-top: 3px;
+}
+
+.alchemy-interface .reagent-name {
+  text-align: center;
+  padding: 5px;
+  color: #f0f0e0;
+  background-color: #1c2526;
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
+  margin-bottom: 5px;
+}
+
+.alchemy-interface .outcome-icons {
+  display: flex;
+  justify-content: center;
+  gap: 15px; /* Increased gap for larger icons and text */
+  margin: 10px 0;
+  flex-wrap: wrap; /* Allow wrapping for long names */
+}
+
+.alchemy-interface .outcome-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.alchemy-interface .outcome-text {
+  font-size: 14px;
+  color: #f0f0e0;
+  max-width: 240px; /* Adjustable width to accommodate long names */
+  word-wrap: nowrap; /* Ensure text wraps for long names */
+  margin-bottom: 5px;
+}
+
+.alchemy-interface .outcome-icon {
+  width: 60px; /* Increased size */
+  height: 60px; /* Increased size */
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.alchemy-interface .outcome-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.alchemy-interface .outcome-icon.selected {
+  border: 2px solid #ff0000;
+  box-shadow: 0 0 10px #ff0000;
+}
+
+.alchemy-interface .details-btn {
+  font-size: 10px;
+  padding: 2px 5px;
+  margin-top: 5px;
+  background-color: #4b4a44;
+  color: #f0f0e0;
+  border: 1px solid #2c2a24;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  height: 20px;
+  width: 45px;
+}
+
+.alchemy-interface .details-btn:hover {
+  background-color: #5b5a54;
+}
+
+.alchemy-interface .details-btn:disabled {
+  background-color: #2c2a24;
+  color: #6b6a64;
+  cursor: not-allowed;
+}
+
+/* Styling for unknown outcomes in the Compendium */
+.alchemy-interface .outcome-icon.unknown-icon {
+  opacity: 0.5; /* Slightly dimmed to indicate unknown */
+}
+
+.alchemy-interface .reset-crafting-memory-btn {
+  font-size: 12px; /* Slightly larger than details-btn for visibility */
+  padding: 4px 8px;
+  margin: 5px 0;
+  background-color: #4b4a44;
+  color: #f0f0e0;
+  border: 1px solid #2c2a24;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.alchemy-interface .reset-crafting-memory-btn:hover {
+  background-color: #5b5a54;
+}
