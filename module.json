@@ -22,7 +22,8 @@
     "js/harvest/reagentTableEditor.js",
     "js/harvest/reagentTableButton.js",
     "js/harvest/harvestCheck.js",
-    "js/harvest/lootDialog.js"
+    "js/harvest/lootDialog.js",
+    "js/harvest/rollTester.js"
   ],
   "styles": [
     "css/inventoryInterfaceButtons.css",
@@ -32,6 +33,7 @@
     "css/reagentTableButton.css",
     "css/harvestTokens.css",
     "css/lootDialog.css",
+    "rollTester.css",
     "css/reagentConfig.css"
   ],
   "templates": [
@@ -40,6 +42,7 @@
     "templates/workshopInterface.hbs",
     "templates/reagentConfigDialog.hbs",
     "templates/reagentTableEditor.hbs",
+    "templates/rollTester.hbs",
     "templates/lootDialog.hbs"
   ],
   "url": "",

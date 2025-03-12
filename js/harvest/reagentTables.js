@@ -389,35 +389,114 @@ Hooks.once('init', () => {
     
     // Filter slots that have reagents
     const validSlots = slots.filter(slot => slot.reagentUuid);
-    if (!validSlots.length) return results;
+    if (!validSlots.length) {
+      console.warn(`No valid reagents in table '${tableId}'`);
+      return results;
+    }
     
     // Calculate total weight
-    const totalWeight = validSlots.reduce((sum, slot) => sum + (slot.weight || 1), 0);
+    const totalWeight = validSlots.reduce((sum, slot) => sum + (Math.max(1, slot.weight || 1)), 0);
     
-    // Roll for each count
+    // First check if we should roll at all (based on overall drop rate)
+    if (Math.random() * 100 > dropRate) {
+      console.log(`Table '${tableId}' failed drop rate check (${dropRate}%)`);
+      return results;
+    }
+    
+    // Roll for each count - if we reached this point, we're guaranteed to roll
     for (let i = 0; i < count; i++) {
-      // Check drop rate
-      if (Math.random() * 100 > dropRate) continue;
+      // Roll the weighted die (1 to totalWeight)
+      const rollResult = Math.floor(Math.random() * totalWeight) + 1;
       
-      // Roll within the weight range
-      const roll = Math.random() * totalWeight;
-      let currentWeight = 0;
+      // Find which item bucket the roll falls into
+      let accumulatedWeight = 0;
+      let rolled = false;
       
-      // Find the slot that matches the roll
       for (const slot of validSlots) {
-        currentWeight += (slot.weight || 1);
-        if (roll < currentWeight) {
+        const slotWeight = Math.max(1, slot.weight || 1);
+        accumulatedWeight += slotWeight;
+        
+        if (rollResult <= accumulatedWeight) {
+          rolled = true;
+          
           try {
             const item = await fromUuid(slot.reagentUuid);
             if (item) {
               results.push(item);
+              console.log(`Rolled reagent: ${item.name} (Weight: ${slotWeight}/${totalWeight})`);
+            } else {
+              ui.notifications.warn(`Failed to find reagent item. Please verify the item exists.`);
+              console.warn(`Item with UUID ${slot.reagentUuid} not found`);
             }
           } catch (error) {
+            ui.notifications.warn(`Failed to resolve reagent item. Please verify the item exists.`);
             console.error(`Failed to resolve item ${slot.reagentUuid}:`, error);
           }
-          break;
+          
+          break; // Stop searching once we've found our match
         }
       }
+      
+      // Sanity check - should never happen if weights are calculated correctly
+      if (!rolled) {
+        console.error(`Failed to roll reagent from table '${tableId}'. Total weight: ${totalWeight}, Roll: ${rollResult}`);
+      }
+    }
+    
+    return results;
+  }
+  
+  /**
+   * Roll reagents for an NPC based on its configuration
+   * @param {Actor} npc - The NPC actor
+   * @returns {Promise<Array>} Array of rolled reagent items
+   */
+  export async function rollNpcReagents(npc) {
+    if (!npc) {
+      console.error("Invalid NPC provided to rollNpcReagents");
+      return [];
+    }
+    
+    // Get NPC configuration
+    const config = npc.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'reagentConfig') || {};
+    const {
+      isHarvestable = false,
+      isLootable = false,
+      reagentTable = "",
+      reagentCount = 1,
+      dropRate = 100
+    } = config;
+    
+    // If not configured as harvestable or lootable, return empty
+    if (!isHarvestable && !isLootable) {
+      console.log(`NPC ${npc.name} is not configured as harvestable or lootable`);
+      return [];
+    }
+    
+    // Verify we have a table
+    if (!reagentTable) {
+      console.warn(`NPC ${npc.name} has no reagent table configured`);
+      return [];
+    }
+    
+    // Get table ID from name
+    const tables = getReagentTables();
+    const tableData = Object.values(tables).find(t => t.name === reagentTable || t.id === reagentTable);
+    
+    if (!tableData) {
+      console.warn(`Reagent table '${reagentTable}' not found for NPC ${npc.name}`);
+      return [];
+    }
+    
+    // Roll reagents
+    const results = await rollReagents(tableData.id, reagentCount, dropRate);
+    
+    // Log results
+    if (results.length > 0) {
+      console.log(`NPC ${npc.name} yielded ${results.length} reagents:`, 
+        results.map(item => item.name).join(", "));
+    } else {
+      console.log(`NPC ${npc.name} yielded no reagents`);
     }
     
     return results;

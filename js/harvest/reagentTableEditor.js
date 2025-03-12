@@ -102,70 +102,105 @@ export class ReagentTableEditor extends Application {
 
   /**
    * Activate listeners for the editor
-   */
-  activateListeners(html) {
-    super.activateListeners(html);
+// Updated activateListeners function for ReagentTableEditor class
+
+/**
+ * Activate listeners for the editor
+ */
+activateListeners(html) {
+  super.activateListeners(html);
+  
+  const self = this;
+  
+  // Table selection
+  html.find('.table-item').click(event => {
+    const tableName = event.currentTarget.dataset.tableName;
+    this.selectedTable = tableName;
+    this.render(true); // Force re-render to refresh the UI
+  });
+  
+  // Create new table button
+  html.find('.create-table-btn').click(event => {
+    event.preventDefault();
+    this._onCreateTable();
+  });
+  
+  // Delete table button
+  html.find('.delete-table-btn').click(event => {
+    event.preventDefault();
+    const tableName = event.currentTarget.closest('.table-item').dataset.tableName;
+    this._onDeleteTable(tableName);
+  });
+  
+  // Toggle edit mode
+  html.find('.toggle-edit-btn').click(event => {
+    event.preventDefault();
+    this.editMode = !this.editMode;
+    this.render(true); // Force re-render to refresh the UI
+  });
+  
+  // Save table changes
+  html.find('.save-table-btn').click(event => {
+    event.preventDefault();
+    this._onSaveTable();
+  });
+  
+  // Handle reagent slot weight changes
+  html.find('.reagent-weight-input').change(event => {
+    // Will be implemented when we save reagent slots
+  });
+  
+  // Remove reagent from slot
+  html.find('.remove-reagent-btn').click(event => {
+    event.preventDefault();
+    const slotIndex = parseInt(event.currentTarget.closest('.reagent-slot').dataset.slotIndex);
+    this._onRemoveReagent(slotIndex);
+  });
+  
+  // NEW: Make reagent items clickable to open their sheet
+  html.find('.reagent-item').click(async event => {
+    // Don't proceed if the click was on a button or input
+    if ($(event.target).is('button') || $(event.target).is('input')) {
+      return;
+    }
     
-    const self = this;
+    const slotElement = $(event.currentTarget).closest('.reagent-slot');
+    if (!slotElement.length) return;
     
-    // Table selection
-    html.find('.table-item').click(event => {
-      const tableName = event.currentTarget.dataset.tableName;
-      this.selectedTable = tableName;
-      this.render(true); // Force re-render to refresh the UI
-    });
+    const slotIndex = parseInt(slotElement.data('slot-index'));
+    if (isNaN(slotIndex)) return;
     
-    // Create new table button
-    html.find('.create-table-btn').click(event => {
-      event.preventDefault();
-      this._onCreateTable();
-    });
+    // Get table data
+    if (!this.selectedTable) return;
+    const tables = getReagentTables();
+    const table = tables[this.selectedTable];
+    if (!table) return;
     
-    // Delete table button
-    html.find('.delete-table-btn').click(event => {
-      event.preventDefault();
-      const tableName = event.currentTarget.closest('.table-item').dataset.tableName;
-      this._onDeleteTable(tableName);
-    });
+    // Get slot data
+    const tableContents = getReagentTableContents();
+    const slots = tableContents[table.id] || [];
+    if (!slots[slotIndex]) return;
     
-    // Toggle edit mode
-    html.find('.toggle-edit-btn').click(event => {
-      event.preventDefault();
-      this.editMode = !this.editMode;
-      this.render(true); // Force re-render to refresh the UI
-    });
-    
-    // Save table changes
-    html.find('.save-table-btn').click(event => {
-      event.preventDefault();
-      this._onSaveTable();
-    });
-    
-    // Handle habitat/environment checkboxes
-    html.find('.environment-checkbox').change(event => {
-      // Will be implemented when we save table changes
-    });
-    
-    // Handle creature type checkboxes
-    html.find('.creature-type-checkbox').change(event => {
-      // Will be implemented when we save table changes
-    });
-    
-    // Handle reagent slot weight changes
-    html.find('.reagent-weight-input').change(event => {
-      // Will be implemented when we save reagent slots
-    });
-    
-    // Remove reagent from slot
-    html.find('.remove-reagent-btn').click(event => {
-      event.preventDefault();
-      const slotIndex = parseInt(event.currentTarget.closest('.reagent-slot').dataset.slotIndex);
-      this._onRemoveReagent(slotIndex);
-    });
-    
-    // Setup drag-and-drop for reagents
-    this._setupDragDrop(html);
-  }
+    // Get item from uuid
+    try {
+      const reagentUuid = slots[slotIndex].reagentUuid;
+      if (!reagentUuid) return;
+      
+      const item = await fromUuid(reagentUuid);
+      if (item) {
+        item.sheet.render(true);
+      } else {
+        ui.notifications.warn("Unable to find item in the game.");
+      }
+    } catch (error) {
+      console.error("Error opening item sheet:", error);
+      ui.notifications.error("Failed to open item sheet.");
+    }
+  });
+  
+  // Setup drag-and-drop for reagents
+  this._setupDragDrop(html);
+}
 
   /**
    * Set up drag and drop functionality
