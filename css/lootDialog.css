@@ -1,0 +1,87 @@
+/* css/lootDialog.css */
+
+/* === Loot Dialog Styling === */
+.loot-dialog {
+    min-height: 400px;
+  }
+  
+  .loot-dialog .loot-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .loot-dialog .loot-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .loot-dialog .loot-title {
+    margin: 0;
+  }
+  
+  .loot-dialog .loot-items {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .loot-dialog .loot-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px;
+    background-color: #2c2c2c;
+    border: 1px solid #444;
+    border-radius: 3px;
+  }
+  
+  .loot-dialog .loot-item img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    border: 1px solid #666;
+    border-radius: 3px;
+  }
+  
+  .loot-dialog .loot-item-name {
+    flex: 1;
+    color: #ddd;
+  }
+  
+  .loot-dialog .loot-item-quantity {
+    color: #aaa;
+    font-size: 0.9em;
+    margin-right: 10px;
+  }
+  
+  .loot-dialog .take-item-btn {
+    padding: 3px 8px;
+    background-color: #4b4a44;
+    color: #f0f0e0;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  .loot-dialog .take-item-btn:hover {
+    background-color: #5b5a54;
+  }
+  
+  .loot-dialog .take-all-btn {
+    align-self: flex-end;
+    padding: 5px 10px;
+    background-color: #4b4a44;
+    color: #f0f0e0;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .loot-dialog .take-all-btn:hover {
+    background-color: #5b5a54;
+  }

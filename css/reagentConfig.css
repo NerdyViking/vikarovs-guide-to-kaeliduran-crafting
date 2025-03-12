@@ -1,0 +1,91 @@
+/* css/reagentConfig.css */
+
+/* === NPC Config Dialog Styling === */
+.reagent-config-dialog {
+    min-height: 400px;
+  }
+  
+  .reagent-config-dialog .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .reagent-config-dialog label {
+    display: block;
+    margin-bottom: 5px;
+    color: #ddd;
+    font-weight: bold;
+  }
+  
+  .reagent-config-dialog input[type="number"],
+  .reagent-config-dialog input[type="range"],
+  .reagent-config-dialog select {
+    width: 100%;
+    background-color: #333;
+    color: #ddd;
+    border: 1px solid #666;
+    border-radius: 3px;
+    padding: 5px 8px;
+  }
+  
+  .reagent-config-dialog .config-options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .reagent-config-dialog .toggle-options {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  
+  .reagent-config-dialog .type-toggle {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 10px;
+    background-color: #2c2c2c;
+    border: 1px solid #444;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  .reagent-config-dialog .type-toggle.active {
+    background-color: #3a3a3a;
+    border-color: #888;
+  }
+  
+  .reagent-config-dialog .type-toggle i {
+    font-size: 1.5em;
+  }
+  
+  .reagent-config-dialog .range-display {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9em;
+    color: #aaa;
+  }
+  
+  .reagent-config-dialog .button-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  .reagent-config-dialog .save-config-btn,
+  .reagent-config-dialog .cancel-btn {
+    padding: 5px 10px;
+    background-color: #4b4a44;
+    color: #f0f0e0;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  .reagent-config-dialog .save-config-btn:hover,
+  .reagent-config-dialog .cancel-btn:hover {
+    background-color: #5b5a54;
+  }

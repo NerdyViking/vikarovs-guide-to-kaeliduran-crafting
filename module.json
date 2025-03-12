@@ -20,6 +20,7 @@
     "js/harvest/reagentConfig.js",
     "js/harvest/reagentTables.js",
     "js/harvest/reagentTableEditor.js",
+    "js/harvest/reagentTableButton.js",
     "js/harvest/harvestCheck.js",
     "js/harvest/lootDialog.js"
   ],
@@ -27,7 +28,11 @@
     "css/inventoryInterfaceButtons.css",
     "css/alchemyInterface.css",
     "css/workshopInterface.css",
-    "css/reagentHarvest.css"
+    "css/reagentTableEditor.css",
+    "css/reagentTableButton.css",
+    "css/harvestTokens.css",
+    "css/lootDialog.css",
+    "css/reagentConfig.css"
   ],
   "templates": [
     "templates/alchemyInterface.hbs",
