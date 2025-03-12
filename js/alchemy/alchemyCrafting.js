@@ -2,20 +2,15 @@
 import { getCompendiumItem } from './alchemyInterfaceCompendium.js';
 
 export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutcome = null) {
-  console.log("Starting performCrafting with actor:", actor.name, "cauldronSlots:", cauldronSlots, "ipSums:", ipSums, "selectedOutcome:", selectedOutcome);
-
   // Validation
   if (!cauldronSlots || Object.values(cauldronSlots).filter(id => id).length !== 3) {
     ui.notifications.warn("Please fill all three cauldron slots with reagents.");
-    console.log("Validation failed: Insufficient reagents.");
     return { success: false, message: "Crafting aborted: Insufficient reagents." };
   }
   if (!actor.system.currency || actor.system.currency.gp === undefined) {
     ui.notifications.warn("Actor has no gold data.");
-    console.log("Validation failed: No gold data.");
     return { success: false, message: "Crafting aborted: No gold data." };
   }
-  console.log("Validation passed.");
 
   // Step 1: Determine Crafting DC
   const maxSum = Math.max(ipSums.combat, ipSums.utility, ipSums.entropy);
@@ -23,20 +18,16 @@ export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutc
   if (!category) category = "combat"; // Default to combat if no tiebreaker and no clear max
   const rarity = getRarityFromSum(maxSum);
   const dc = getDcFromRarity(rarity);
-  console.log("Step 1: DC determined - maxSum:", maxSum, "category:", category, "rarity:", rarity, "dc:", dc);
 
   // Step 2: Check Tool Availability
   const tools = actor.items.filter(item => item.type === "tool" && (item.system.identifier === "alchemist" || item.system.identifier === "herbalism"));
   if (tools.length === 0) {
     ui.notifications.warn("You need Alchemist's Supplies or Herbalism Kit to craft!");
-    console.log("Step 2: No tools found.");
     return { success: false, message: "Crafting aborted: Missing tool." };
   }
   const tool = tools.find(t => t.system.identifier === "alchemist") || tools[0]; // Prioritize Alchemist's Supplies
-  console.log("Step 2: Tool selected:", tool.name, "toolId:", tool.system.identifier);
 
   // Step 3: Perform Tool Check with tool.rollToolCheck
-  console.log("Step 3: Initiating tool check with DC:", dc, "tool:", tool.name);
   const roll = await tool.rollToolCheck({
     dc: dc, // Pass the crafting DC
     rollMode: "roll", // Public roll by default
@@ -44,12 +35,10 @@ export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutc
     flavor: `Crafting Tool Check (DC ${dc}) using ${tool.name}`
   });
   if (!roll || !roll[0]) {
-    console.log("Step 3: Roll failed or cancelled, roll:", roll);
     return { success: false, message: "Crafting aborted: Roll cancelled or invalid." };
   }
   const total = roll[0].total;
   const margin = total - dc;
-  console.log("Step 3: Roll completed - total:", total, "margin:", margin);
 
   // Step 4: Evaluate Roll Outcome
   let finalSum = maxSum;
@@ -70,25 +59,18 @@ export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutc
     const newMaxSum = Math.max(newIpSums.combat, newIpSums.utility, newIpSums.entropy);
     finalCategory = selectedOutcome?.category || Object.keys(newIpSums).find(cat => newIpSums[cat] === newMaxSum) || "combat";
   }
-  console.log("Step 4: Roll evaluated - finalSum:", finalSum, "finalCategory:", finalCategory, "quantity:", quantity);
 
   // Step 5: Create or Update Consumable
   const finalRarity = getRarityFromSum(finalSum);
   const linkedItemId = getCompendiumItem(finalCategory, finalSum);
-  console.log("Step 5: Attempting to get linked item - finalCategory:", finalCategory, "finalSum:", finalSum, "linkedItemId:", linkedItemId);
   let itemData = linkedItemId ? await fromUuid(linkedItemId) : createPlaceholderItem(finalRarity, finalCategory);
-  console.log("Step 5: Item data after fetch - itemData:", itemData);
   if (!itemData) {
     ui.notifications.error("Failed to create consumable item.");
-    console.log("Step 5: Item creation failed - itemData is null or undefined.");
     return { success: false, message: "Crafting aborted: Item creation failed." };
   }
   // Only call toObject if itemData is a Foundry data object
   if (typeof itemData.toObject === 'function') {
     itemData = itemData.toObject();
-    console.log("Step 5: Item data after toObject - itemData:", itemData);
-  } else {
-    console.log("Step 5: Item data is a plain object, skipping toObject - itemData:", itemData);
   }
 
   // Check if the item already exists in the inventory
@@ -96,15 +78,12 @@ export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutc
   if (existingItem) {
     // If the item exists, increase its quantity by the calculated amount
     const newQuantity = (existingItem.system.quantity || 0) + quantity;
-    console.log("Step 5: Found existing item - existingItem:", existingItem.id, "updating quantity to:", newQuantity);
     await existingItem.update({ "system.quantity": newQuantity });
   } else {
     // If the item doesn't exist, create a new one with the calculated quantity
     itemData.system.quantity = quantity;
-    console.log("Step 5: Creating new item - itemData:", itemData);
     await actor.createEmbeddedDocuments("Item", [itemData]);
   }
-  console.log("Step 5: Consumable creation or update completed.");
 
   // Step 6: Consume Resources
   const baseGoldCost = getBaseGoldCost(rarity);
@@ -114,15 +93,18 @@ export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutc
   const finalGoldCost = Math.max(minGoldCost, baseCost);
   if (actor.system.currency.gp < finalGoldCost) {
     ui.notifications.warn(`Insufficient gold! Need ${finalGoldCost} gp, have ${actor.system.currency.gp} gp.`);
-    console.log("Step 6: Insufficient gold.");
     return { success: false, message: "Crafting aborted: Insufficient gold." };
   }
-  await consumeResources(actor, cauldronSlots, finalGoldCost);
-  console.log("Step 6: Resources consumed - finalGoldCost:", finalGoldCost);
+  const consumeResult = await consumeResources(actor, cauldronSlots, finalGoldCost);
+
+  // If any reagent was consumed to zero, clear the cauldron slots
+  if (consumeResult.resetSlots) {
+    await actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', 'cauldronSlots', { 0: null, 1: null, 2: null });
+    await actor.unsetFlag('vikarovs-guide-to-kaeliduran-crafting', 'selectedOutcome');
+  }
 
   // Return result for feedback
   const itemName = itemData.name || `Unknown ${finalRarity} ${finalCategory} Consumable`;
-  console.log("Step 6: Returning result - itemName:", itemName);
   return {
     success: true,
     category: finalCategory,
@@ -167,7 +149,12 @@ export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutc
   }
 
   async function consumeResources(actor, slots, goldCost) {
+    let resetSlots = false; // Flag to indicate if we need to reset cauldron slots
+
+    // Deduct gold
     await actor.update({ "system.currency.gp": actor.system.currency.gp - goldCost });
+
+    // Consume reagents and check if any are reduced to zero
     for (const slotId of Object.values(slots)) {
       if (slotId) {
         const item = actor.items.get(slotId) || (await fromUuid(slotId));
@@ -175,12 +162,15 @@ export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutc
           const newQuantity = (item.system.quantity || 1) - 1;
           if (newQuantity <= 0) {
             await item.delete();
+            resetSlots = true; // Mark that a reagent was consumed to zero
           } else {
             await item.update({ "system.quantity": newQuantity });
           }
         }
       }
     }
+
+    return { resetSlots };
   }
 
   function createPlaceholderItem(rarity, category) {

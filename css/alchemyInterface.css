@@ -1,187 +1,231 @@
 /* css/alchemyInterface.css */
 
-/* Existing styles for .compendium (previously applied to .sheet-body directly) */
+.alchemy-interface {
+  border-radius: 6px;
+}
+
+.alchemy-interface .window-header {
+  position: relative;
+  background: #1a1a1a;
+  color: #f0f0e0;
+  border-bottom: none;
+  overflow: visible;
+  border-radius: 6px;
+
+}
+
+.alchemy-interface .window-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("../assets/banner-item-dark.webp");
+  background-size: 600px;
+  background-repeat: no-repeat;
+  opacity: 0.15;
+  z-index: 0;
+}
+
+.alchemy-interface .window-header .window-title,
+.alchemy-interface .window-header .control.edit-outcomes,
+.alchemy-interface .window-header .control.close {
+  position: auto;
+  z-index: 1;
+  opacity: 1;
+}
+
 .alchemy-interface .edit-mode-indicator {
-    color: #ff0000;
-    margin-left: 5px;
+  color: #ff0000;
+  margin-left: 5px;
+}
+
+.alchemy-interface .window-content {
+  height: 925px;
+  position: relative;
+  background: #1a1a1a;
+  border-radius: 6px;
+}
+
+.alchemy-interface .window-content::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("../assets/banner-item-dark.webp");
+  background-size: 600px;
+  background-repeat: no-repeat;
+  opacity: 0.15;
+  z-index: -1;
+}
+
+.alchemy-interface .sheet-header .charname {
+  color: #f0f0e0;
+  text-align: center;
+  border-bottom: none;
+  text-decoration: none;
 }
 
 .alchemy-interface .compendium {
-    flex: 1;
-    /* Remove overflow-y to disable scrollbars */
-    min-height: fit-content; /* Ensure it can grow to fit content */
+  flex: 1;
+  min-height: fit-content;
 }
 
 .alchemy-interface .rarity-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .alchemy-interface .rarity-group {
-    flex: 1;
-    min-width: 200px;
+  flex: 1;
+  min-width: 200px;
 }
 
 .alchemy-interface .rarity-label {
-    font-size: 1.1em;
-    color: #f0f0e0;
-    text-align: center;
-    margin-bottom: 5px;
-    border-bottom: 1px solid #4b4a44; /* Add line under Cauldron title to match */
+  font-size: 1.1em;
+  color: #f0f0e0;
+  text-align: center;
+  margin-bottom: 5px;
+  border-bottom: 1px solid #4b4a44;
 }
 
 .alchemy-interface .outcomes-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-    gap: 0px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 0px;
 }
 
 .alchemy-interface .outcome-cell {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0px;
 }
 
 .alchemy-interface .outcome-icon {
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .alchemy-interface .unknown-icon {
-    background-color: #333;
-    color: #ccc;
-    border: 1px solid #4b4a44;
-    border-radius: 3px;
+  background-color: #333;
+  color: #ccc;
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
 }
 
 .alchemy-interface .item-icon {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    border: 1px solid #4b4a44;
-    border-radius: 3px;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
 }
 
 .alchemy-interface .outcome-sum {
-    font-size: 0.8em;
-    color: #c9c7b8;
-    text-align: center;
+  font-size: 0.8em;
+  color: #c9c7b8;
+  text-align: center;
 }
 
 .alchemy-interface .clear-outcome {
-    font-size: 0.7em;
-    padding: 2px 4px;
-    background-color: #4b4a44;
-    color: #f0f0e0;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    height: 20px;
-    width: 45px;
+  font-size: 0.7em;
+  background-color: #4b4a44;
+  color: #f0f0e0;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  height: 15px;
+  width: 45px;
+  padding: 0px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .alchemy-interface .clear-outcome:hover {
-    background-color: #ff0000;
+  border: 1px solid #ff0000;
+  box-shadow: 0 0 5px #ff0000;
 }
 
-/* New styles for .cauldron */
 .alchemy-interface .cauldron {
-    padding: 10px;
-}
-
-.alchemy-interface .charname {
-    text-align: center; /* Center the title */
-}
-
-.alchemy-interface .charname span {
-    font-size: 1.5em; /* Ensure readability */
+  padding: 10px;
 }
 
 .alchemy-interface .cauldron-title {
-    font-size: 2.0em;
-    color: #f0f0e0;
-    text-align: center;
-    margin-bottom: 10px;
-    border-bottom: 1px solid #4b4a44; /* Add line under Cauldron title to match */
+  font-size: 2.0em;
+  color: #f0f0e0;
+  text-align: center;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #4b4a44;
 }
 
 .alchemy-interface .reagent-slots {
-    display: flex;
-    justify-content: space-around;
-    gap: 15px;
-    margin-bottom: 10px;
+  display: flex;
+  justify-content: space-around;
+  gap: 15px;
+  margin-bottom: 10px;
 }
 
 .alchemy-interface .reagent-slot {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100px;
 }
 
 .alchemy-interface .slot-label {
-    font-size: 0.9em;
-    color: #c9c7b8;
-    margin-bottom: 5px;
+  font-size: 0.9em;
+  color: #c9c7b8;
+  margin-bottom: 5px;
 }
 
 .alchemy-interface .reagent-drop-zone {
-    width: 60px;
-    height: 60px;
-    background-color: #333;
-    border: 2px dashed #4b4a44;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  width: 60px;
+  height: 60px;
+  background-color: #333;
+  border: 2px dashed #4b4a44;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .alchemy-interface .crafting-controls {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
 }
 
 .alchemy-interface .craft-btn,
 .alchemy-interface .clear-btn {
-    padding: 5px 10px;
-    font-size: 0.9em;
-    color: #f0f0e0;
-    background-color: #4b4a44;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    text-transform: uppercase;
+  padding: 5px 10px;
+  font-size: 0.9em;
+  color: #f0f0e0;
+  background-color: #242731;
+  border: 1px transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  text-transform: uppercase;
 }
 
 .alchemy-interface .craft-btn:hover {
-    background-color: #006400; /* Dark green for craft */
+  border: 1px solid #ff0000;
+  box-shadow: 0 0 5px #ff0000;
 }
 
 .alchemy-interface .clear-btn:hover {
-    background-color: #ff0000; /* Red for clear */
-}
-
-.alchemy-interface .slotted-item-icon {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    border: 1px solid #4b4a44;
-    border-radius: 3px;
-}
-
-.alchemy-interface .interface-tabs .item.active i {
-  color: #ff0000 !important; /* Red color for active tab icon */
-}
-
-.alchemy-interface .interface-tabs .item i {
-  transition: color 0.3s ease; /* Smooth transition for color change */
+  border: 1px solid #ff0000;
+  box-shadow: 0 0 5px #ff0000;
 }
 
 .alchemy-interface .slotted-item-icon {
@@ -190,6 +234,15 @@
   object-fit: contain;
   border: 1px solid #4b4a44;
   border-radius: 3px;
+}
+
+.alchemy-interface .interface-tabs .item.active i {
+  color: #ff0000 !important;
+}
+
+.alchemy-interface .interface-tabs .item i {
+  transition: color 0.3s ease;
+  color: #f0f0f0 !important;
 }
 
 .alchemy-interface .ip-sums {
@@ -235,9 +288,11 @@
 .alchemy-interface .outcome-icons {
   display: flex;
   justify-content: center;
-  gap: 15px; /* Increased gap for larger icons and text */
+  gap: 15px;
   margin: 10px 0;
-  flex-wrap: wrap; /* Allow wrapping for long names */
+  flex-wrap: wrap;
+  height: 100px; /* Fixed height to match one outcome container */
+  align-items: center; /* Center content vertically */
 }
 
 .alchemy-interface .outcome-container {
@@ -250,14 +305,14 @@
 .alchemy-interface .outcome-text {
   font-size: 14px;
   color: #f0f0e0;
-  max-width: 240px; /* Adjustable width to accommodate long names */
-  word-wrap: nowrap; /* Ensure text wraps for long names */
+  max-width: 240px;
+  word-wrap: nowrap;
   margin-bottom: 5px;
 }
 
 .alchemy-interface .outcome-icon {
-  width: 60px; /* Increased size */
-  height: 60px; /* Increased size */
+  width: 60px;
+  height: 60px;
   border: 1px solid #4b4a44;
   border-radius: 3px;
   cursor: pointer;
@@ -277,8 +332,7 @@
 
 .alchemy-interface .details-btn {
   font-size: 10px;
-  padding: 2px 5px;
-  margin-top: 5px;
+  padding: 2px;
   background-color: #4b4a44;
   color: #f0f0e0;
   border: 1px solid #2c2a24;
@@ -287,6 +341,11 @@
   transition: background-color 0.3s ease;
   height: 20px;
   width: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
 }
 
 .alchemy-interface .details-btn:hover {
@@ -299,13 +358,12 @@
   cursor: not-allowed;
 }
 
-/* Styling for unknown outcomes in the Compendium */
 .alchemy-interface .outcome-icon.unknown-icon {
-  opacity: 0.5; /* Slightly dimmed to indicate unknown */
+  opacity: 0.5;
 }
 
 .alchemy-interface .reset-crafting-memory-btn {
-  font-size: 12px; /* Slightly larger than details-btn for visibility */
+  font-size: 12px;
   padding: 4px 8px;
   margin: 5px 0;
   background-color: #4b4a44;
@@ -318,4 +376,136 @@
 
 .alchemy-interface .reset-crafting-memory-btn:hover {
   background-color: #5b5a54;
+}
+
+/* New style for the outcome message */
+.alchemy-interface .outcome-message {
+  font-size: 16px;
+  color: #f0f0e0;
+  text-align: center;
+  width: 100%;
+}
+
+.reagent-selection {
+  background: #1a1a1a !important;
+  color: #ffffff;
+  box-shadow: #000000 0px 0px 10px;
+  border-radius: 6px;
+}
+
+.reagent-selection .window-header {
+  position: relative;
+  background: #1a1a1a;
+  color: #f0f0e0;
+  border-bottom: none;
+  overflow: visible;
+  border-radius: 6px;
+
+}
+
+.reagent-selection-dialog .window-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("../assets/banner-item-dark.webp");
+  background-size: 600px;
+  background-repeat: no-repeat;
+  opacity: 0.15;
+  z-index: 0;
+}
+
+.reagent-selection-dialog .window-header .window-title,
+.reagent-selection .window-header .close-btn {
+  position: auto;
+  z-index: 1;
+  opacity: 1;
+}
+
+.reagent-selection .window-content {
+  position: relative;
+  background: #1a1a1a;
+  color: #f0f0e0;
+  z-index: 1;
+  border-radius: 6px;
+
+}
+
+.reagent-selection .window-content::before {
+  content: "";
+  position: absolute;
+  top: -30px;
+  left: 0;
+  width: 600px;
+  height: 150px;
+  background-image: 
+    linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%),
+    url("../assets/banner-item-dark.webp");
+  background-size: 100% 150px, 600px;
+  background-repeat: no-repeat;
+  background-position: top center;
+  opacity: 0.18;
+  z-index: -1;
+}
+
+.reagent-selection .sheet-header {
+  text-align: center;
+  padding: 10px;
+  border-bottom: 1px solid #4b4a44;
+}
+
+.reagent-selection .charname {
+  font-size: 1.5em;
+  color: #f0f0e0;
+  border-bottom: none;
+  text-decoration: none;
+}
+
+.reagent-selection .sheet-body {
+  padding: 10px;
+  z-index: 1;
+}
+
+.reagent-selection .reagent-list {
+  height: 300px;
+  overflow-y: auto;
+}
+
+.reagent-selection .reagent-option {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  border: 1px solid #4b4a44;
+  cursor: pointer;
+}
+
+.reagent-selection .reagent-option:hover {
+  border: 1px solid #ff0000;
+}
+
+.reagent-selection .reagent-icon {
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.reagent-selection .reagent-name {
+  color: #f0f0e0;
+  font-size: 14px;
+  text-align: left;
+  border: none;
+  background: none;
+  margin-left: 10px;
+}
+
+.reagent-selection .reagent-metadata {
+  color: #c9c7b8;
+  font-size: 12px;
+  text-align: right;
+  flex-grow: 1;
 }

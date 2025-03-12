@@ -11,7 +11,6 @@
     <a class="item" data-tab="utility" title="Utility Outcomes"><i class="fas fa-globe"></i></a>
     <a class="item" data-tab="entropy" title="Entropy Outcomes"><i class="fas fa-bomb"></i></a>
   </nav>
-  <!-- Add reset button here -->
   {{#if editMode}}
     <button class="reset-crafting-memory-btn" title="Reset Crafting Memory">
       <i class="fas fa-trash"></i> Reset Memory
@@ -441,15 +440,19 @@
         </div>
       </div>
       <div class="outcome-icons">
-        {{#each outcomeIcons}}
-          <div class="outcome-container">
-            <div class="outcome-text">{{outcomeName}}</div>
-            <div class="outcome-icon {{#if isSelected}}selected{{/if}}" data-category="{{category}}" data-sum="{{sum}}" title="{{category}} {{sum}}">
-              <img src="{{img}}" alt="{{category}} Outcome" />
+        {{#if allSlotsFilled}}
+          {{#each outcomeIcons}}
+            <div class="outcome-container">
+              <div class="outcome-text">{{outcomeName}}</div>
+              <div class="outcome-icon {{#if isSelected}}selected{{/if}}" data-category="{{category}}" data-sum="{{sum}}" title="{{category}} {{sum}}">
+                <img src="{{img}}" alt="{{category}} Outcome" />
+              </div>
+              <button class="details-btn" data-item-id="{{itemId}}" {{#unless hasItem}}disabled{{/unless}}>Details</button>
             </div>
-            <button class="details-btn" data-item-id="{{itemId}}" {{#unless hasItem}}disabled{{/unless}}>Details</button>
-          </div>
-        {{/each}}
+          {{/each}}
+        {{else}}
+          <div class="outcome-message">Add More Reagents!</div>
+        {{/if}}
       </div>
       <div class="crafting-controls">
         <button class="craft-btn">Craft</button>

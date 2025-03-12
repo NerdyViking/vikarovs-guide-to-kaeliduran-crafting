@@ -1,0 +1,21 @@
+<!-- templates/reagentSelectionDialog.hbs -->
+<form class="{{cssClass}}" autocomplete="off">
+  <header class="sheet-header">
+    <h1 class="charname">Select Reagent for Slot {{slotIndex}}</h1>
+  </header>
+
+  <div class="sheet-body">
+    <div class="reagent-list">
+      {{#each reagents as |reagent|}}
+        <div class="reagent-option" data-item-id="{{reagent.id}}">
+          <img src="{{reagent.img}}" class="reagent-icon" alt="{{reagent.name}}" />
+          <span class="reagent-name">{{reagent.name}}</span>
+          <span class="reagent-metadata">{{reagent.metadata}}</span>
+        </div>
+      {{/each}}
+      {{#if (eq reagents.length 0)}}
+        <p>No available reagents in inventory.</p>
+      {{/if}}
+    </div>
+  </div>
+</form>
