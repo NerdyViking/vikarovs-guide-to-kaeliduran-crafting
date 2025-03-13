@@ -3,27 +3,21 @@ import { highlightOutcome } from './alchemyInterfaceCompendium.js';
 import { performCrafting } from './alchemyCrafting.js';
 import { ReagentSelectionDialog } from './reagentSelectionDialog.js';
 
-window.addEventListener('error', (event) => {
-  console.error('Global unhandled error:', event.message, event.error);
-});
-
-Hooks.on('error', (error) => {
-  console.error('Foundry error:', error.message, error.stack);
-});
-
+// Safer event handlers with proper jQuery delegation
 export function handleCauldronListeners(alchemyInterface, html) {
-  const actor = alchemyInterface._actor;
-
-  if (!actor) {
-    ui.notifications.error("No actor selected. Please select a token or provide an actor context.");
+  if (!alchemyInterface || !alchemyInterface._actor) {
+    console.error("No actor context for cauldron listeners");
     return;
   }
+  
+  const actor = alchemyInterface._actor;
 
-  html.find('.reagent-drop-zone').on('dragover', (event) => {
+  // Use jQuery's .on() method with proper delegation
+  html.on('dragover', '.reagent-drop-zone', event => {
     event.preventDefault();
   });
 
-  html.find('.reagent-drop-zone').on('drop', async (event) => {
+  html.on('drop', '.reagent-drop-zone', async event => {
     event.preventDefault();
     try {
       const data = JSON.parse(event.originalEvent.dataTransfer.getData('text/plain'));
@@ -31,6 +25,7 @@ export function handleCauldronListeners(alchemyInterface, html) {
         ui.notifications.warn("Only items can be dropped here.");
         return;
       }
+      
       let item = await fromUuid(data.uuid);
       if (!item) {
         item = game.items.get(data.id) || actor.items.get(data.id);
@@ -46,8 +41,11 @@ export function handleCauldronListeners(alchemyInterface, html) {
         return;
       }
 
-      const slotIndex = $(event.currentTarget).closest('.reagent-slot').data('slot');
+      const $target = $(event.currentTarget);
+      const slotIndex = $target.closest('.reagent-slot').data('slot');
       const cauldronSlots = actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'cauldronSlots') || { 0: null, 1: null, 2: null };
+      
+      // Check if this reagent is already in another slot
       for (let i = 0; i < 3; i++) {
         if (i.toString() !== slotIndex.toString() && cauldronSlots[i.toString()] === item.id) {
           ui.notifications.warn("Cannot use the same reagent more than once in the cauldron.");
@@ -55,23 +53,26 @@ export function handleCauldronListeners(alchemyInterface, html) {
         }
       }
 
-      let slots = foundry.utils.deepClone(cauldronSlots);
+      // Update the slot with the new item
+      const slots = foundry.utils.deepClone(cauldronSlots);
       slots[slotIndex] = item.id;
       await actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', 'cauldronSlots', slots);
-      alchemyInterface.render();
+      
+      // Re-render the interface
+      alchemyInterface.render(false);
+      
     } catch (error) {
-      ui.notifications.error("Failed to drop item: " + error.message);
+      console.error("Drop error:", error);
+      ui.notifications.error("Failed to drop item");
     }
   });
 
-  html.find('.reagent-drop-zone').on('click', async (event) => {
-    if (!actor) {
-      ui.notifications.error("No actor selected. Please select a token or provide an actor context.");
-      return;
-    }
-
-    const $dropZone = $(event.currentTarget);
-    const slotIndex = $dropZone.closest('.reagent-slot').data('slot');
+  // Use delegated events for click handlers
+  html.on('click', '.reagent-drop-zone', event => {
+    const $target = $(event.currentTarget);
+    const slotIndex = $target.closest('.reagent-slot').data('slot');
+    if (slotIndex === undefined) return;
+    
     const cauldronSlots = actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'cauldronSlots') || { 0: null, 1: null, 2: null };
     const itemId = cauldronSlots[slotIndex];
 
@@ -88,13 +89,8 @@ export function handleCauldronListeners(alchemyInterface, html) {
     }
   });
 
-  html.find('.craft-btn').on('click', async (event) => {
+  html.on('click', '.craft-btn', async event => {
     event.preventDefault();
-    if (!actor) {
-      ui.notifications.error("No actor selected. Please select a token or provide an actor context.");
-      return;
-    }
-
     try {
       const cauldronData = await prepareCauldronData(actor);
       const { outcomeIcons, ipSums } = cauldronData;
@@ -106,11 +102,13 @@ export function handleCauldronListeners(alchemyInterface, html) {
 
       const selectedOutcome = actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'selectedOutcome');
       let craftedOutcome;
+      
       if (selectedOutcome) {
         craftedOutcome = outcomeIcons.find(outcome =>
           outcome.category === selectedOutcome.category && outcome.sum === selectedOutcome.sum
         );
       }
+      
       if (!craftedOutcome) {
         craftedOutcome = outcomeIcons[0];
       }
@@ -127,7 +125,9 @@ export function handleCauldronListeners(alchemyInterface, html) {
         const memory = foundry.utils.deepClone(
           actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory') || { Combat: [], Utility: [], Entropy: [] }
         );
+        
         const capitalizedCategory = craftingResult.category.charAt(0).toUpperCase() + craftingResult.category.slice(1);
+        
         if (!memory[capitalizedCategory].includes(craftingResult.sum)) {
           memory[capitalizedCategory].push(craftingResult.sum);
           await actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory', memory);
@@ -142,55 +142,51 @@ export function handleCauldronListeners(alchemyInterface, html) {
         ui.notifications.warn(craftingResult.message);
       }
 
-      alchemyInterface.render();
+      alchemyInterface.render(false);
     } catch (error) {
-      ui.notifications.error("Failed to craft: " + error.message);
+      console.error("Craft error:", error);
+      ui.notifications.error("Failed to craft item");
     }
   });
 
-  html.find('.clear-btn').on('click', async (event) => {
+  html.on('click', '.clear-btn', async event => {
     event.preventDefault();
-    if (!actor) {
-      ui.notifications.error("No actor selected. Please select a token or provide an actor context.");
-      return;
-    }
-
     try {
       await actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', 'cauldronSlots', { 0: null, 1: null, 2: null });
       await actor.unsetFlag('vikarovs-guide-to-kaeliduran-crafting', 'selectedOutcome');
-      alchemyInterface.render();
+      alchemyInterface.render(false);
     } catch (error) {
-      ui.notifications.error("Failed to clear cauldron slots: " + error.message);
+      console.error("Clear error:", error);
+      ui.notifications.error("Failed to clear cauldron");
     }
   });
 
-  html.find('.outcome-icon').on('click', async (event) => {
-    if (!actor) {
-      ui.notifications.error("No actor selected. Please select a token or provide an actor context.");
-      return;
+  html.on('click', '.outcome-icon', async event => {
+    const $target = $(event.currentTarget);
+    const category = $target.data('category');
+    const sum = $target.data('sum');
+    
+    if (category && sum) {
+      await actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', 'selectedOutcome', { category, sum });
+      alchemyInterface.render(false);
     }
-
-    const $icon = $(event.currentTarget);
-    const category = $icon.data('category');
-    const sum = $icon.data('sum');
-    await actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', 'selectedOutcome', { category, sum });
-    alchemyInterface.render();
   });
 
-  html.find('.details-btn').on('click', (event) => {
-    if (!actor) {
-      ui.notifications.error("No actor selected. Please select a token or provide an actor context.");
-      return;
-    }
-
-    const $button = $(event.currentTarget);
-    const itemId = $button.data('item-id');
+  html.on('click', '.details-btn', event => {
+    const $target = $(event.currentTarget);
+    const itemId = $target.data('item-id');
+    
     if (itemId) {
-      const item = game.items.get(itemId) || actor.items.get(itemId) || (itemId ? fromUuidSync(itemId) : null);
-      if (item) {
-        item.sheet.render(true);
-      } else {
-        ui.notifications.error("Item not found.");
+      try {
+        const item = game.items.get(itemId) || actor.items.get(itemId) || (itemId ? fromUuidSync(itemId) : null);
+        if (item) {
+          item.sheet.render(true);
+        } else {
+          ui.notifications.error("Item not found.");
+        }
+      } catch (error) {
+        console.error("Details error:", error);
+        ui.notifications.error("Failed to open item details");
       }
     }
   });
@@ -215,77 +211,112 @@ export async function prepareCauldronData(actor) {
   let ipSums = { combat: 0, utility: 0, entropy: 0 };
   let allSlotsFilled = true;
 
-  console.debug("Cauldron Slots:", cauldronSlots);
-
+  // Process each slot
   for (let i = 0; i < 3; i++) {
     const slotKey = i.toString();
     const itemId = cauldronSlots[slotKey];
+    
     if (itemId) {
-      const item = await fromUuid(itemId) || game.items.get(itemId) || actor.items.get(itemId);
-      resolvedSlots[i] = item ? item.img : null;
-      reagentNames[i] = item ? item.name || "Unknown Reagent" : null;
-      if (item) {
-        const flags = item.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'ipValues') || { combat: 0, utility: 0, entropy: 0 };
-        ipSums.combat += flags.combat || 0;
-        ipSums.utility += flags.utility || 0;
-        ipSums.entropy += flags.entropy || 0;
+      try {
+        // Try to resolve the item - first from UUID, then game items, then actor items
+        const item = await fromUuid(itemId) || game.items.get(itemId) || actor.items.get(itemId);
+        
+        if (item) {
+          resolvedSlots[i] = item.img;
+          reagentNames[i] = item.name || "Unknown Reagent";
+          
+          // Get IP values from the item
+          const flags = item.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'ipValues') || { combat: 0, utility: 0, entropy: 0 };
+          ipSums.combat += flags.combat || 0;
+          ipSums.utility += flags.utility || 0;
+          ipSums.entropy += flags.entropy || 0;
+        } else {
+          resolvedSlots[i] = null;
+          reagentNames[i] = "Item Not Found";
+          allSlotsFilled = false;
+        }
+      } catch (error) {
+        console.error(`Error resolving item for slot ${i}:`, error);
+        resolvedSlots[i] = null;
+        reagentNames[i] = "Error Loading Item";
+        allSlotsFilled = false;
       }
     } else {
       resolvedSlots[i] = null;
       reagentNames[i] = "Drop Reagent";
       allSlotsFilled = false;
     }
-    console.debug(`Slot ${i}: Item ID = ${itemId}, Filled = ${!!itemId}`);
   }
 
   const highlight = { combat: false, utility: false, entropy: false };
   let outcomeIcons = [];
 
+  // Only process outcomes if all slots are filled
   if (allSlotsFilled) {
-    const sums = [
-      { category: 'combat', value: ipSums.combat },
-      { category: 'utility', value: ipSums.utility },
-      { category: 'entropy', value: ipSums.entropy }
-    ];
-    const maxSum = Math.max(ipSums.combat, ipSums.utility, ipSums.entropy);
-    const highestCategories = sums.filter(sum => sum.value === maxSum);
+    try {
+      // Find the highest value category(s)
+      const sums = [
+        { category: 'combat', value: ipSums.combat },
+        { category: 'utility', value: ipSums.utility },
+        { category: 'entropy', value: ipSums.entropy }
+      ];
+      
+      const maxSum = Math.max(ipSums.combat, ipSums.utility, ipSums.entropy);
+      const highestCategories = sums.filter(sum => sum.value === maxSum);
 
-    highestCategories.forEach(({ category }) => {
-      highlight[category] = true;
-    });
+      // Highlight the highest categories
+      highestCategories.forEach(({ category }) => {
+        highlight[category] = true;
+      });
 
-    const outcomes = game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'consumableOutcomes');
-    const selectedOutcome = actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'selectedOutcome') || null;
+      // Get consumable outcomes and selected outcome
+      const outcomes = game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'consumableOutcomes') || {};
+      const selectedOutcome = actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'selectedOutcome') || null;
 
-    outcomeIcons = await Promise.all(highestCategories.map(async ({ category, value: sum }) => {
-      const capitalizedCategory = category.charAt(0).toUpperCase() + category.slice(1);
-      const itemUuid = outcomes[capitalizedCategory][sum] || null;
-      let itemImg = 'modules/vikarovs-guide-to-kaeliduran-crafting/assets/question-mark.png';
-      let outcomeName = `Unknown ${capitalizedCategory} ${sum}`;
-      let hasItem = false;
-      let itemId = null;
+      // Map outcome icons for display
+      outcomeIcons = await Promise.all(highestCategories.map(async ({ category, value: sum }) => {
+        const capitalizedCategory = category.charAt(0).toUpperCase() + category.slice(1);
+        const itemUuid = outcomes[capitalizedCategory]?.[sum] || null;
+        
+        let itemImg = 'modules/vikarovs-guide-to-kaeliduran-crafting/assets/question-mark.png';
+        let outcomeName = `Unknown ${capitalizedCategory} ${sum}`;
+        let hasItem = false;
+        let itemId = null;
 
-      if (itemUuid) {
-        const item = await fromUuid(itemUuid);
-        if (item) {
-          itemId = item.id;
-          itemImg = item.img;
-          outcomeName = item.name || outcomeName;
-          hasItem = true;
+        if (itemUuid) {
+          try {
+            const item = await fromUuid(itemUuid);
+            if (item) {
+              itemId = item.id;
+              itemImg = item.img;
+              outcomeName = item.name || outcomeName;
+              hasItem = true;
+            }
+          } catch (error) {
+            console.error(`Error resolving outcome item for ${category} ${sum}:`, error);
+          }
         }
-      }
 
-      const isSelected = selectedOutcome && selectedOutcome.category === category && selectedOutcome.sum === sum;
-      return { category, sum, img: itemImg, outcomeName, itemId, hasItem, isSelected };
-    }));
+        // Check if this is the selected outcome
+        const isSelected = selectedOutcome && 
+                          selectedOutcome.category === category && 
+                          selectedOutcome.sum === sum;
+        
+        return { 
+          category, 
+          sum, 
+          img: itemImg, 
+          outcomeName, 
+          itemId, 
+          hasItem, 
+          isSelected 
+        };
+      }));
+    } catch (error) {
+      console.error("Error preparing outcome icons:", error);
+      outcomeIcons = [];
+    }
   }
-
-  console.debug("prepareCauldronData Result:", {
-    allSlotsFilled,
-    outcomeIconsLength: outcomeIcons.length,
-    cauldronSlots,
-    ipSums
-  });
 
   return {
     cauldronSlots: resolvedSlots,

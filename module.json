@@ -33,7 +33,7 @@
     "css/reagentTableButton.css",
     "css/harvestTokens.css",
     "css/lootDialog.css",
-    "rollTester.css",
+    "css/rollTester.css",
     "css/reagentConfig.css"
   ],
   "templates": [

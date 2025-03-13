@@ -5,6 +5,13 @@ import { handleCauldronListeners, prepareCauldronData } from './alchemyInterface
 export class AlchemyInterface extends Application {
   constructor(actor, options = {}) {
     super(options);
+    
+    // IMPORTANT: Prevent using with NPCs
+    if (actor && actor.type === "npc") {
+      ui.notifications.warn("Alchemy Interface can only be used with player characters, not NPCs.");
+      return;
+    }
+    
     this._actor = actor;
     this.editMode = false;
     this.isInitialized = false;
@@ -13,7 +20,7 @@ export class AlchemyInterface extends Application {
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: "alchemy-interface",
-      title: "Vikarov’s Alchemy Interface",
+      title: "Vikarov's Alchemy Interface",
       template: "modules/vikarovs-guide-to-kaeliduran-crafting/templates/alchemyInterface.hbs",
       width: 700,
       height: 925,
@@ -36,7 +43,22 @@ export class AlchemyInterface extends Application {
     });
   }
 
+  // Override render to prevent rendering for NPCs
+  async render(force = false, options = {}) {
+    // Extra safety check - never render for NPCs
+    if (this._actor && this._actor.type === "npc") {
+      ui.notifications.warn("Alchemy Interface can only be used with player characters, not NPCs.");
+      return null;
+    }
+    
+    const rendered = await super.render(force, options);
+    return rendered;
+  }
+
   activateListeners(html) {
+    // Extra safety check - do nothing for NPCs
+    if (!this._actor || this._actor.type === "npc") return;
+    
     const tabs = new Tabs(this.options.tabs);
     tabs.bind(html[0]);
     html.find('[data-tab]').on("click", async (event) => {
@@ -86,6 +108,11 @@ export class AlchemyInterface extends Application {
   }
 
   async getData() {
+    // Extra safety check - return empty data for NPCs
+    if (!this._actor || this._actor.type === "npc") {
+      return {};
+    }
+    
     const data = {};
     const lastTab = await this._actor.getFlag("vikarovs-guide-to-kaeliduran-crafting", "lastAlchemyInterfaceTab") || "combat";
     this.options.tabs[0].initial = lastTab;
@@ -119,13 +146,11 @@ export class AlchemyInterface extends Application {
     data.outcomeIcons = cauldronData.outcomeIcons;
     data.allSlotsFilled = cauldronData.allSlotsFilled;
 
-    console.debug("getData Result:", data); // Debug the final data passed to template
-
     return data;
   }
 
   async close(options = {}) {
-    if (this._actor) {
+    if (this._actor && this._actor.type !== "npc") {
       await this._actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', 'cauldronSlots', { 0: null, 1: null, 2: null });
       await this._actor.unsetFlag('vikarovs-guide-to-kaeliduran-crafting', 'selectedOutcome');
       await this._actor.unsetFlag('vikarovs-guide-to-kaeliduran-crafting', 'editMode');
@@ -133,11 +158,6 @@ export class AlchemyInterface extends Application {
     }
     this.editMode = false;
     return super.close(options);
-  }
-
-  async render(force = false, options = {}) {
-    const rendered = await super.render(force, options);
-    return rendered;
   }
 
   _getHeaderButtons() {

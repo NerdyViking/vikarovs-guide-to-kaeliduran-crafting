@@ -3,6 +3,42 @@
 /* === NPC Config Dialog Styling === */
 .reagent-config-dialog {
     min-height: 400px;
+    color: antiquewhite;
+    opacity: 1;
+  }
+
+  .reagent-config-dialog .window-header {
+    background: #1a1a1a;
+    opacity: 1 !important;
+  }
+  
+  .reagent-config-dialog .window-content {
+    background: #1a1a1a;
+    opacity: 1 !important;
+  }
+  .reagent-config-dialog .config-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 10px;
+  }
+  
+  .reagent-config-dialog .header {
+    margin-bottom: 10px;
+  }
+  
+  .reagent-config-dialog .header h2 {
+    margin: 0;
+    border-bottom: 1px solid #444;
+    padding-bottom: 5px;
+    color: antiquewhite;
+  }
+  
+  .reagent-config-dialog .hint {
+    font-style: italic;
+    color: antiquewhite;
+    font-size: 0.9em;
+    margin: 5px 0;
   }
   
   .reagent-config-dialog .form-group {
@@ -12,7 +48,7 @@
   .reagent-config-dialog label {
     display: block;
     margin-bottom: 5px;
-    color: #ddd;
+    color: antiquewhite;
     font-weight: bold;
   }
   
@@ -25,6 +61,32 @@
     border: 1px solid #666;
     border-radius: 3px;
     padding: 5px 8px;
+  }
+  
+  .reagent-config-dialog .creature-info {
+    background-color: #2c2c2c;
+    border: 1px solid #444;
+    border-radius: 3px;
+    padding: 8px;
+  }
+  
+  .reagent-config-dialog .info-row {
+    display: flex;
+    margin-bottom: 5px;
+  }
+  
+  .reagent-config-dialog .info-row:last-child {
+    margin-bottom: 0;
+  }
+  
+  .reagent-config-dialog .info-label {
+    width: 100px;
+    font-weight: bold;
+    color: antiquewhite;
+  }
+  
+  .reagent-config-dialog .info-value {
+    flex: 1;
   }
   
   .reagent-config-dialog .config-options {
@@ -47,25 +109,60 @@
     gap: 5px;
     padding: 10px;
     background-color: #2c2c2c;
-    border: 1px solid #444;
+    border: 1px solid antiquewhite;
     border-radius: 3px;
     cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
   }
   
   .reagent-config-dialog .type-toggle.active {
     background-color: #3a3a3a;
-    border-color: #888;
+    border-color: antiquewhite;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+  }
+  
+  .reagent-config-dialog .type-toggle:hover {
+    border-color: antiquewhite;
+    box-shadow: 0 0 3px rgba(255, 255, 255, 0.1);
   }
   
   .reagent-config-dialog .type-toggle i {
     font-size: 1.5em;
+    margin-bottom: 5px;
+  }
+  
+  .reagent-config-dialog .type-toggle .description {
+    font-size: 0.8em;
+    color: antiquewhite;
+    margin-top: 5px;
+  }
+  
+  .reagent-config-dialog .range-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .reagent-config-dialog .range-field input {
+    flex: 1;
+  }
+  
+  .reagent-config-dialog .range-value {
+    width: 50px;
+    text-align: center;
+    background-color: #333;
+    border: 1px solid #555;
+    border-radius: 3px;
+    padding: 3px 0;
   }
   
   .reagent-config-dialog .range-display {
     display: flex;
     justify-content: space-between;
     font-size: 0.9em;
-    color: #aaa;
+    color: antiquewhite;
+    margin-top: 5px;
   }
   
   .reagent-config-dialog .button-row {
@@ -77,15 +174,28 @@
   
   .reagent-config-dialog .save-config-btn,
   .reagent-config-dialog .cancel-btn {
-    padding: 5px 10px;
+    padding: 8px 15px;
     background-color: #4b4a44;
     color: #f0f0e0;
     border: none;
     border-radius: 3px;
     cursor: pointer;
+    transition: background-color 0.2s ease;
   }
   
   .reagent-config-dialog .save-config-btn:hover,
   .reagent-config-dialog .cancel-btn:hover {
     background-color: #5b5a54;
+  }
+  
+  .reagent-config-dialog .save-config-btn {
+    background-color: #282530;
+  }
+  
+  .reagent-config-dialog .save-config-btn:hover {
+    background-color: #4a76a8;
+  }
+
+  .reagent-config-dialog .creature-info span i {
+    color: antiquewhite;
   }

@@ -3,6 +3,9 @@
 import { AlchemyInterface } from "../alchemy/alchemyInterface.js";
 
 function injectButtons(app, html) {
+  // IMPORTANT: Only inject for PC character sheets, not NPCs
+  if (app.actor.type === "npc") return false;
+
   const inventoryElement = html.find('dnd5e-inventory.inventory-element');
   if (inventoryElement.length === 0) {
     console.warn("Inventory element not found");
@@ -54,6 +57,9 @@ function injectButtons(app, html) {
 
 // Function to append reagent metadata to the .tags div
 function injectReagentMetadataToTags(app, html) {
+  // IMPORTANT: Only inject for PC character sheets, not NPCs
+  if (app.actor.type === "npc") return;
+
   const actor = app.actor;
   if (!actor) {
     console.warn("No actor available to inject reagent metadata into tags");
@@ -93,6 +99,9 @@ function injectReagentMetadataToTags(app, html) {
 }
 
 function setupInventoryButtons(app, html, data) {
+  // IMPORTANT: Only setup for PC character sheets, not NPCs
+  if (app.actor.type === "npc") return;
+
   const sheetBody = html.find('.sheet-body');
   if (sheetBody.length === 0) {
     console.warn("Sheet body not found");
@@ -155,8 +164,12 @@ function setupInventoryButtons(app, html, data) {
   injectReagentMetadataToTags(app, html);
 }
 
+// Hook only on character sheets, not NPC sheets
 Hooks.on("renderActorSheet", (app, html, data) => {
-  setupInventoryButtons(app, html, data);
+  // Extra safety check - only run for character sheets
+  if (app.actor.type !== "npc") {
+    setupInventoryButtons(app, html, data);
+  }
 });
 
 export { setupInventoryButtons };
