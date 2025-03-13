@@ -1,0 +1,20 @@
+<!-- Create a harvestable-indicator.svg in your assets directory -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Main circle -->
+  <circle cx="50" cy="50" r="46" fill="#285D34" stroke="#4CAF50" stroke-width="5"/>
+  
+  <!-- Mortar and pestle icon -->
+  <g fill="#ffffff">
+    <!-- Pestle handle -->
+    <rect x="30" y="20" width="10" height="40" rx="5" transform="rotate(30, 35, 40)"/>
+    
+    <!-- Mortar -->
+    <path d="M65,65 C80,65 85,55 85,45 C85,35 75,35 65,35 C45,35 40,50 40,65 Z" />
+    
+    <!-- Bowl interior -->
+    <path d="M65,60 C75,60 80,52 80,45 C80,38 72,40 65,40 C50,40 45,50 45,60 Z" fill="#285D34"/>
+    
+    <!-- Leaf -->
+    <path d="M55,30 C65,20 80,25 80,35 C80,45 65,45 60,35 C58,30 57,35 55,30 Z"/>
+  </g>
+</svg>

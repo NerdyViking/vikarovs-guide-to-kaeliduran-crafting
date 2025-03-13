@@ -16,14 +16,15 @@
     "js/workshop/workshopCrafting.js",
     "js/workshop/components.js",
     "js/shared/utils.js",
-    "js/harvest/combatHarvest.js",
+    "js/harvest/convertDefeat.js",
+    "js/harvest/harvestableInterface.js",
+    "js/harvest/lootableInterface.js",
+    "js/harvest/remainsManager.js",
+    "js/harvest/tileInteraction.js",
     "js/harvest/reagentConfig.js",
     "js/harvest/reagentTables.js",
     "js/harvest/reagentTableEditor.js",
-    "js/harvest/reagentTableButton.js",
-    "js/harvest/harvestCheck.js",
-    "js/harvest/lootDialog.js",
-    "js/harvest/rollTester.js"
+    "js/harvest/reagentTableButton.js"
   ],
   "styles": [
     "css/inventoryInterfaceButtons.css",
@@ -31,10 +32,9 @@
     "css/workshopInterface.css",
     "css/reagentTableEditor.css",
     "css/reagentTableButton.css",
-    "css/harvestTokens.css",
-    "css/lootDialog.css",
-    "css/rollTester.css",
-    "css/reagentConfig.css"
+    "css/reagentConfig.css",
+    "css/remainsInterface.css",
+    "css/remainsStyle.css"
   ],
   "templates": [
     "templates/alchemyInterface.hbs",
@@ -42,8 +42,9 @@
     "templates/workshopInterface.hbs",
     "templates/reagentConfigDialog.hbs",
     "templates/reagentTableEditor.hbs",
-    "templates/rollTester.hbs",
-    "templates/lootDialog.hbs"
+    "templates/convertDefeatDialog.hbs",
+    "templates/harvestableInterface.hbs",
+    "templates/lootableInterface.hbs"
   ],
   "url": "",
   "manifest": "",

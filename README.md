@@ -31,39 +31,105 @@ A modular crafting system for Foundry VTT, featuring alchemy and future magic it
 - **Step 4:** Add table filtering based on tags
 - **Step 5:** Test configuration with different NPC types
 
-### Phase 3: Combat End Conversion
+## Phase 3: Combat End Conversion
 
-- **Step 1:** Create hook into deleteCombat event
-- **Step 2:** Add dialog for showing defeated creatures
-- **Step 3:** Implement token conversion logic (harvestable/lootable)
-- **Step 4:** Add visual indicators for converted tokens
-- **Step 5:** Test with multiple defeated creatures
+### Overview
 
-### Phase 4: Harvesting Mechanics
+Phase 3 will implement the conversion of defeated creatures into interactive remains that players can harvest for reagents or loot for items. Instead of modifying the original tokens, we'll replace them with tiles that represent the remains of defeated creatures. This approach provides a cleaner solution with better visual feedback and user experience.
 
-- **Step 1:** Add double-click handler for harvestable tokens
-- **Step 2:** Implement skill check determination based on creature type
-- **Step 3:** Create DC calculation and success tier logic
-- **Step 4:** Implement reagent award system with inventory updates
-- **Step 5:** Add depletion state for harvested tokens
+### File Structure Changes
 
-### Phase 5: Looting Interface
+We've reorganized the file structure to better reflect our tile-based approach:
 
-- **Step 1:** Create loot dialog UI
-- **Step 2:** Implement item display and transfer to player inventory
-- **Step 3:** Add special handling for reagents in loot
-- **Step 4:** Test multi-player looting scenarios
+#### JavaScript Files
 
-### Phase 6: Styling and Polish
+- **js/harvest/convertDefeat.js**: Handles both automated conversion of defeated tokens to tiles and provides a GM sidebar button for manual conversion
+- **js/harvest/harvestableInterface.js**: Manages the dialog and skill check interactions for harvestable remains
+- **js/harvest/lootableInterface.js**: Manages the dialog and inventory transfer logic for lootable remains
+- **js/harvest/remainsManager.js**: Provides shared utilities for tracking and managing remains tiles
+- **js/harvest/tileInteraction.js**: Hooks into tile click events and routes to the appropriate interface
 
-- **Step 1:** Design and implement CSS for all dialogs
-- **Step 2:** Create token overlays/indicators for different states
-- **Step 3:** Add animations and visual feedback
-- **Step 4:** Optimize performance and ensure responsive UI
+#### Template Files
 
-### Phase 7: Documentation and Testing
+- **templates/convertDefeatDialog.hbs**: Dialog for manual token conversion
+- **templates/harvestableInterface.hbs**: Interface for harvesting reagents from remains
+- **templates/lootableInterface.hbs**: Interface for looting items from remains
 
-- **Step 1:** Create user documentation for GMs
-- **Step 2:** Implement error handling and edge cases
-- **Step 3:** Conduct thorough testing with various scenarios
-- **Step 4:** Optimize and refine based on testing feedback
+#### CSS Files
+
+- **css/remainsInterface.css**: Styles for the harvesting and looting dialogs
+- **css/remainsStyle.css**: Styles for tile overlays and visual indicators
+
+### Updated Implementation Steps
+
+#### Step 1: Combat End Detection and Conversion
+
+- Implement hooks into the `deleteCombat` event to detect when a combat encounter ends
+- Identify defeated creatures (HP = 0 or custom defeat markers)
+- Create a dialog showing all defeated creatures with their configured type (harvestable or lootable)
+- Allow the GM to select which creatures to convert to remains
+- Implement automatic conversion based on module settings (optional confirmation dialog)
+- Create a sidebar button for GMs to manually convert selected tokens outside of combat
+
+#### Step 2: Remains Creation
+
+- Create Tile objects to represent the remains of defeated creatures
+- Position tiles at the location of the defeated token
+- Apply visual styling to differentiate harvestable vs. lootable remains
+- Store references to the original creature data (including configured reagent tables and loot)
+- Remove the original token from the scene
+- Register the newly created remains in a tracker system
+
+#### Step 3: Tile Interaction System
+
+- Implement hooks into tile click events
+- Determine if a clicked tile is a remains tile
+- Check if the remains have already been harvested/looted
+- Route to the appropriate interface based on the remains type (harvestable or lootable)
+- Show appropriate warnings if remains have already been depleted
+
+#### Step 4: Harvestable Interface
+
+- Create a dialog showing information about the harvestable creature
+- Display the required skill check and DC
+- Implement a button to initiate the harvesting attempt
+- Use the Foundry and D&D 5e roll mechanics to perform the skill check
+- Award reagents based on success tiers and the configured reagent table
+- Update the remains to a depleted state
+- Prevent further harvesting attempts
+
+#### Step 5: Lootable Interface
+
+- Create a dialog showing items available for looting
+- Display items from the creature's inventory and generated reagents
+- Implement buttons to take individual items or all items
+- Transfer items to the player's inventory when taken
+- Remove items from the loot list once taken
+- Update the remains to a depleted state when all items are taken
+
+#### Step 6: Remains Management
+
+- Implement a system to track all remains on the scene
+- Provide visual indicators for available and depleted remains
+- Ensure multiple players can view the same remains simultaneously
+- Update all open interfaces when remains status changes
+- Implement permission checks for appropriate access control
+
+#### Step 7: Testing and Edge Cases
+
+- Test with multiple defeated creatures of different types
+- Test with multiple players accessing the same remains
+- Handle edge cases such as:
+    - Scene changes while dialogs are open
+    - Token deletion outside of regular combat flow
+    - Permission issues with different user roles
+    - Synchronization when multiple players interact simultaneously
+
+### Technical Considerations
+
+- Use Foundry's Tile APIs for creating and managing remains
+- Store remains data as flags on the tile object
+- Use Hooks.on("clickTile") to detect interaction
+- Implement socket events for multi-user synchronization
+- Use the D&D 5e system's native roll mechanics for skill checks
+- Ensure compatibility with token vision and lighting systems
