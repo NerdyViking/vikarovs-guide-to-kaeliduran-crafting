@@ -29,11 +29,3 @@ div.crafting-controls {
     color: #808080; /* Grayed out for disabled state */
     cursor: not-allowed;
   }
-
-  .reagent-metadata {
-    display: flex;
-    color: #c9c7b8; /* Matches reagent-selection .reagent-metadata */
-    font-size: 12px; /* Matches reagent-selection .reagent-metadata */
-    text-align: right; /* Small spacing from item name */
-    white-space: nowrap; /* Keep it on one line */
-  }

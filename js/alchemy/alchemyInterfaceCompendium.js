@@ -53,23 +53,12 @@ export function handleCompendiumListeners(alchemyInterface, html) {
 
   if (editMode && game.user.isGM) {
     html.find('.clear-outcome').on("click", async (event) => {
-      event.preventDefault(); // Prevent any default behavior
       const sum = event.currentTarget.dataset.sum;
       const category = event.currentTarget.dataset.category;
-      try {
-        const outcomes = foundry.utils.deepClone(game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'consumableOutcomes'));
-        delete outcomes[category][sum];
-        await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'consumableOutcomes', outcomes);
-        try {
-          alchemyInterface.render();
-        } catch (renderError) {
-          ui.notifications.error("Failed to render after clearing outcome: " + renderError.message);
-          console.error("Render error:", renderError);
-        }
-      } catch (error) {
-        ui.notifications.error("Failed to clear outcome: " + error.message);
-        console.error("Clear outcome error:", error);
-      }
+      const outcomes = foundry.utils.deepClone(game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'consumableOutcomes'));
+      delete outcomes[category][sum];
+      await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'consumableOutcomes', outcomes);
+      alchemyInterface.render();
     });
 
     html.find('.outcome-cell').on('drop', async (event) => {
@@ -157,7 +146,10 @@ export function getCompendiumItem(category, sum) {
 // Helper function to highlight the outcome
 export function highlightOutcome(category, sum, html) {
   const $outcomeCell = html.find(`.outcome-cell[data-category="${category.charAt(0).toUpperCase() + category.slice(1)}"][data-sum="${sum}"] .outcome-icon`);
+  console.log(`Highlighting outcome for category: ${category}, sum: ${sum}, found elements: ${$outcomeCell.length}`);
   if ($outcomeCell.length) {
     $outcomeCell.addClass('highlight-outcome').closest('.outcome-cell').siblings().find('.outcome-icon').removeClass('highlight-outcome');
+  } else {
+    console.warn(`No outcome-icon found for category: ${category}, sum: ${sum}`);
   }
 }
