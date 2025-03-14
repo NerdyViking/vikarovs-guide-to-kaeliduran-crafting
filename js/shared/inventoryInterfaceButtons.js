@@ -1,5 +1,3 @@
-// js/shared/inventoryInterfaceButtons.js
-
 // Import necessary dependencies
 import { AlchemyInterface } from "../alchemy/alchemyInterface.js";
 
@@ -62,6 +60,11 @@ function injectButtons(app, html) {
 
 // Function to setup the MutationObserver and handle button injection
 function setupInventoryButtons(app, html) {
+  // Check if the actor is a PC and the sheet is the default 5e PC sheet
+  if (app.actor.type !== "character" || !(app instanceof dnd5e.applications.actor.ActorSheet5eCharacter)) {
+    return;
+  }
+
   // Target the .sheet-body (parent of all tab content)
   const sheetBody = html.find('.sheet-body');
   if (sheetBody.length === 0) {
