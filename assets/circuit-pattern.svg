@@ -1,0 +1,14 @@
+<svg width="300" height="300" xmlns="http://www.w3.org/2000/svg">
+    <!-- Central Component Box -->
+    <rect x="130" y="50" width="40" height="40" stroke="black" fill="none" stroke-width="2" />
+
+    <!-- Lines connecting to outcomes -->
+    <line x1="150" y1="90" x2="130" y2="130" stroke="black" stroke-width="2" />
+    <line x1="150" y1="90" x2="150" y2="130" stroke="black" stroke-width="2" />
+    <line x1="150" y1="90" x2="170" y2="130" stroke="black" stroke-width="2" />
+
+    <!-- Outcome Boxes -->
+    <rect x="110" y="130" width="40" height="40" stroke="black" fill="none" stroke-width="2" />
+    <rect x="140" y="130" width="40" height="40" stroke="black" fill="none" stroke-width="2" />
+    <rect x="170" y="130" width="40" height="40" stroke="black" fill="none" stroke-width="2" />
+</svg>

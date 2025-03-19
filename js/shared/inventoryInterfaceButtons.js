@@ -1,5 +1,6 @@
-// Import necessary dependencies
+// js/shared/inventoryInterfaceButtons.js
 import { AlchemyInterface } from "../alchemy/alchemyInterface.js";
+import { VikarovsWorkshopInterface } from "../workshop/workshopInterface.js"; // Update import
 
 // Function to inject buttons into a new div before .middle
 function injectButtons(app, html) {
@@ -36,7 +37,7 @@ function injectButtons(app, html) {
       `<button class="cauldron-btn" title="Cauldron: Open the Alchemy Interface to craft potions and bombs">Cauldron</button>`
     );
     craftingControls.append(
-      `<button class="workshop-btn" title="Workshop: Open the Workshop to craft magical items (Coming Soon)">Workshop</button>`
+      `<button class="workshop-btn" title="Workshop: Open the Workshop to craft magical items">Workshop</button>`
     );
 
     // Bind click events
@@ -46,11 +47,8 @@ function injectButtons(app, html) {
     });
 
     craftingControls.find('.workshop-btn').on('click', () => {
-      new foundry.applications.Dialog({
-        title: "Workshop",
-        content: "<p>Workshop Coming Soon!</p>",
-        buttons: { close: { label: "Close" } }
-      }).render(true);
+      const actor = app.actor;
+      new VikarovsWorkshopInterface(actor).render(true);
     });
 
     return true;

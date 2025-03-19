@@ -1,4 +1,35 @@
-<!-- Placeholder for Workshop Interface template -->
-<div class="workshop-interface">
-  <!-- Content will be added later -->
+<!-- templates/workshopInterface.hbs -->
+<div class="vikarovs-workshop-interface">
+  <div class="pane-container">
+    <!-- Left Pane: Vikarov's Compendium -->
+    <div class="recipe-browser">
+      <h2>Vikarov's Compendium</h2>
+      <div class="recipe-list">
+        <p>Recipes: {{recipes.length}}</p>
+        {{#each recipes}}
+          <div class="recipe-item" data-recipe-id="{{id}}">
+            <span class="recipe-icon" style="background-image: url('{{componentIcon}}');"></span>
+            <span class="recipe-name" data-tooltip="{{description}}">{{#if unlocked}}{{name}}{{else}}???{{/if}}</span>
+          </div>
+        {{/each}}
+        {{#if isGM}}
+          <button class="new-recipe-btn">Create New Recipe</button>
+        {{/if}}
+      </div>
+    </div>
+    <!-- Middle Pane: Forge Ledger -->
+    <div class="recipe-viewer">
+      <h2>Forge Ledger</h2>
+      <div class="recipe-content">
+        {{{recipeViewerContent}}}
+      </div>
+    </div>
+    <!-- Right Pane: Workshop -->
+    <div class="crafting-area">
+      <h2>Workshop</h2>
+      <div class="crafting-content">
+        {{craftingContent}}
+      </div>
+    </div>
+  </div>
 </div>

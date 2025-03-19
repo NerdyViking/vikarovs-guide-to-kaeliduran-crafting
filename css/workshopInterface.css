@@ -1,1 +1,550 @@
-/* Placeholder for Workshop Interface styles */
+/* css/workshopInterface.css */
+.vikarovs-workshop-interface {
+    background: url(../assets/denim075.png);
+    background-color: #1a1a1a;
+    color: #f0f0e0;
+    padding: 10px;
+    padding-top: 0px;
+  }
+  
+  .vikarovs-workshop-interface .window-content::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 150px;
+    border-radius: 5px 5px 0 0;
+    opacity: 0.2;
+    background: url("../assets/banner-item-dark.png") no-repeat top center / cover;
+    mask-image: linear-gradient(to bottom, black, transparent);
+    z-index: 0;
+  }
+  
+  .vikarovs-workshop-interface .content {
+    min-height: 200px;
+    z-index: 1;
+  }
+  
+  .vikarovs-workshop-interface .window-header .window-title {
+    visibility: hidden;
+  }
+  
+  .vikarovs-workshop-interface .window-header {
+    justify-content: center;
+    padding-left: 0px;
+    padding-right: 0px;
+    z-index: 1;
+  }
+  
+  .pane-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    height: 100%;
+  }
+  
+  .recipe-browser, .crafting-area {
+    flex: 1;
+    margin: 0 5px;
+    border: 3px solid #4b4a44;
+    border-radius: 6px;
+    padding: 10px;
+    overflow-y: auto;
+  }
+  
+  .crafting-area {
+    flex: 2;
+    margin: 0 5px;
+    border: 3px solid #4b4a44;
+    border-radius: 6px;
+    padding: 10px;
+    overflow-y: auto;
+  }
+  
+  .recipe-viewer {
+    flex: 2;
+    margin: 0 5px;
+    border: 3px solid #4b4a44;
+    border-radius: 6px;
+    padding: 10px;
+    overflow-y: auto;
+  }
+  
+  .recipe-browser h2, .recipe-viewer h2, .crafting-area h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #4b4a44;
+    color: #c4b998;
+    font-family: "Modesto Condensed", "Palatino Linotype", serif;
+    font-size: 1.5rem;
+    text-align: center;
+  }
+  
+  .recipe-list {
+    min-height: 200px;
+    padding-bottom: 50px;
+  }
+  
+  .recipe-content, .crafting-content {
+    min-height: 200px;
+  }
+  
+  .recipe-browser {
+    position: relative;
+  }
+  
+  .recipe-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    margin-bottom: 5px;
+    background: #252830;
+    border: 1px solid #3c3c3c;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+  }
+  
+  .recipe-item:hover {
+    border-color: #ff0000;
+  }
+  
+  .recipe-item .recipe-icon {
+    width: 45px;
+    height: 45px;
+    margin-right: 10px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-image: url('/icons/svg/mystery-man.svg'); /* Default placeholder */
+  }
+  
+  .recipe-item .recipe-name {
+    flex: 1;
+    color: #f0f0e0;
+    font-size: 14px;
+  }
+  
+  .new-recipe-form, .edit-recipe-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .new-recipe-form label, .edit-recipe-form label {
+    font-weight: bold;
+  }
+  
+  .new-recipe-form input, .edit-recipe-form input {
+    padding: 5px;
+    background: #333;
+    color: #f0f0e0;
+    border: 1px solid #4b4a44;
+    border-radius: 3px;
+  }
+  
+  .new-recipe-form textarea, .edit-recipe-form textarea {
+    padding: 5px;
+    background: #333;
+    color: #f0f0e0;
+    border: 1px solid #4b4a44;
+    border-radius: 3px;
+    resize: vertical;
+    min-height: 100px;
+  }
+  
+  .new-recipe-form button, .edit-recipe-form button {
+    padding: 5px 10px;
+    background: #4b4a44;
+    color: #f0f0e0;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  .new-recipe-form button:hover, .edit-recipe-form button:hover {
+    background: #5b5a54;
+  }
+  
+  .toggle-edit-btn {
+    padding: 5px 10px;
+    background: #4b4a44;
+    color: #f0f0e0;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  .toggle-edit-btn:hover {
+    background: #5b5a54;
+  }
+  
+  .delete-recipe-btn {
+    padding: 5px 10px;
+    background: #ff0000;
+    color: #f0f0e0;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  .delete-recipe-btn:hover {
+    background: #cc0000;
+  }
+  
+  .new-recipe-btn {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    width: calc(100% - 20px);
+    padding: 5px 10px;
+    background: #4b4a44;
+    color: #f0f0e0;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  .new-recipe-btn:hover {
+    background: #5b5a54;
+  }
+  
+  .drop-zone {
+    border: 2px dashed #4b4a44;
+    border-radius: 3px;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+  }
+  
+  .drop-zone:hover {
+    border-color: #ff0000;
+  }
+  
+  .component-display {
+    display: flex;
+  }
+  
+  .component-icon {
+    width: 72px;
+    height: 72px;
+    background-size: contain;
+    background-position: center;
+    position: relative;
+  }
+  
+  .dc-value, .gold-value {
+    display: inline-block;
+    margin-left: 5px;
+  }
+  
+  .component-row .remove-component {
+    position: relative;
+    top: 4px;
+    right: -14px;
+    width: 16px;
+    height: 16px;
+    background: #ff0000;
+    color: #f0f0e0;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 16px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .outcome-slot1 .remove-component,
+  .outcome-slot2 .remove-component,
+  .outcome-slot3 .remove-component {
+    position: relative;
+    top: -122px;
+    right: -63px;
+    width: 16px;
+    height: 16px;
+    background: #ff0000;
+    color: #f0f0e0;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 16px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  
+  .remove-component:hover {
+    background: #cc0000;
+    box-shadow: red 5px;
+  }
+  
+  .tool-select {
+    padding: 5px;
+    background: #333;
+    color: #f0f0e0;
+    border: 1px solid #4b4a44;
+    border-radius: 3px;
+    margin-top: 5px;
+  }
+
+/* css/workshopInterface.css */
+/* ... (previous styles unchanged) ... */
+
+/* Tooltip styling */
+.recipe-name {
+  position: relative;
+}
+
+/* Recipe viewer as a flex container */
+.recipe-viewer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin: 0 5px;
+  border: 3px solid #4b4a44;
+  border-radius: 6px;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.recipe-viewer h2 {
+  flex: 0 0 40px; /* Fixed height for the header */
+  margin-top: 0;
+  margin-bottom: 10px;
+  border-bottom: 2px solid #4b4a44;
+  color: #c4b998;
+  font-family: "Modesto Condensed", "Palatino Linotype", serif;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+/* Recipe content as a flex container */
+.recipe-content {
+  flex: 1; /* Take remaining space */
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.recipe-details {
+  flex: 1; /* Take remaining space */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.description,
+.recipe-description-input {
+  padding: 5px;
+  background: #333;
+  color: #f0f0e0;
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
+  height: 100px;
+}
+
+.recipe-description-input {
+  resize: vertical;
+  min-height: 50px;
+}
+
+.recipe-border {
+  position: relative;
+  background-image: url('../assets/circuit-pattern.png');
+  background-size: contain; /* Match the assumed image dimensions */
+  background-position: center;
+  background-repeat: no-repeat;
+  margin: 30px;
+  height: 300px;
+}
+
+/* Component row */
+.component-row {
+  position: relative;
+  top: -6px;
+  text-align: center;
+}
+
+.component-row .component-display .component-icon {
+  position: absolute;
+  top: 11px; /* Center vertically in the top square (adjust based on image) */
+  left: 50%;
+  transform: translateX(-50%);
+  border: outset;
+}
+
+/* Tool row */
+.tool-row {
+  display: flex;
+  height: 50px; /* Fixed height for tool row */
+  position: relative;
+  left: 8px;
+  top: 35px;
+}
+
+.tool-row p{
+  text-wrap: nowrap;
+}
+
+.tool-row .tool-icon {
+  position: absolute;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: pointer;
+  border: outset;
+  background-color: #4b4a44;
+}
+
+.tool-row .tool-icon:nth-child(1) {
+  left: 8px; /* Align with the left bend (adjust based on image) */
+  top: 64px; /* Above the first outcome slot */
+  height: 45px;
+  width: 45px;
+}
+.tool-row .tool-icon:nth-child(2) {
+  left: 150px; /* Align with the middle bend (adjust based on image) */
+  top: 64px; /* Above the second outcome slot */
+  height: 45px;
+  width: 45px;
+}
+.tool-row .tool-icon:nth-child(3) {
+  left: 291px; /* Align with the right bend (adjust based on image) */
+  top: 64px; /* Above the third outcome slot */
+  height: 45px;
+  width: 45px;
+}
+
+.tool-row .tool-icon[data-tool="alchemist"] {
+  background-image: url('../assets/alchemist.svg');
+}
+.tool-row .tool-icon[data-tool="brewer"] {
+  background-image: url('../assets/brewer.svg');
+}
+.tool-row .tool-icon[data-tool="calligrapher"] {
+  background-image: url('../assets/calligrapher.svg');
+}
+.tool-row .tool-icon[data-tool="carpenter"] {
+  background-image: url('../assets/carpenter.svg');
+}
+.tool-row .tool-icon[data-tool="cartographer"] {
+  background-image: url('../assets/cartographer.svg');
+}
+.tool-row .tool-icon[data-tool="cobbler"] {
+  background-image: url('../assets/cobbler.svg');
+}
+.tool-row .tool-icon[data-tool="cook"] {
+  background-image: url('../assets/cook.svg');
+}
+.tool-row .tool-icon[data-tool="glassblower"] {
+  background-image: url('../assets/glassblower.svg');
+}
+.tool-row .tool-icon[data-tool="jeweler"] {
+  background-image: url('../assets/jeweler.svg');
+}
+.tool-row .tool-icon[data-tool="leatherworker"] {
+  background-image: url('../assets/leatherworker.svg');
+}
+.tool-row .tool-icon[data-tool="mason"] {
+  background-image: url('../assets/mason.svg');
+}
+.tool-row .tool-icon[data-tool="painter"] {
+  background-image: url('../assets/painter.svg');
+}
+.tool-row .tool-icon[data-tool="potter"] {
+  background-image: url('../assets/potter.svg');
+}
+.tool-row .tool-icon[data-tool="smith"] {
+  background-image: url('../assets/smith.webp');
+}
+.tool-row .tool-icon[data-tool="tinker"] {
+  background-image: url('../assets/tinker.svg');
+}
+.tool-row .tool-icon[data-tool="weaver"] {
+  background-image: url('../assets/weaver.svg');
+}
+.tool-row .tool-icon[data-tool="woodcarver"] {
+  background-image: url('../assets/woodcarver.svg');
+}
+.tool-row .tool-icon[data-tool="none"] {
+  background-image: url('../assets/question-mark.png'); /* Placeholder SVG for "none" */
+}
+
+/* Outcome slots as a fixed row */
+.recipe-border #outcome-slots {
+  display: flex;
+  position: relative;
+  flex-direction: row;
+  justify-content: space-around;
+  gap: 70px;
+  height: 110px; /* Fixed height for outcome slots */
+  top: 140px;
+  left: 2px;
+}
+
+.recipe-border #outcome-slots .component-display {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  position: relative;
+}
+
+.recipe-border .component-row .component-name {
+display: flex;
+justify-content: center;
+position: relative;
+left: 25%;
+top: -15px;
+}
+
+/* Tool select dropdown in edit mode */
+.recipe-border #outcome-slots .component-display .tool-select {
+  position: absolute;
+  bottom: -30px; /* Position below the tool icon */
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #f0f0e0;
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
+  padding: 2px;
+  z-index: 20;
+}
+
+/* Edit buttons fixed at the bottom */
+.edit-buttons {
+  position: relative;
+  bottom: -44px;
+}
+
+.edit-buttons .save-btn,
+.edit-buttons .cancel-btn,
+.edit-buttons .toggle-edit-btn {
+  flex: 1;
+  padding: 5px 10px;
+  background: #4b4a44;
+  color: #f0f0e0;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.edit-buttons .save-btn:hover,
+.edit-buttons .cancel-btn:hover,
+.edit-buttons .toggle-edit-btn:hover {
+  background: #5b5a54;
+}
+
+.recipe-border .outcome-slot1,
+.recipe-border .outcome-slot2,
+.recipe-border .outcome-slot3 {
+  text-align: center;
+}
+
+.recipe-border .outcome-slot1 .component-icon,
+.recipe-border .outcome-slot2 .component-icon,
+.recipe-border .outcome-slot3 .component-icon {
+  border: outset;
+}
