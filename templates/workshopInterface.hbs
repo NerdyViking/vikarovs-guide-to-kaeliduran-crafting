@@ -10,6 +10,9 @@
           <div class="recipe-item" data-recipe-id="{{id}}">
             <span class="recipe-icon" style="background-image: url('{{componentIcon}}');"></span>
             <span class="recipe-name" data-tooltip="{{description}}">{{#if unlocked}}{{name}}{{else}}???{{/if}}</span>
+            {{#if ../isGM}}
+              <span class="delete-recipe" title="Delete Recipe"><i class="fas fa-times"></i></span>
+            {{/if}}
           </div>
         {{/each}}
         {{#if isGM}}

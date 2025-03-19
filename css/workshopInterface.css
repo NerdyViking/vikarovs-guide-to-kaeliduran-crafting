@@ -548,3 +548,135 @@ top: -15px;
 .recipe-border .outcome-slot3 .component-icon {
   border: outset;
 }
+
+/* Delete Recipe Button Styles */
+.recipe-item {
+  position: relative; /* Needed for absolute positioning of delete button */
+}
+
+.delete-recipe {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #f0f0e0;
+  background-color: #ff0000;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0; /* Hidden by default */
+  transition: opacity 0.2s ease;
+}
+
+.recipe-item:hover .delete-recipe {
+  opacity: 1; /* Show on hover */
+}
+
+.delete-recipe:hover {
+  background-color: #cc0000; /* Darker red on hover */
+}
+
+.delete-recipe i {
+  font-size: 12px;
+}
+
+/* Tooltip styles for unidentified descriptions */
+.workshop-tooltip {
+  position: absolute;
+  background-color: rgba(28, 37, 38, 0.95);
+  border: 1px solid #4b4a44;
+  border-radius: 5px;
+  color: #f0f0e0;
+  font-size: 14px;
+  padding: 8px 12px;
+  max-width: 300px;
+  z-index: 10000;
+  pointer-events: none;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+  transition: opacity 0.2s ease;
+}
+
+.workshop-tooltip:after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid #4b4a44;
+}
+
+/* Add visual indicator for elements with tooltips */
+.tooltip-trigger {
+  position: relative;
+}
+
+.tooltip-trigger:after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+/* Make component icons with tooltips have a hover effect */
+.tooltip-trigger:hover {
+  box-shadow: 0 0 8px rgba(107, 146, 185, 0.8);
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+}
+
+/* Style for tooltip text content */
+.workshop-tooltip p {
+  margin: 0 0 8px 0;
+}
+
+.workshop-tooltip p:last-child {
+  margin-bottom: 0;
+}
+
+/* Add scrollbar for very long tooltips */
+.workshop-tooltip {
+  max-width: 200px;
+}
+
+/* Tool icon specific tooltip styles */
+.tool-row .tooltip-trigger:after {
+  /* Move the blue indicator dot to top-right for better visibility on tool icons */
+  top: -4px;
+  right: -4px;
+  width: 10px;
+  height: 10px;
+}
+
+.tool-row .tooltip-trigger:hover {
+  /* Add a glowing effect for tool icons on hover */
+  box-shadow: 0 0 12px rgba(107, 146, 185, 0.8);
+  transform: scale(1.08);
+  z-index: 10;
+}
+
+/* Adjust tooltip position for tool icons */
+.tool-row .workshop-tooltip {
+  /* Default tooltip appears above, but for tools we want it below */
+  margin-top: 10px;
+}
+
+.tool-row .workshop-tooltip:after {
+  /* Flip the arrow to point upward for tooltips below the icon */
+  top: -8px;
+  bottom: auto;
+  border-top: none;
+  border-bottom: 8px solid #4b4a44;
+}

@@ -80,6 +80,9 @@ export class WorkshopCompendium {
   activateListeners(html) {
     // Listener for selecting a recipe
     html.find('.recipe-item').on('click', (event) => {
+      // Ignore if the delete button was clicked
+      if ($(event.target).hasClass('delete-recipe')) return;
+      
       const recipeId = $(event.currentTarget).data('recipe-id');
       this.interface.selectedRecipeId = recipeId;
       this.interface.newRecipeMode = false;
@@ -91,6 +94,43 @@ export class WorkshopCompendium {
       this.interface.newRecipeMode = true;
       this.interface.selectedRecipeId = null;
       this.interface.render(false);
+    });
+
+    // Listener for delete recipe button
+    html.find('.delete-recipe').on('click', async (event) => {
+      event.preventDefault();
+      event.stopPropagation(); // Prevent triggering the recipe selection
+      
+      const recipeId = $(event.currentTarget).closest('.recipe-item').data('recipe-id');
+      const recipes = game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'workshopRecipes') || {};
+      const recipeName = recipes[recipeId]?.componentId ? 
+                        (await fromUuid(recipes[recipeId].componentId))?.name || "this recipe" : 
+                        "this recipe";
+      
+      // Show confirmation dialog
+      const confirmed = await Dialog.confirm({
+        title: "Delete Recipe",
+        content: `<p>Are you sure you want to delete "${recipeName}"?</p><p>This action cannot be undone.</p>`,
+        yes: () => true,
+        no: () => false,
+        defaultYes: false
+      });
+      
+      if (confirmed) {
+        // Delete the recipe
+        const workshopRecipes = game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'workshopRecipes') || {};
+        delete workshopRecipes[recipeId];
+        await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'workshopRecipes', workshopRecipes);
+        
+        // Reset selected recipe if it was the deleted one
+        if (this.interface.selectedRecipeId === recipeId) {
+          this.interface.selectedRecipeId = null;
+        }
+        
+        // Re-render the interface
+        this.interface.render(false);
+        ui.notifications.info(`Recipe "${recipeName}" has been deleted.`);
+      }
     });
   }
 }
