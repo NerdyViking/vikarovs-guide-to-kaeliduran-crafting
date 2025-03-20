@@ -679,3 +679,20 @@
   color: #f0f0e0;
   z-index: 2;
 }
+
+/* Clickable item styles */
+.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clickable:hover {
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+  transform: scale(1.05);
+  outline: 2px solid #c4b998;
+}
+
+/* Hide the blue indicator dots from tooltips */
+.tooltip-trigger:after {
+  display: none;
+}

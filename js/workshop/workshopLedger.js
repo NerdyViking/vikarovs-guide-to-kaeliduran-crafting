@@ -70,7 +70,7 @@ export class WorkshopLedger {
             <div class="tool-row">
               ${[0, 1, 2].map(index => `
                 <div class="tool-icon-container">
-                  <div class="tool-icon drop-zone tool-drop-zone tooltip-trigger" data-index="${index}" data-type="tool" data-custom-tooltip="Drop a tool item here">
+                  <div class="tool-icon drop-zone tool-drop-zone" data-index="${index}" data-type="tool">
                     <span class="tool-placeholder">+</span>
                   </div>
                   <p class="tool-name">No Tool</p>
@@ -104,7 +104,7 @@ export class WorkshopLedger {
       // Prepare outcome slots for read-only view
       const outcomeDisplays = await Promise.all(outcomes.map(async (outcomeData, index) => {
         let outcomeItem = null;
-        let unidentifiedDesc = "";
+        let outcomeId = '';
 
         if (outcomeData.uuid) {
           try {
@@ -114,12 +114,8 @@ export class WorkshopLedger {
               `Timeout: Failed to fetch outcome for recipe ${selectedRecipe.id}, index ${index}`
             );
             
-            // Extract unidentified description if available
             if (outcomeItem) {
-              unidentifiedDesc = outcomeItem.getFlag('dnd5e', 'unidentifiedDescription') || 
-                                outcomeItem.system?.unidentified?.description || 
-                                outcomeItem.system?.unidentifiedDescription ||
-                                "A mysterious item with unknown properties.";
+              outcomeId = outcomeData.uuid;
             }
           } catch (err) {
             console.error(`Error fetching outcome ${index} for recipe ${selectedRecipe.id}:`, err);
@@ -128,9 +124,9 @@ export class WorkshopLedger {
         
         return `
           <div class="outcome-slot${index + 1}">
-            <div class="component-icon tooltip-trigger" 
-                 style="background-image: url('${outcomeItem?.img || 'modules/vikarovs-guide-to-kaeliduran-crafting/assets/question-mark.png'}');"
-                 data-custom-tooltip="${unidentifiedDesc ? this._escapeHtml(unidentifiedDesc) : 'Unknown item'}">
+            <div class="component-icon clickable" 
+                 data-item-id="${outcomeId}"
+                 style="background-image: url('${outcomeItem?.img || 'modules/vikarovs-guide-to-kaeliduran-crafting/assets/question-mark.png'}');">
             </div>
             <p class="component-name">${outcomeItem?.name || 'Click or Drop an Outcome Below'}</p>
           </div>
@@ -141,7 +137,6 @@ export class WorkshopLedger {
       const toolIcons = await Promise.all(outcomes.map(async (outcomeData, index) => {
         let toolName = "No Tool";
         let toolImg = 'modules/vikarovs-guide-to-kaeliduran-crafting/assets/question-mark.png';
-        let toolDesc = "No tool is needed for this item.";
         let toolId = '';
         let toolType = 'none';
         
@@ -158,7 +153,6 @@ export class WorkshopLedger {
               toolName = toolItem.name;
               toolImg = toolItem.img;
               toolId = outcomeData.toolId;
-              toolDesc = toolItem.system?.description?.value || "A crafting tool.";
               
               // Try to determine tool type from baseItem
               const baseItem = toolItem.system?.type?.baseItem || '';
@@ -173,16 +167,15 @@ export class WorkshopLedger {
           // Handle legacy tool type strings
           toolType = outcomeData.tool;
           toolName = this.toolNameMap[toolType] || "Unknown Tool";
-          toolDesc = `This magic item is crafted with ${toolName}.`;
         }
         
         return `
           <div class="tool-icon-container">
-            <div class="tool-icon tooltip-trigger ${isGM && this.editingRecipeId === selectedRecipe.id ? 'drop-zone tool-drop-zone' : ''}" 
+            <div class="tool-icon ${isGM && this.editingRecipeId === selectedRecipe.id ? 'drop-zone tool-drop-zone' : (toolId ? 'clickable' : '')}" 
                  ${isGM && this.editingRecipeId === selectedRecipe.id ? `data-type="tool" data-index="${index}"` : ''}
                  data-tool-type="${toolType}"
                  data-tool-id="${toolId}"
-                 data-custom-tooltip="${toolDesc}">
+                 data-item-id="${toolId}">
               <div class="tool-image" style="background-image: url('${toolImg}'); width: 100%; height: 100%; background-size: contain; background-position: center; background-repeat: no-repeat;"></div>
               ${toolType === 'none' && !toolId ? '<span class="tool-placeholder">+</span>' : ''}
             </div>
@@ -199,7 +192,6 @@ export class WorkshopLedger {
         for (let i = 0; i < 3; i++) {
           const outcomeData = outcomes[i] || {};
           let outcome = null;
-          let unidentifiedDesc = "";
           
           if (outcomeData.uuid) {
             try {
@@ -208,14 +200,6 @@ export class WorkshopLedger {
                 5000,
                 `Timeout: Failed to fetch outcome for recipe ${selectedRecipe.id}, index ${i}`
               );
-              
-              // Extract unidentified description if available
-              if (outcome) {
-                unidentifiedDesc = outcome.getFlag('dnd5e', 'unidentifiedDescription') || 
-                                  outcome.system?.unidentified?.description || 
-                                  outcome.system?.unidentifiedDescription ||
-                                  "A mysterious item with unknown properties.";
-              }
             } catch (err) {
               console.error(err);
             }
@@ -223,10 +207,9 @@ export class WorkshopLedger {
           
           outcomeSlots.push(`
             <div class="outcome-slot${i + 1}">
-              <div class="component-icon drop-zone outcome-drop-zone tooltip-trigger" 
+              <div class="component-icon drop-zone outcome-drop-zone" 
                    data-type="outcome" data-index="${i}" data-outcome-id="${outcomeData.uuid || ''}" 
-                   style="${outcome ? `background-image: url('${outcome.img}');` : `background-image: url('modules/vikarovs-guide-to-kaeliduran-crafting/assets/question-mark.png');`}"
-                   data-custom-tooltip="${unidentifiedDesc ? this._escapeHtml(unidentifiedDesc) : 'Drop an item here'}">
+                   style="${outcome ? `background-image: url('${outcome.img}');` : `background-image: url('modules/vikarovs-guide-to-kaeliduran-crafting/assets/question-mark.png');`}">
               </div>
               <p class="component-name">${outcome ? outcome.name : 'Click or Drop an Outcome Below'}</p>
               <span class="remove-component" style="${outcome ? 'display: block;' : 'display: none;'}">X</span>
@@ -248,8 +231,7 @@ export class WorkshopLedger {
         }
       }
 
-      // Get unidentified description for component if available
-      let componentUnidentifiedDesc = "";
+      // Get rarity information for component if available
       let componentRarity = "common";
       let craftingDC = 10; // Default DC for common items
       let goldCost = 50; // Default cost for common items
@@ -262,11 +244,6 @@ export class WorkshopLedger {
             `Timeout: Failed to fetch component for recipe ${selectedRecipe.id}`
           );
           if (component) {
-            componentUnidentifiedDesc = component.getFlag('dnd5e', 'unidentifiedDescription') || 
-                                      component.system?.unidentified?.description || 
-                                      component.system?.unidentifiedDescription ||
-                                      "A strange component with unknown properties.";
-            
             // Extract rarity from component
             componentRarity = component.system?.rarity || "common";
             
@@ -296,7 +273,7 @@ export class WorkshopLedger {
             }
           }
         } catch (err) {
-          console.error(`Failed to fetch component unidentified description for recipe ${selectedRecipe.id}:`, err);
+          console.error(`Failed to fetch component for recipe ${selectedRecipe.id}:`, err);
         }
       }
 
@@ -305,10 +282,9 @@ export class WorkshopLedger {
       if (isGM && this.editingRecipeId === selectedRecipe.id) {
         componentHtml = `
           <div class="component-display">
-            <div class="component-icon drop-zone component-drop-zone tooltip-trigger" 
+            <div class="component-icon drop-zone component-drop-zone" 
                  data-type="component" data-component-id="${recipeData.componentId || ''}" 
-                 style="${recipeData.componentId ? `background-image: url('${selectedRecipe.componentIcon}');` : `background-image: url('modules/vikarovs-guide-to-kaeliduran-crafting/assets/question-mark.png');`}"
-                 data-custom-tooltip="${componentUnidentifiedDesc ? this._escapeHtml(componentUnidentifiedDesc) : 'Drop a component here'}">
+                 style="${recipeData.componentId ? `background-image: url('${selectedRecipe.componentIcon}');` : `background-image: url('modules/vikarovs-guide-to-kaeliduran-crafting/assets/question-mark.png');`}">
             </div>
             <p class="component-name">${recipeData.componentId ? selectedRecipe.name : 'Click or Drop a Component Below'}</p>
             <span class="remove-component" style="${recipeData.componentId ? 'display: block;' : 'display: none;'}">X</span>
@@ -327,9 +303,9 @@ export class WorkshopLedger {
       } else {
         componentHtml = `
           <div class="component-display">
-            <div class="component-icon tooltip-trigger" 
-                 style="${recipeData.componentId ? `background-image: url('${selectedRecipe.componentIcon}');` : `background-image: url('modules/vikarovs-guide-to-kaeliduran-crafting/assets/question-mark.png');`}"
-                 data-custom-tooltip="${componentUnidentifiedDesc ? this._escapeHtml(componentUnidentifiedDesc) : 'Unknown component'}">
+            <div class="component-icon clickable" 
+                 data-item-id="${recipeData.componentId || ''}"
+                 style="${recipeData.componentId ? `background-image: url('${selectedRecipe.componentIcon}');` : `background-image: url('modules/vikarovs-guide-to-kaeliduran-crafting/assets/question-mark.png');`}">
             </div>
             <p class="component-name">${recipeData.componentId ? selectedRecipe.name : 'Click or Drop a Component Below'}</p>
           </div>
@@ -452,26 +428,23 @@ export class WorkshopLedger {
       this.editingRecipeId = null;
       this.interface.render(false);
     });
-
-    // Custom tooltip handling
-    html.find('.tooltip-trigger').on('mouseenter', (event) => {
-      const target = $(event.currentTarget);
-      const tooltipText = target.data('custom-tooltip');
+    
+    // Add click listener for clickable items
+    html.find('.clickable').on('click', async (event) => {
+      const itemId = $(event.currentTarget).data('item-id');
+      if (!itemId) return;
       
-      if (tooltipText) {
-        const tooltipElement = $('<div class="workshop-tooltip"></div>');
-        tooltipElement.html(tooltipText);
-        $('body').append(tooltipElement);
-        
-        // Position the tooltip
-        const targetRect = event.currentTarget.getBoundingClientRect();
-        tooltipElement.css({
-          top: targetRect.top + window.scrollY - tooltipElement.outerHeight() - 10,
-          left: targetRect.left + window.scrollX + (targetRect.width / 2) - (tooltipElement.outerWidth() / 2)
-        });
+      try {
+        const item = await fromUuid(itemId);
+        if (item) {
+          item.sheet.render(true);
+        } else {
+          ui.notifications.warn("Item not found.");
+        }
+      } catch (err) {
+        console.error("Error opening item sheet:", err);
+        ui.notifications.error("Could not open item sheet.");
       }
-    }).on('mouseleave', () => {
-      $('.workshop-tooltip').remove();
     });
 
     // Drag-and-drop for components
@@ -511,12 +484,6 @@ export class WorkshopLedger {
         if (item && isComponent === true) {
           const dropZone = $(event.currentTarget);
           
-          // Get unidentified description
-          const unidentifiedDesc = item.getFlag('dnd5e', 'unidentifiedDescription') || 
-                                item.system?.unidentified?.description || 
-                                item.system?.unidentifiedDescription ||
-                                "A mysterious component with unknown properties.";
-          
           // Get rarity from component
           const rarity = item.system?.rarity || "common";
           
@@ -549,7 +516,6 @@ export class WorkshopLedger {
           
           // Update the component display
           dropZone.data('component-id', uuid);
-          dropZone.data('custom-tooltip', unidentifiedDesc);
           dropZone.css('background-image', `url('${item.img || '/icons/svg/mystery-man.svg'}')`);
           dropZone.closest('.component-display').find('.component-name').text(item.name || 'Unknown Component');
           dropZone.siblings('.remove-component').css('display', 'block');
@@ -603,14 +569,7 @@ export class WorkshopLedger {
         const dropZone = $(event.currentTarget);
         const index = parseInt(dropZone.data('index'));
         
-        // Get unidentified description
-        const unidentifiedDesc = item.getFlag('dnd5e', 'unidentifiedDescription') || 
-                              item.system?.unidentified?.description || 
-                              item.system?.unidentifiedDescription ||
-                              "A mysterious item with unknown properties.";
-        
         dropZone.data('outcome-id', uuid);
-        dropZone.data('custom-tooltip', unidentifiedDesc);
         dropZone.css('background-image', `url('${item.img || '/icons/svg/mystery-man.svg'}')`);
         dropZone.closest('.outcome-slot' + (index + 1)).find('.component-name').text(item.name || 'Unknown Outcome');
         dropZone.siblings('.remove-component').css('display', 'block');
@@ -672,7 +631,6 @@ export class WorkshopLedger {
           // Update the dropzone with the tool data
           dropZone.data('tool-id', uuid);
           dropZone.data('tool-type', toolType);
-          dropZone.data('custom-tooltip', toolDesc);
           
           // Either create or update the tool image div
           let toolImageDiv = dropZone.find('.tool-image');
@@ -720,7 +678,6 @@ export class WorkshopLedger {
       // Reset the tool data
       toolIcon.data('tool-id', '');
       toolIcon.data('tool-type', 'none');
-      toolIcon.data('custom-tooltip', 'Drop a tool item here');
       
       // Remove existing tool image if present
       toolIcon.find('.tool-image').remove();
@@ -733,36 +690,35 @@ export class WorkshopLedger {
       // Update the tool name
       toolContainer.find('.tool-name').text('No Tool');
       
-      // Hide the remove button
-      $removeBtn.hide();
-    });
+// Hide the remove button
+$removeBtn.hide();
+});
 
-    // Remove component or outcome
-    html.find('.remove-component').on('click', (event) => {
-      const dropZone = $(event.currentTarget).closest('.component-display, .outcome-slot1, .outcome-slot2, .outcome-slot3').find('.drop-zone');
-      const isComponent = dropZone.data('type') === 'component';
-      dropZone.data(isComponent ? 'component-id' : 'outcome-id', null);
-      dropZone.data('custom-tooltip', isComponent ? 'Drop a component here' : 'Drop an item here');
-      dropZone.css('background-image', `url('modules/vikarovs-guide-to-kaeliduran-crafting/assets/question-mark.png')`);
-      dropZone.closest('.component-display, .outcome-slot1, .outcome-slot2, .outcome-slot3').find('.component-name').text(isComponent ? 'Click or Drop a Component Below' : 'Click or Drop an Outcome Below');
-      dropZone.siblings('.remove-component').css('display', 'none');
-      
-      // Reset DC and gold cost if this is a component
-      if (isComponent) {
-        const requirementsContainer = dropZone.closest('.component-row').find('.crafting-requirements');
-        requirementsContainer.find('.dc-value').text('10');
-        requirementsContainer.find('.gold-value').text('50 gp');
-      }
-    });
+// Remove component or outcome
+html.find('.remove-component').on('click', (event) => {
+  const dropZone = $(event.currentTarget).closest('.component-display, .outcome-slot1, .outcome-slot2, .outcome-slot3').find('.drop-zone');
+  const isComponent = dropZone.data('type') === 'component';
+  dropZone.data(isComponent ? 'component-id' : 'outcome-id', null);
+  dropZone.css('background-image', `url('modules/vikarovs-guide-to-kaeliduran-crafting/assets/question-mark.png')`);
+  dropZone.closest('.component-display, .outcome-slot1, .outcome-slot2, .outcome-slot3').find('.component-name').text(isComponent ? 'Click or Drop a Component Below' : 'Click or Drop an Outcome Below');
+  dropZone.siblings('.remove-component').css('display', 'none');
+  
+  // Reset DC and gold cost if this is a component
+  if (isComponent) {
+    const requirementsContainer = dropZone.closest('.component-row').find('.crafting-requirements');
+    requirementsContainer.find('.dc-value').text('10');
+    requirementsContainer.find('.gold-value').text('50 gp');
   }
+});
+}
 
-  // Helper method to escape HTML special characters for tooltips
-  _escapeHtml(text) {
-    return String(text)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-  }
+// Helper method to escape HTML special characters for tooltips
+_escapeHtml(text) {
+return String(text)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#039;');
+}
 }
