@@ -1,305 +1,52 @@
 /* css/workshopInterface.css */
+
+/* ===== MAIN CONTAINER STYLES ===== */
 .vikarovs-workshop-interface {
-    background: url(../assets/denim075.png);
-    background-color: #1a1a1a;
-    color: #f0f0e0;
-    padding: 10px;
-    padding-top: 0px;
-  }
-  
-  .vikarovs-workshop-interface .window-content::before {
-    content: "";
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 150px;
-    border-radius: 5px 5px 0 0;
-    opacity: 0.2;
-    background: url("../assets/banner-item-dark.png") no-repeat top center / cover;
-    mask-image: linear-gradient(to bottom, black, transparent);
-    z-index: 0;
-  }
-  
-  .vikarovs-workshop-interface .content {
-    min-height: 200px;
-    z-index: 1;
-  }
-  
-  .vikarovs-workshop-interface .window-header .window-title {
-    visibility: hidden;
-  }
-  
-  .vikarovs-workshop-interface .window-header {
-    justify-content: center;
-    padding-left: 0px;
-    padding-right: 0px;
-    z-index: 1;
-  }
-  
-  .pane-container {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    height: 100%;
-  }
-  
-  .recipe-browser, .crafting-area {
-    flex: 1;
-    margin: 0 5px;
-    border: 3px solid #4b4a44;
-    border-radius: 6px;
-    padding: 10px;
-    overflow-y: auto;
-  }
-  
-  .crafting-area {
-    flex: 2;
-    margin: 0 5px;
-    border: 3px solid #4b4a44;
-    border-radius: 6px;
-    padding: 10px;
-    overflow-y: auto;
-  }
-  
-  .recipe-viewer {
-    flex: 2;
-    margin: 0 5px;
-    border: 3px solid #4b4a44;
-    border-radius: 6px;
-    padding: 10px;
-    overflow-y: auto;
-  }
-  
-  .recipe-browser h2, .recipe-viewer h2, .crafting-area h2 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    border-bottom: 2px solid #4b4a44;
-    color: #c4b998;
-    font-family: "Modesto Condensed", "Palatino Linotype", serif;
-    font-size: 1.5rem;
-    text-align: center;
-  }
-  
-  .recipe-list {
-    min-height: 200px;
-    padding-bottom: 50px;
-  }
-  
-  .recipe-content, .crafting-content {
-    min-height: 200px;
-  }
-  
-  .recipe-browser {
-    position: relative;
-  }
-  
-  .recipe-item {
-    display: flex;
-    align-items: center;
-    padding: 8px 10px;
-    margin-bottom: 5px;
-    background: #252830;
-    border: 1px solid #3c3c3c;
-    border-radius: 3px;
-    cursor: pointer;
-    transition: border-color 0.3s ease;
-  }
-  
-  .recipe-item:hover {
-    border-color: #ff0000;
-  }
-  
-  .recipe-item .recipe-icon {
-    width: 45px;
-    height: 45px;
-    margin-right: 10px;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    background-image: url('/icons/svg/mystery-man.svg'); /* Default placeholder */
-  }
-  
-  .recipe-item .recipe-name {
-    flex: 1;
-    color: #f0f0e0;
-    font-size: 14px;
-  }
-  
-  .new-recipe-form, .edit-recipe-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .new-recipe-form label, .edit-recipe-form label {
-    font-weight: bold;
-  }
-  
-  .new-recipe-form input, .edit-recipe-form input {
-    padding: 5px;
-    background: #333;
-    color: #f0f0e0;
-    border: 1px solid #4b4a44;
-    border-radius: 3px;
-  }
-  
-  .new-recipe-form textarea, .edit-recipe-form textarea {
-    padding: 5px;
-    background: #333;
-    color: #f0f0e0;
-    border: 1px solid #4b4a44;
-    border-radius: 3px;
-    resize: vertical;
-    min-height: 100px;
-  }
-  
-  .new-recipe-form button, .edit-recipe-form button {
-    padding: 5px 10px;
-    background: #4b4a44;
-    color: #f0f0e0;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-  }
-  
-  .new-recipe-form button:hover, .edit-recipe-form button:hover {
-    background: #5b5a54;
-  }
-  
-  .toggle-edit-btn {
-    padding: 5px 10px;
-    background: #4b4a44;
-    color: #f0f0e0;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-  }
-  
-  .toggle-edit-btn:hover {
-    background: #5b5a54;
-  }
-  
-  .delete-recipe-btn {
-    padding: 5px 10px;
-    background: #ff0000;
-    color: #f0f0e0;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-  }
-  
-  .delete-recipe-btn:hover {
-    background: #cc0000;
-  }
-  
-  .new-recipe-btn {
-    position: absolute;
-    bottom: 10px;
-    left: 10px;
-    width: calc(100% - 20px);
-    padding: 5px 10px;
-    background: #4b4a44;
-    color: #f0f0e0;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-  }
-  
-  .new-recipe-btn:hover {
-    background: #5b5a54;
-  }
-  
-  .drop-zone {
-    border: 2px dashed #4b4a44;
-    border-radius: 3px;
-    width: 80px;
-    height: 80px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-  }
-  
-  .drop-zone:hover {
-    border-color: #ff0000;
-  }
-  
-  .component-display {
-    display: flex;
-  }
-  
-  .component-icon {
-    width: 72px;
-    height: 72px;
-    background-size: contain;
-    background-position: center;
-    position: relative;
-  }
-  
-  .dc-value, .gold-value {
-    display: inline-block;
-    margin-left: 5px;
-  }
-  
-  .component-row .remove-component {
-    position: relative;
-    top: 4px;
-    right: -14px;
-    width: 16px;
-    height: 16px;
-    background: #ff0000;
-    color: #f0f0e0;
-    border-radius: 50%;
-    text-align: center;
-    line-height: 16px;
-    font-size: 12px;
-    cursor: pointer;
-  }
-
-  .outcome-slot1 .remove-component,
-  .outcome-slot2 .remove-component,
-  .outcome-slot3 .remove-component {
-    position: relative;
-    top: -122px;
-    right: -63px;
-    width: 16px;
-    height: 16px;
-    background: #ff0000;
-    color: #f0f0e0;
-    border-radius: 50%;
-    text-align: center;
-    line-height: 16px;
-    font-size: 12px;
-    cursor: pointer;
-  }
-  
-  .remove-component:hover {
-    background: #cc0000;
-    box-shadow: red 5px;
-  }
-  
-  .tool-select {
-    padding: 5px;
-    background: #333;
-    color: #f0f0e0;
-    border: 1px solid #4b4a44;
-    border-radius: 3px;
-    margin-top: 5px;
-  }
-
-/* css/workshopInterface.css */
-/* ... (previous styles unchanged) ... */
-
-/* Tooltip styling */
-.recipe-name {
-  position: relative;
+  background: url(../assets/denim075.png);
+  background-color: #1a1a1a;
+  color: #f0f0e0;
+  padding: 10px;
+  padding-top: 0px;
 }
 
-/* Recipe viewer as a flex container */
-.recipe-viewer {
+.vikarovs-workshop-interface .window-content::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 150px;
+  border-radius: 5px 5px 0 0;
+  opacity: 0.2;
+  background: url("../assets/banner-item-dark.png") no-repeat top center / cover;
+  mask-image: linear-gradient(to bottom, black, transparent);
+  z-index: 0;
+}
+
+.vikarovs-workshop-interface .content {
+  min-height: 200px;
+  z-index: 1;
+}
+
+.vikarovs-workshop-interface .window-header .window-title {
+  visibility: hidden;
+}
+
+.vikarovs-workshop-interface .window-header {
+  justify-content: center;
+  padding-left: 0px;
+  padding-right: 0px;
+  z-index: 1;
+}
+
+/* ===== PANE CONTAINER AND GENERAL LAYOUT ===== */
+.pane-container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  justify-content: space-between;
   height: 100%;
+}
+
+/* Common styles for all panes */
+.recipe-browser, .recipe-viewer, .crafting-area {
   margin: 0 5px;
   border: 3px solid #4b4a44;
   border-radius: 6px;
@@ -307,8 +54,44 @@
   overflow-y: auto;
 }
 
-.recipe-viewer h2 {
-  flex: 0 0 40px; /* Fixed height for the header */
+/* Left pane - Recipe browser */
+.recipe-browser {
+  flex: 1;
+  position: relative;
+}
+
+.recipe-list {
+  min-height: 200px;
+  padding-bottom: 50px;
+}
+
+/* Middle pane - Recipe viewer */
+.recipe-viewer {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.recipe-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  min-height: 200px;
+}
+
+/* Right pane - Crafting area */
+.crafting-area {
+  flex: 2;
+}
+
+.crafting-content {
+  min-height: 200px;
+}
+
+/* ===== HEADINGS ===== */
+.recipe-browser h2, .recipe-viewer h2, .crafting-area h2 {
   margin-top: 0;
   margin-bottom: 10px;
   border-bottom: 2px solid #4b4a44;
@@ -318,242 +101,46 @@
   text-align: center;
 }
 
-/* Recipe content as a flex container */
-.recipe-content {
-  flex: 1; /* Take remaining space */
-  display: flex;
-  flex-direction: column;
-  padding: 0;
+.recipe-viewer h2 {
+  flex: 0 0 40px; /* Fixed height for the header */
 }
 
-.recipe-details {
-  flex: 1; /* Take remaining space */
+/* ===== LEFT PANE - RECIPE LIST ITEMS ===== */
+.recipe-item {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.description,
-.recipe-description-input {
-  padding: 5px;
-  background: #333;
-  color: #f0f0e0;
-  border: 1px solid #4b4a44;
+  align-items: center;
+  padding: 8px 10px;
+  margin-bottom: 5px;
+  background: #252830;
+  border: 1px solid #3c3c3c;
   border-radius: 3px;
-  height: 100px;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+  position: relative; /* For delete button positioning */
 }
 
-.recipe-description-input {
-  resize: vertical;
-  min-height: 50px;
+.recipe-item:hover {
+  border-color: #ff0000;
 }
 
-.recipe-border {
-  position: relative;
-  background-image: url('../assets/circuit-pattern.png');
-  background-size: contain; /* Match the assumed image dimensions */
-  background-position: center;
-  background-repeat: no-repeat;
-  margin: 30px;
-  height: 300px;
-}
-
-/* Component row */
-.component-row {
-  position: relative;
-  top: -6px;
-  text-align: center;
-}
-
-.component-row .component-display .component-icon {
-  position: absolute;
-  top: 11px; /* Center vertically in the top square (adjust based on image) */
-  left: 50%;
-  transform: translateX(-50%);
-  border: outset;
-}
-
-/* Tool row */
-.tool-row {
-  display: flex;
-  height: 50px; /* Fixed height for tool row */
-  position: relative;
-  left: 8px;
-  top: 35px;
-}
-
-.tool-row p{
-  text-wrap: nowrap;
-}
-
-.tool-row .tool-icon {
-  position: absolute;
+.recipe-item .recipe-icon {
+  width: 45px;
+  height: 45px;
+  margin-right: 10px;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  cursor: pointer;
-  border: outset;
-  background-color: #4b4a44;
+  background-image: url('/icons/svg/mystery-man.svg'); /* Default placeholder */
 }
 
-.tool-row .tool-icon:nth-child(1) {
-  left: 8px; /* Align with the left bend (adjust based on image) */
-  top: 64px; /* Above the first outcome slot */
-  height: 45px;
-  width: 45px;
-}
-.tool-row .tool-icon:nth-child(2) {
-  left: 150px; /* Align with the middle bend (adjust based on image) */
-  top: 64px; /* Above the second outcome slot */
-  height: 45px;
-  width: 45px;
-}
-.tool-row .tool-icon:nth-child(3) {
-  left: 291px; /* Align with the right bend (adjust based on image) */
-  top: 64px; /* Above the third outcome slot */
-  height: 45px;
-  width: 45px;
-}
-
-.tool-row .tool-icon[data-tool="alchemist"] {
-  background-image: url('../assets/alchemist.svg');
-}
-.tool-row .tool-icon[data-tool="brewer"] {
-  background-image: url('../assets/brewer.svg');
-}
-.tool-row .tool-icon[data-tool="calligrapher"] {
-  background-image: url('../assets/calligrapher.svg');
-}
-.tool-row .tool-icon[data-tool="carpenter"] {
-  background-image: url('../assets/carpenter.svg');
-}
-.tool-row .tool-icon[data-tool="cartographer"] {
-  background-image: url('../assets/cartographer.svg');
-}
-.tool-row .tool-icon[data-tool="cobbler"] {
-  background-image: url('../assets/cobbler.svg');
-}
-.tool-row .tool-icon[data-tool="cook"] {
-  background-image: url('../assets/cook.svg');
-}
-.tool-row .tool-icon[data-tool="glassblower"] {
-  background-image: url('../assets/glassblower.svg');
-}
-.tool-row .tool-icon[data-tool="jeweler"] {
-  background-image: url('../assets/jeweler.svg');
-}
-.tool-row .tool-icon[data-tool="leatherworker"] {
-  background-image: url('../assets/leatherworker.svg');
-}
-.tool-row .tool-icon[data-tool="mason"] {
-  background-image: url('../assets/mason.svg');
-}
-.tool-row .tool-icon[data-tool="painter"] {
-  background-image: url('../assets/painter.svg');
-}
-.tool-row .tool-icon[data-tool="potter"] {
-  background-image: url('../assets/potter.svg');
-}
-.tool-row .tool-icon[data-tool="smith"] {
-  background-image: url('../assets/smith.webp');
-}
-.tool-row .tool-icon[data-tool="tinker"] {
-  background-image: url('../assets/tinker.svg');
-}
-.tool-row .tool-icon[data-tool="weaver"] {
-  background-image: url('../assets/weaver.svg');
-}
-.tool-row .tool-icon[data-tool="woodcarver"] {
-  background-image: url('../assets/woodcarver.svg');
-}
-.tool-row .tool-icon[data-tool="none"] {
-  background-image: url('../assets/question-mark.png'); /* Placeholder SVG for "none" */
-}
-
-/* Outcome slots as a fixed row */
-.recipe-border #outcome-slots {
-  display: flex;
-  position: relative;
-  flex-direction: row;
-  justify-content: space-around;
-  gap: 70px;
-  height: 110px; /* Fixed height for outcome slots */
-  top: 140px;
-  left: 2px;
-}
-
-.recipe-border #outcome-slots .component-display {
+.recipe-item .recipe-name {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
+  color: #f0f0e0;
+  font-size: 14px;
   position: relative;
 }
 
-.recipe-border .component-row .component-name {
-display: flex;
-justify-content: center;
-position: relative;
-left: 25%;
-top: -15px;
-}
-
-/* Tool select dropdown in edit mode */
-.recipe-border #outcome-slots .component-display .tool-select {
-  position: absolute;
-  bottom: -30px; /* Position below the tool icon */
-  left: 50%;
-  transform: translateX(-50%);
-  background: #333;
-  color: #f0f0e0;
-  border: 1px solid #4b4a44;
-  border-radius: 3px;
-  padding: 2px;
-  z-index: 20;
-}
-
-/* Edit buttons fixed at the bottom */
-.edit-buttons {
-  position: relative;
-  bottom: -44px;
-}
-
-.edit-buttons .save-btn,
-.edit-buttons .cancel-btn,
-.edit-buttons .toggle-edit-btn {
-  flex: 1;
-  padding: 5px 10px;
-  background: #4b4a44;
-  color: #f0f0e0;
-  border: none;
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-.edit-buttons .save-btn:hover,
-.edit-buttons .cancel-btn:hover,
-.edit-buttons .toggle-edit-btn:hover {
-  background: #5b5a54;
-}
-
-.recipe-border .outcome-slot1,
-.recipe-border .outcome-slot2,
-.recipe-border .outcome-slot3 {
-  text-align: center;
-}
-
-.recipe-border .outcome-slot1 .component-icon,
-.recipe-border .outcome-slot2 .component-icon,
-.recipe-border .outcome-slot3 .component-icon {
-  border: outset;
-}
-
-/* Delete Recipe Button Styles */
-.recipe-item {
-  position: relative; /* Needed for absolute positioning of delete button */
-}
-
+/* Delete recipe button */
 .delete-recipe {
   position: absolute;
   right: 10px;
@@ -584,7 +171,346 @@ top: -15px;
   font-size: 12px;
 }
 
-/* Tooltip styles for unidentified descriptions */
+/* Create new recipe button */
+.new-recipe-btn {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  width: calc(100% - 20px);
+  padding: 5px 10px;
+  background: #4b4a44;
+  color: #f0f0e0;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.new-recipe-btn:hover {
+  background: #5b5a54;
+}
+
+/* ===== MIDDLE PANE - RECIPE DETAILS ===== */
+.recipe-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.recipe-details .description,
+.recipe-description-input {
+  padding: 5px;
+  background: #333;
+  color: #f0f0e0;
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
+  height: 100px;
+}
+
+.recipe-description-input {
+  resize: vertical;
+  min-height: 50px;
+}
+
+.recipe-border {
+  position: relative;
+  background-image: url('../assets/circuit-pattern.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin: 30px;
+  height: 300px;
+  display: flex;
+  flex-direction: column; /* Organize content vertically */
+}
+
+/* Component area */
+.component-row {
+  position: relative;
+  top: -6px;
+  text-align: center;
+}
+
+.component-display {
+  display: flex;
+}
+
+.component-row .component-display .component-icon {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: outset;
+}
+
+.component-icon {
+  width: 72px;
+  height: 72px;
+  background-size: contain;
+  background-position: center;
+  position: relative;
+}
+
+.recipe-border .component-row .component-name {
+  display: flex;
+  justify-content: center;
+  position: relative;
+  left: 25%;
+  top: -15px;
+}
+
+/* Tool Icon Containers and Drop Zones */
+.tool-row {
+  display: flex;
+  position: relative;
+  justify-content: space-between;
+  width: 367px;
+  height: auto; /* Let the height be determined by content */
+  min-height: 100px; /* Ensure enough space for the icons */
+  margin-top: 100px; /* Position it below the component */
+  margin-bottom: 20px; /* Space before outcome slots */
+  z-index: 10; /* Keep it above the circuit pattern */
+  left: -3px;
+}
+
+.tool-icon-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  height: auto;
+  width: 80px; /* Fixed width to ensure consistent sizing */
+}
+
+.tool-row .tool-icon {
+  width: 45px;
+  height: 45px !important; /* Force the height */
+  min-height: 45px !important; /* Ensure minimum height */
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-color: #4b4a44;
+  border: outset;
+  cursor: pointer;
+  margin: 0 auto; /* Center horizontally */
+  display: block !important; /* Ensure it's displayed as a block */
+  position: relative; /* Use relative positioning */
+}
+
+/* Remove the positional styling for individual tool icons */
+.tool-row .tool-icon:nth-child(1),
+.tool-row .tool-icon:nth-child(2),
+.tool-row .tool-icon:nth-child(3) {
+  left: auto;
+  top: auto;
+}
+
+.tool-name {
+  font-size: 12px;
+  color: #f0f0e0;
+  margin-top: 5px;
+  text-align: center;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Style for the placeholder plus sign in empty tool slots */
+.tool-placeholder {
+  font-size: 20px;
+  color: #f0f0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Remove tool button */
+.remove-tool {
+  position: absolute;
+  top: 60px; /* Position it at the top-right of the tool icon */
+  right: -8px;
+  width: 16px;
+  height: 16px;
+  background: #ff0000;
+  color: #f0f0e0;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 16px;
+  font-size: 12px;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.remove-tool:hover {
+  background-color: #cc0000;
+  box-shadow: 0 0 5px rgba(255, 0, 0, 0.8);
+}
+
+/* Ensure the drop zone properties don't override the background image */
+.tool-drop-zone {
+  border: 2px dashed #4b4a44;
+  transition: all 0.2s ease;
+  z-index: 5; /* Add a z-index to keep it above other elements */
+  /* Don't override the background-image that gets set inline */
+}
+
+.tool-drop-zone:hover {
+  border-color: #ff0000 !important;
+  background-color: rgba(255, 0, 0, 0.1);
+}
+
+/* Outcome slots */
+.recipe-border #outcome-slots {
+  display: flex;
+  position: relative;
+  flex-direction: row;
+  justify-content: space-around;
+  gap: 72px;
+  height: 110px;
+  margin-top: -26px;
+  z-index: 5;
+}
+
+.recipe-border #outcome-slots .component-display {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  position: relative;
+}
+
+.recipe-border .outcome-slot1,
+.recipe-border .outcome-slot2,
+.recipe-border .outcome-slot3 {
+  text-align: center;
+}
+
+.recipe-border .outcome-slot1 .component-icon,
+.recipe-border .outcome-slot2 .component-icon,
+.recipe-border .outcome-slot3 .component-icon {
+  border: outset;
+}
+
+/* ===== INTERACTIVE ELEMENTS ===== */
+/* Drop zones */
+.drop-zone {
+  border: 2px dashed #4b4a44;
+  border-radius: 3px;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.drop-zone:hover {
+  border-color: #ff0000;
+}
+
+/* Edit and remove buttons */
+.toggle-edit-btn {
+  padding: 5px 10px;
+  background: #4b4a44;
+  color: #f0f0e0;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.toggle-edit-btn:hover {
+  background: #5b5a54;
+}
+
+.component-row .remove-component {
+  position: relative;
+  top: 4px;
+  right: -14px;
+  width: 16px;
+  height: 16px;
+  background: #ff0000;
+  color: #f0f0e0;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 16px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.outcome-slot1 .remove-component,
+.outcome-slot2 .remove-component,
+.outcome-slot3 .remove-component {
+  position: relative;
+  top: -122px;
+  right: -63px;
+  width: 16px;
+  height: 16px;
+  background: #ff0000;
+  color: #f0f0e0;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 16px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.remove-component:hover {
+  background: #cc0000;
+  box-shadow: red 5px;
+}
+
+/* Edit buttons at bottom of recipe details */
+.edit-buttons {
+  position: relative;
+  bottom: -44px;
+}
+
+.edit-buttons .save-btn,
+.edit-buttons .cancel-btn,
+.edit-buttons .toggle-edit-btn {
+  flex: 1;
+  padding: 5px 10px;
+  background: #4b4a44;
+  color: #f0f0e0;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.edit-buttons .save-btn:hover,
+.edit-buttons .cancel-btn:hover,
+.edit-buttons .toggle-edit-btn:hover {
+  background: #5b5a54;
+}
+
+/* Tool select dropdown in edit mode */
+.tool-select {
+  padding: 5px;
+  background: #333;
+  color: #f0f0e0;
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
+  margin-top: 5px;
+}
+
+.recipe-border #outcome-slots .component-display .tool-select {
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #f0f0e0;
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
+  padding: 2px;
+  z-index: 20;
+}
+
+/* ===== TOOLTIP SYSTEM ===== */
 .workshop-tooltip {
   position: absolute;
   background-color: rgba(28, 37, 38, 0.95);
@@ -613,7 +539,15 @@ top: -15px;
   border-top: 8px solid #4b4a44;
 }
 
-/* Add visual indicator for elements with tooltips */
+.workshop-tooltip p {
+  margin: 0 0 8px 0;
+}
+
+.workshop-tooltip p:last-child {
+  margin-bottom: 0;
+}
+
+/* Tooltip triggers */
 .tooltip-trigger {
   position: relative;
 }
@@ -630,30 +564,14 @@ top: -15px;
   pointer-events: none;
 }
 
-/* Make component icons with tooltips have a hover effect */
 .tooltip-trigger:hover {
   box-shadow: 0 0 8px rgba(107, 146, 185, 0.8);
   transform: scale(1.05);
   transition: all 0.2s ease;
 }
 
-/* Style for tooltip text content */
-.workshop-tooltip p {
-  margin: 0 0 8px 0;
-}
-
-.workshop-tooltip p:last-child {
-  margin-bottom: 0;
-}
-
-/* Add scrollbar for very long tooltips */
-.workshop-tooltip {
-  max-width: 200px;
-}
-
-/* Tool icon specific tooltip styles */
+/* Tool-specific tooltip adjustments */
 .tool-row .tooltip-trigger:after {
-  /* Move the blue indicator dot to top-right for better visibility on tool icons */
   top: -4px;
   right: -4px;
   width: 10px;
@@ -661,22 +579,61 @@ top: -15px;
 }
 
 .tool-row .tooltip-trigger:hover {
-  /* Add a glowing effect for tool icons on hover */
   box-shadow: 0 0 12px rgba(107, 146, 185, 0.8);
   transform: scale(1.08);
   z-index: 10;
 }
 
-/* Adjust tooltip position for tool icons */
 .tool-row .workshop-tooltip {
-  /* Default tooltip appears above, but for tools we want it below */
   margin-top: 10px;
 }
 
 .tool-row .workshop-tooltip:after {
-  /* Flip the arrow to point upward for tooltips below the icon */
   top: -8px;
   bottom: auto;
   border-top: none;
   border-bottom: 8px solid #4b4a44;
+}
+
+/* ===== UTILITY CLASSES ===== */
+.dc-value, .gold-value {
+  display: inline-block;
+  margin-left: 5px;
+}
+
+/* Tool image styles */
+.tool-image {
+  width: 100%;
+  height: 100%;
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* Make sure the tool icon has relative positioning for the absolute positioned children */
+.tool-icon {
+  position: relative !important;
+  width: 45px !important;
+  height: 45px !important;
+  overflow: visible !important;
+}
+
+/* Ensure the placeholder is properly positioned */
+.tool-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #f0f0e0;
+  z-index: 2;
 }

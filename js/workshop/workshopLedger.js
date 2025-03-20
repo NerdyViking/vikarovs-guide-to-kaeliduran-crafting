@@ -14,7 +14,7 @@ export class WorkshopLedger {
       return Promise.race([promise, timeout]);
     };
 
-    // Map tool IDs to full names for tooltips
+    // Map tool baseItem to display names
     this.toolNameMap = {
       'alchemist': "Alchemist's Supplies",
       'brewer': "Brewer's Supplies",
@@ -35,6 +35,13 @@ export class WorkshopLedger {
       'woodcarver': "Woodcarver's Tools",
       'none': "No Tool"
     };
+
+    // Array of known tool baseItem identifiers for validation
+    this.validToolTypes = [
+      "alchemist", "brewer", "calligrapher", "carpenter", "cartographer", 
+      "cobbler", "cook", "glassblower", "jeweler", "leatherworker", 
+      "mason", "painter", "potter", "smith", "tinker", "weaver", "woodcarver"
+    ];
   }
 
   async getRecipeViewerContent(selectedRecipe, newRecipeMode, isGM) {
@@ -52,7 +59,12 @@ export class WorkshopLedger {
             </div>
             <div class="tool-row">
               ${[0, 1, 2].map(index => `
-              <span class="tool-icon tooltip-trigger" data-tool="none" data-custom-tooltip="This magic item is crafted with No Tool."></span>
+                <div class="tool-icon-container">
+                  <div class="tool-icon drop-zone tool-drop-zone tooltip-trigger" data-index="${index}" data-type="tool" data-custom-tooltip="Drop a tool item here">
+                    <span class="tool-placeholder">+</span>
+                  </div>
+                  <p class="tool-name">No Tool</p>
+                </div>
               `).join('')}
             </div>
             <div id="outcome-slots">
@@ -61,26 +73,6 @@ export class WorkshopLedger {
                   <div class="component-icon drop-zone outcome-drop-zone" data-type="outcome" data-index="${index}" style="background-image: url('modules/vikarovs-guide-to-kaeliduran-crafting/assets/question-mark.png');"></div>
                   <p class="component-name">Click or Drop an Outcome Below</p>
                   <span class="remove-component" style="display: none;">X</span>
-                  <select name="tool-${index}" class="tool-select" style="display: none;">
-                    <option value="">Select a Tool</option>
-                    <option value="alchemist">Alchemist's Supplies</option>
-                    <option value="brewer">Brewer's Supplies</option>
-                    <option value="calligrapher">Calligrapher's Supplies</option>
-                    <option value="carpenter">Carpenter's Tools</option>
-                    <option value="cartographer">Cartographer's Tools</option>
-                    <option value="cobbler">Cobbler's Tools</option>
-                    <option value="cook">Cook's Utensils</option>
-                    <option value="glassblower">Glassblower's Tools</option>
-                    <option value="jeweler">Jeweler's Tools</option>
-                    <option value="leatherworker">Leatherworker's Tools</option>
-                    <option value="mason">Mason's Tools</option>
-                    <option value="painter">Painter's Supplies</option>
-                    <option value="potter">Potter's Tools</option>
-                    <option value="smith">Smith's Tools</option>
-                    <option value="tinker">Tinker's Tools</option>
-                    <option value="weaver">Weaver's Tools</option>
-                    <option value="woodcarver">Woodcarver's Tools</option>
-                  </select>
                 </div>
               `).join('')}
             </div>
@@ -114,7 +106,6 @@ export class WorkshopLedger {
             
             // Extract unidentified description if available
             if (outcomeItem) {
-              // Try to get unidentified description from different possible locations
               unidentifiedDesc = outcomeItem.getFlag('dnd5e', 'unidentifiedDescription') || 
                                 outcomeItem.system?.unidentified?.description || 
                                 outcomeItem.system?.unidentifiedDescription ||
@@ -137,12 +128,60 @@ export class WorkshopLedger {
       }));
 
       // Prepare tool icons for the tool row
-      const toolIcons = outcomes.map((outcomeData, index) => {
-        const toolName = this.toolNameMap[outcomeData.tool || 'none'] || 'Unknown Tool';
+      const toolIcons = await Promise.all(outcomes.map(async (outcomeData, index) => {
+        let toolName = "No Tool";
+        let toolImg = 'modules/vikarovs-guide-to-kaeliduran-crafting/assets/question-mark.png';
+        let toolDesc = "No tool is needed for this item.";
+        let toolId = '';
+        let toolType = 'none';
+        
+        // Check if we have a toolId (new system) or toolType (old system)
+        if (outcomeData.toolId) {
+          try {
+            const toolItem = await this.withTimeout(
+              fromUuid(outcomeData.toolId),
+              5000,
+              `Timeout: Failed to fetch tool for recipe ${selectedRecipe.id}, index ${index}`
+            );
+            
+            if (toolItem) {
+              toolName = toolItem.name;
+              toolImg = toolItem.img;
+              toolId = outcomeData.toolId;
+              toolDesc = toolItem.system?.description?.value || "A crafting tool.";
+              
+              // Try to determine tool type from baseItem
+              const baseItem = toolItem.system?.type?.baseItem || '';
+              if (this.validToolTypes.includes(baseItem)) {
+                toolType = baseItem;
+              }
+            }
+          } catch (err) {
+            console.error(`Error fetching tool for recipe ${selectedRecipe.id}, index ${index}:`, err);
+          }
+        } else if (outcomeData.tool && outcomeData.tool !== 'none') {
+          // Handle legacy tool type strings
+          toolType = outcomeData.tool;
+          toolName = this.toolNameMap[toolType] || "Unknown Tool";
+          toolDesc = `This magic item is crafted with ${toolName}.`;
+        }
+        
         return `
-        <span class="tool-icon tooltip-trigger" data-tool="${outcomeData.tool || 'none'}" data-custom-tooltip="This magic item is crafted with ${toolName}."></span>
+        <div class="tool-icon-container">
+          <div class="tool-icon tooltip-trigger ${isGM && this.editingRecipeId === selectedRecipe.id ? 'drop-zone tool-drop-zone' : ''}" 
+               ${isGM && this.editingRecipeId === selectedRecipe.id ? `data-type="tool" data-index="${index}"` : ''}
+               data-tool-type="${toolType}"
+               data-tool-id="${toolId}"
+               data-custom-tooltip="${toolDesc}">
+            <div class="tool-image" style="background-image: url('${toolImg}'); width: 100%; height: 100%; background-size: contain; background-position: center; background-repeat: no-repeat;"></div>
+            ${toolType === 'none' && !toolId ? '<span class="tool-placeholder">+</span>' : ''}
+          </div>
+          <p class="tool-name">${toolName}</p>
+          ${isGM && this.editingRecipeId === selectedRecipe.id && (toolId || toolType !== 'none') ? 
+            `<span class="remove-tool" data-index="${index}">X</span>` : ''}
+        </div>
       `;
-      });
+      }));
 
       // Prepare outcome slots for edit mode
       const outcomeSlots = [];
@@ -181,26 +220,6 @@ export class WorkshopLedger {
               </div>
               <p class="component-name">${outcome ? outcome.name : 'Click or Drop an Outcome Below'}</p>
               <span class="remove-component" style="${outcome ? 'display: block;' : 'display: none;'}">X</span>
-              <select name="tool-${i}" class="tool-select" style="display: none;">
-                <option value="">Select a Tool</option>
-                <option value="alchemist" ${outcomeData.tool === 'alchemist' ? 'selected' : ''}>Alchemist's Supplies</option>
-                <option value="brewer" ${outcomeData.tool === 'brewer' ? 'selected' : ''}>Brewer's Supplies</option>
-                <option value="calligrapher" ${outcomeData.tool === 'calligrapher' ? 'selected' : ''}>Calligrapher's Supplies</option>
-                <option value="carpenter" ${outcomeData.tool === 'carpenter' ? 'selected' : ''}>Carpenter's Tools</option>
-                <option value="cartographer" ${outcomeData.tool === 'cartographer' ? 'selected' : ''}>Cartographer's Tools</option>
-                <option value="cobbler" ${outcomeData.tool === 'cobbler' ? 'selected' : ''}>Cobbler's Tools</option>
-                <option value="cook" ${outcomeData.tool === 'cook' ? 'selected' : ''}>Cook's Utensils</option>
-                <option value="glassblower" ${outcomeData.tool === 'glassblower' ? 'selected' : ''}>Glassblower's Tools</option>
-                <option value="jeweler" ${outcomeData.tool === 'jeweler' ? 'selected' : ''}>Jeweler's Tools</option>
-                <option value="leatherworker" ${outcomeData.tool === 'leatherworker' ? 'selected' : ''}>Leatherworker's Tools</option>
-                <option value="mason" ${outcomeData.tool === 'mason' ? 'selected' : ''}>Mason's Tools</option>
-                <option value="painter" ${outcomeData.tool === 'painter' ? 'selected' : ''}>Painter's Supplies</option>
-                <option value="potter" ${outcomeData.tool === 'potter' ? 'selected' : ''}>Potter's Tools</option>
-                <option value="smith" ${outcomeData.tool === 'smith' ? 'selected' : ''}>Smith's Tools</option>
-                <option value="tinker" ${outcomeData.tool === 'tinker' ? 'selected' : ''}>Tinker's Tools</option>
-                <option value="weaver" ${outcomeData.tool === 'weaver' ? 'selected' : ''}>Weaver's Tools</option>
-                <option value="woodcarver" ${outcomeData.tool === 'woodcarver' ? 'selected' : ''}>Woodcarver's Tools</option>
-              </select>
             </div>
           `);
         }
@@ -317,11 +336,31 @@ export class WorkshopLedger {
       const description = html.find('.recipe-description-input').val();
       const componentId = html.find('.component-drop-zone').data('component-id');
       const outcomeSlots = html.find('#outcome-slots .outcome-drop-zone');
-      const tools = html.find('.tool-row .tool-icon').map((i, el) => $(el).data('tool')).get();
+      
+      // Get tool data from the tool-drop-zone elements
+      const toolData = html.find('.tool-drop-zone').map((i, el) => {
+        const $el = $(el);
+        const toolId = $el.data('tool-id') || '';
+        return {
+          index: $el.data('index'),
+          toolId,
+          toolType: $el.data('tool-type') || 'none'
+        };
+      }).get();
+      
+      // Build outcomes array
       const outcomes = outcomeSlots.toArray().map((slot, index) => {
         const uuid = $(slot).data('outcome-id');
         if (!uuid) return null;
-        return { uuid, tool: tools[index] || 'none' };
+        
+        // Find matching tool for this outcome
+        const toolInfo = toolData.find(t => t.index.toString() === index.toString()) || { toolId: '', toolType: 'none' };
+        
+        return { 
+          uuid, 
+          toolId: toolInfo.toolId,
+          tool: toolInfo.toolType // Keep for backward compatibility
+        };
       }).filter(Boolean);
 
       const workshopRecipes = game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'workshopRecipes') || {};
@@ -465,7 +504,6 @@ export class WorkshopLedger {
         console.log("Dropped outcome item:", item);
         const dropZone = $(event.currentTarget);
         const index = parseInt(dropZone.data('index'));
-        const toolIcon = $(`.tool-row .tool-icon`).eq(index);
         
         // Get unidentified description
         const unidentifiedDesc = item.getFlag('dnd5e', 'unidentifiedDescription') || 
@@ -476,7 +514,7 @@ export class WorkshopLedger {
         dropZone.data('outcome-id', uuid);
         dropZone.data('custom-tooltip', unidentifiedDesc);
         dropZone.css('background-image', `url('${item.img || '/icons/svg/mystery-man.svg'}')`);
-        dropZone.closest('.component-display').find('.component-name').text(item.name || 'Unknown Outcome');
+        dropZone.closest('.outcome-slot' + (index + 1)).find('.component-name').text(item.name || 'Unknown Outcome');
         dropZone.siblings('.remove-component').css('display', 'block');
       } catch (err) {
         console.error("Failed to drop outcome:", err);
@@ -484,27 +522,112 @@ export class WorkshopLedger {
       }
     });
 
-    // Tool selection in edit mode
-    html.find('.tool-icon').on('click', (event) => {
-      if (!this.editingRecipeId && !this.interface.newRecipeMode) return; // Only in edit mode
-      const toolIcon = $(event.currentTarget);
-      const index = toolIcon.index();
-      const outcomeSlot = $(`#outcome-slots .outcome-slot${index + 1}`);
-      const toolSelect = outcomeSlot.find('.tool-select');
-      const currentTool = toolIcon.data('tool');
-      toolSelect.css('display', 'block');
-      toolSelect.focus();
-      toolSelect.on('change', () => {
-        const newTool = toolSelect.val();
-        const toolName = this.toolNameMap[newTool] || 'No Tool';
-        toolIcon.data('tool', newTool || 'none');
-        toolIcon.attr('data-custom-tooltip', `This magic item is crafted with ${toolName}.`);
-        toolIcon.css('background-image', newTool ? `url('../assets/${newTool}.svg')` : 'none');
-        toolSelect.css('display', 'none');
-      });
-      toolSelect.on('blur', () => {
-        toolSelect.css('display', 'none');
-      });
+    // NEW: Drag-and-drop for tools
+    html.find('.tool-drop-zone').on('dragover', (event) => {
+      event.preventDefault();
+      event.originalEvent.dataTransfer.dropEffect = 'copy';
+    });
+
+    html.find('.tool-drop-zone').on('drop', async (event) => {
+      event.preventDefault();
+      const data = event.originalEvent.dataTransfer.getData('text/plain');
+      console.log("Tool drop data:", data);
+      let uuid;
+      try {
+        const parsedData = JSON.parse(data);
+        console.log("Parsed tool drop data:", parsedData);
+        uuid = parsedData.uuid || parsedData.UUID;
+        if (!uuid) throw new Error("No UUID found in drag data");
+      } catch (e) {
+        console.error("Failed to parse tool drop data:", e);
+        uuid = data;
+      }
+
+      try {
+        if (!uuid.startsWith("Item.")) {
+          uuid = `Item.${uuid}`; // Ensure proper UUID format
+        }
+        console.log("Fetching tool with UUID:", uuid);
+        const item = await this.withTimeout(
+          fromUuid(uuid),
+          5000,
+          `Timeout: Failed to fetch tool item during drop, uuid: ${uuid}`
+        );
+        if (!item) throw new Error("Item not found");
+        
+        // Check if this is a valid tool
+        const isTool = item.type === 'tool' || (item.type === 'equipment' && item.system?.toolType);
+        const baseItem = item.system?.type?.baseItem || '';
+        let toolType = 'none';
+        
+        if (this.validToolTypes.includes(baseItem)) {
+          toolType = baseItem;
+        }
+        
+        console.log("Dropped item:", item, "isTool:", isTool, "baseItem:", baseItem, "toolType:", toolType);
+        
+        if (isTool || this.validToolTypes.includes(baseItem)) {
+          const dropZone = $(event.currentTarget);
+          const toolContainer = dropZone.closest('.tool-icon-container');
+          const toolDesc = item.system?.description?.value || `This is ${item.name}.`;
+          
+// Update the dropzone with the tool data
+dropZone.data('tool-id', uuid);
+dropZone.data('tool-type', toolType);
+dropZone.data('custom-tooltip', toolDesc);
+
+// Either create or update the tool image div
+let toolImageDiv = dropZone.find('.tool-image');
+if (toolImageDiv.length === 0) {
+  toolImageDiv = $('<div class="tool-image"></div>');
+  dropZone.append(toolImageDiv);
+}
+
+// Set the background image on the tool image div
+toolImageDiv.attr('style', `background-image: url('${item.img || '/icons/svg/mystery-man.svg'}'); width: 100%; height: 100%; background-size: contain; background-position: center; background-repeat: no-repeat;`);
+
+// Remove the placeholder if it exists
+dropZone.find('.tool-placeholder').remove();
+          
+          // Make sure remove button is visible
+          toolContainer.find('.remove-tool').css('display', 'block');
+        } else {
+          ui.notifications.warn("Please drop a valid tool item.");
+        }
+      } catch (err) {
+        console.error("Failed to drop tool:", err);
+        ui.notifications.error(`Failed to drop tool: ${err.message}`);
+      }
+    });
+
+    // NEW: Remove tool button
+    html.find('.remove-tool').on('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      const $removeBtn = $(event.currentTarget);
+      const index = $removeBtn.data('index');
+      const toolContainer = $removeBtn.closest('.tool-icon-container');
+      const toolIcon = toolContainer.find('.tool-icon');
+      
+// Reset the tool data
+toolIcon.data('tool-id', '');
+toolIcon.data('tool-type', 'none');
+toolIcon.data('custom-tooltip', 'Drop a tool item here');
+
+// Remove existing tool image if present
+toolIcon.find('.tool-image').remove();
+
+// Add placeholder back
+if (toolIcon.find('.tool-placeholder').length === 0) {
+  toolIcon.append('<span class="tool-placeholder">+</span>');
+}
+      
+      // Update the tool name
+      toolContainer.find('.tool-name').text('No Tool');
+      
+      // Hide the remove button
+      $removeBtn.hide();
     });
 
     // Remove component or outcome
