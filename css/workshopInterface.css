@@ -228,11 +228,56 @@
 .component-row {
   position: relative;
   top: -6px;
-  text-align: center;
+  width: 100%;
+  align-items: flex-start;
+  justify-content: center;
 }
 
 .component-display {
   display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.crafting-requirements {
+  background-color: #252830;
+  border: 1px solid #4b4a44;
+  border-radius: 5px;
+  padding: 8px;
+  margin-top: -12px;
+  margin-left: 213px;
+  width: 150px;
+  height: 62px;
+}
+
+.requirement-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  margin-top: 3px;
+}
+
+.requirement-row:last-child {
+  margin-bottom: 0;
+}
+
+.requirement-label {
+  font-weight: bold;
+  margin-right: 5px;
+  color: #c4b998;
+  font-size: 12px;
+}
+
+.dc-value {
+  color: #ff9900; /* Orange for DC */
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.gold-value {
+  color: #ffd700; /* Gold color for gold cost */
+  font-weight: bold;
+  font-size: 12px;
 }
 
 .component-row .component-display .component-icon {
@@ -252,10 +297,7 @@
 }
 
 .recipe-border .component-row .component-name {
-  display: flex;
-  justify-content: center;
   position: relative;
-  left: 25%;
   top: -15px;
 }
 
@@ -267,7 +309,7 @@
   width: 367px;
   height: auto; /* Let the height be determined by content */
   min-height: 100px; /* Ensure enough space for the icons */
-  margin-top: 100px; /* Position it below the component */
+  margin-top: 50px; /* Position it below the component */
   margin-bottom: 20px; /* Space before outcome slots */
   z-index: 10; /* Keep it above the circuit pattern */
   left: -3px;

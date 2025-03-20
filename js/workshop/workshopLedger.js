@@ -56,6 +56,16 @@ export class WorkshopLedger {
                 <p class="component-name">Click or Drop a Component Below</p>
                 <span class="remove-component" style="display: none;">X</span>
               </div>
+              <div class="crafting-requirements">
+                <div class="requirement-row">
+                  <span class="requirement-label">DC:</span>
+                  <span class="dc-value">10</span>
+                </div>
+                <div class="requirement-row">
+                  <span class="requirement-label">Gold:</span>
+                  <span class="gold-value">50 gp</span>
+                </div>
+              </div>
             </div>
             <div class="tool-row">
               ${[0, 1, 2].map(index => `
@@ -167,20 +177,20 @@ export class WorkshopLedger {
         }
         
         return `
-        <div class="tool-icon-container">
-          <div class="tool-icon tooltip-trigger ${isGM && this.editingRecipeId === selectedRecipe.id ? 'drop-zone tool-drop-zone' : ''}" 
-               ${isGM && this.editingRecipeId === selectedRecipe.id ? `data-type="tool" data-index="${index}"` : ''}
-               data-tool-type="${toolType}"
-               data-tool-id="${toolId}"
-               data-custom-tooltip="${toolDesc}">
-            <div class="tool-image" style="background-image: url('${toolImg}'); width: 100%; height: 100%; background-size: contain; background-position: center; background-repeat: no-repeat;"></div>
-            ${toolType === 'none' && !toolId ? '<span class="tool-placeholder">+</span>' : ''}
+          <div class="tool-icon-container">
+            <div class="tool-icon tooltip-trigger ${isGM && this.editingRecipeId === selectedRecipe.id ? 'drop-zone tool-drop-zone' : ''}" 
+                 ${isGM && this.editingRecipeId === selectedRecipe.id ? `data-type="tool" data-index="${index}"` : ''}
+                 data-tool-type="${toolType}"
+                 data-tool-id="${toolId}"
+                 data-custom-tooltip="${toolDesc}">
+              <div class="tool-image" style="background-image: url('${toolImg}'); width: 100%; height: 100%; background-size: contain; background-position: center; background-repeat: no-repeat;"></div>
+              ${toolType === 'none' && !toolId ? '<span class="tool-placeholder">+</span>' : ''}
+            </div>
+            <p class="tool-name">${toolName}</p>
+            ${isGM && this.editingRecipeId === selectedRecipe.id && (toolId || toolType !== 'none') ? 
+              `<span class="remove-tool" data-index="${index}">X</span>` : ''}
           </div>
-          <p class="tool-name">${toolName}</p>
-          ${isGM && this.editingRecipeId === selectedRecipe.id && (toolId || toolType !== 'none') ? 
-            `<span class="remove-tool" data-index="${index}">X</span>` : ''}
-        </div>
-      `;
+        `;
       }));
 
       // Prepare outcome slots for edit mode
@@ -240,6 +250,10 @@ export class WorkshopLedger {
 
       // Get unidentified description for component if available
       let componentUnidentifiedDesc = "";
+      let componentRarity = "common";
+      let craftingDC = 10; // Default DC for common items
+      let goldCost = 50; // Default cost for common items
+      
       if (recipeData.componentId) {
         try {
           const component = await this.withTimeout(
@@ -252,6 +266,34 @@ export class WorkshopLedger {
                                       component.system?.unidentified?.description || 
                                       component.system?.unidentifiedDescription ||
                                       "A strange component with unknown properties.";
+            
+            // Extract rarity from component
+            componentRarity = component.system?.rarity || "common";
+            
+            // Calculate DC and gold cost based on rarity
+            switch(componentRarity) {
+              case "uncommon":
+                craftingDC = 15;
+                goldCost = 200;
+                break;
+              case "rare":
+                craftingDC = 20;
+                goldCost = 2000;
+                break;
+              case "very rare":
+              case "veryrare":
+                craftingDC = 25;
+                goldCost = 20000;
+                break;
+              case "legendary":
+                craftingDC = 30;
+                goldCost = 100000;
+                break;
+              default: // common
+                craftingDC = 10;
+                goldCost = 50;
+                break;
+            }
           }
         } catch (err) {
           console.error(`Failed to fetch component unidentified description for recipe ${selectedRecipe.id}:`, err);
@@ -271,6 +313,16 @@ export class WorkshopLedger {
             <p class="component-name">${recipeData.componentId ? selectedRecipe.name : 'Click or Drop a Component Below'}</p>
             <span class="remove-component" style="${recipeData.componentId ? 'display: block;' : 'display: none;'}">X</span>
           </div>
+          <div class="crafting-requirements">
+            <div class="requirement-row">
+              <span class="requirement-label">DC:</span>
+              <span class="dc-value">${craftingDC}</span>
+            </div>
+            <div class="requirement-row">
+              <span class="requirement-label">Gold:</span>
+              <span class="gold-value">${goldCost.toLocaleString()} gp</span>
+            </div>
+          </div>
         `;
       } else {
         componentHtml = `
@@ -280,6 +332,16 @@ export class WorkshopLedger {
                  data-custom-tooltip="${componentUnidentifiedDesc ? this._escapeHtml(componentUnidentifiedDesc) : 'Unknown component'}">
             </div>
             <p class="component-name">${recipeData.componentId ? selectedRecipe.name : 'Click or Drop a Component Below'}</p>
+          </div>
+          <div class="crafting-requirements">
+            <div class="requirement-row">
+              <span class="requirement-label">DC:</span>
+              <span class="dc-value">${craftingDC}</span>
+            </div>
+            <div class="requirement-row">
+              <span class="requirement-label">Gold:</span>
+              <span class="gold-value">${goldCost.toLocaleString()} gp</span>
+            </div>
           </div>
         `;
       }
@@ -455,11 +517,47 @@ export class WorkshopLedger {
                                 item.system?.unidentifiedDescription ||
                                 "A mysterious component with unknown properties.";
           
+          // Get rarity from component
+          const rarity = item.system?.rarity || "common";
+          
+          // Calculate DC and gold cost based on rarity
+          let craftingDC = 10;
+          let goldCost = 50;
+          switch(rarity) {
+            case "uncommon":
+              craftingDC = 15;
+              goldCost = 200;
+              break;
+            case "rare":
+              craftingDC = 20;
+              goldCost = 2000;
+              break;
+            case "very rare":
+            case "veryrare":
+              craftingDC = 25;
+              goldCost = 20000;
+              break;
+            case "legendary":
+              craftingDC = 30;
+              goldCost = 100000;
+              break;
+            default: // common
+              craftingDC = 10;
+              goldCost = 50;
+              break;
+          }
+          
+          // Update the component display
           dropZone.data('component-id', uuid);
           dropZone.data('custom-tooltip', unidentifiedDesc);
           dropZone.css('background-image', `url('${item.img || '/icons/svg/mystery-man.svg'}')`);
           dropZone.closest('.component-display').find('.component-name').text(item.name || 'Unknown Component');
           dropZone.siblings('.remove-component').css('display', 'block');
+          
+          // Update the DC and gold cost displays
+          const requirementsContainer = dropZone.closest('.component-row').find('.crafting-requirements');
+          requirementsContainer.find('.dc-value').text(craftingDC);
+          requirementsContainer.find('.gold-value').text(`${goldCost.toLocaleString()} gp`);
         } else {
           ui.notifications.warn("Please drop a valid component item.");
         }
@@ -571,23 +669,32 @@ export class WorkshopLedger {
           const toolContainer = dropZone.closest('.tool-icon-container');
           const toolDesc = item.system?.description?.value || `This is ${item.name}.`;
           
-// Update the dropzone with the tool data
-dropZone.data('tool-id', uuid);
-dropZone.data('tool-type', toolType);
-dropZone.data('custom-tooltip', toolDesc);
-
-// Either create or update the tool image div
-let toolImageDiv = dropZone.find('.tool-image');
-if (toolImageDiv.length === 0) {
-  toolImageDiv = $('<div class="tool-image"></div>');
-  dropZone.append(toolImageDiv);
-}
-
-// Set the background image on the tool image div
-toolImageDiv.attr('style', `background-image: url('${item.img || '/icons/svg/mystery-man.svg'}'); width: 100%; height: 100%; background-size: contain; background-position: center; background-repeat: no-repeat;`);
-
-// Remove the placeholder if it exists
-dropZone.find('.tool-placeholder').remove();
+          // Update the dropzone with the tool data
+          dropZone.data('tool-id', uuid);
+          dropZone.data('tool-type', toolType);
+          dropZone.data('custom-tooltip', toolDesc);
+          
+          // Either create or update the tool image div
+          let toolImageDiv = dropZone.find('.tool-image');
+          if (toolImageDiv.length === 0) {
+            toolImageDiv = $('<div class="tool-image"></div>');
+            dropZone.append(toolImageDiv);
+          }
+          
+          // Set the background image on the tool image div
+          toolImageDiv.attr('style', `background-image: url('${item.img || '/icons/svg/mystery-man.svg'}'); width: 100%; height: 100%; background-size: contain; background-position: center; background-repeat: no-repeat;`);
+          
+          // Remove the placeholder if it exists
+          dropZone.find('.tool-placeholder').remove();
+          
+          // Update the tool name display
+          toolContainer.find('.tool-name').text(item.name);
+          
+          // Add the remove button if not present
+          if (toolContainer.find('.remove-tool').length === 0) {
+            const index = dropZone.data('index');
+            toolContainer.append(`<span class="remove-tool" data-index="${index}">X</span>`);
+          }
           
           // Make sure remove button is visible
           toolContainer.find('.remove-tool').css('display', 'block');
@@ -610,18 +717,18 @@ dropZone.find('.tool-placeholder').remove();
       const toolContainer = $removeBtn.closest('.tool-icon-container');
       const toolIcon = toolContainer.find('.tool-icon');
       
-// Reset the tool data
-toolIcon.data('tool-id', '');
-toolIcon.data('tool-type', 'none');
-toolIcon.data('custom-tooltip', 'Drop a tool item here');
-
-// Remove existing tool image if present
-toolIcon.find('.tool-image').remove();
-
-// Add placeholder back
-if (toolIcon.find('.tool-placeholder').length === 0) {
-  toolIcon.append('<span class="tool-placeholder">+</span>');
-}
+      // Reset the tool data
+      toolIcon.data('tool-id', '');
+      toolIcon.data('tool-type', 'none');
+      toolIcon.data('custom-tooltip', 'Drop a tool item here');
+      
+      // Remove existing tool image if present
+      toolIcon.find('.tool-image').remove();
+      
+      // Add placeholder back
+      if (toolIcon.find('.tool-placeholder').length === 0) {
+        toolIcon.append('<span class="tool-placeholder">+</span>');
+      }
       
       // Update the tool name
       toolContainer.find('.tool-name').text('No Tool');
@@ -639,6 +746,13 @@ if (toolIcon.find('.tool-placeholder').length === 0) {
       dropZone.css('background-image', `url('modules/vikarovs-guide-to-kaeliduran-crafting/assets/question-mark.png')`);
       dropZone.closest('.component-display, .outcome-slot1, .outcome-slot2, .outcome-slot3').find('.component-name').text(isComponent ? 'Click or Drop a Component Below' : 'Click or Drop an Outcome Below');
       dropZone.siblings('.remove-component').css('display', 'none');
+      
+      // Reset DC and gold cost if this is a component
+      if (isComponent) {
+        const requirementsContainer = dropZone.closest('.component-row').find('.crafting-requirements');
+        requirementsContainer.find('.dc-value').text('10');
+        requirementsContainer.find('.gold-value').text('50 gp');
+      }
     });
   }
 
