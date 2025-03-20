@@ -44,6 +44,11 @@ export class WorkshopCompendium {
 
     const recipes = [];
     for (const recipe of Object.values(workshopRecipes)) {
+      // Skip locked recipes for non-GM players
+      if (!game.user.isGM && !recipe.unlocked) {
+        continue;
+      }
+
       let component = null;
       let name = "Incomplete Recipe";
       let componentIcon = "/icons/svg/mystery-man.svg";
@@ -56,7 +61,7 @@ export class WorkshopCompendium {
             `Timeout: Failed to fetch component for recipe ${recipe.id}, componentId: ${recipe.componentId}`
           );
           if (component) {
-            name = component.name || "Unknown Component";
+            name = component.name.replace(/\(Copy\)/g, '').trim();
             componentIcon = component.img || "/icons/svg/mystery-man.svg";
           }
         } catch (err) {
@@ -80,7 +85,6 @@ export class WorkshopCompendium {
   activateListeners(html) {
     // Listener for selecting a recipe
     html.find('.recipe-item').on('click', (event) => {
-      // Ignore if the delete button was clicked
       if ($(event.target).hasClass('delete-recipe')) return;
       
       const recipeId = $(event.currentTarget).data('recipe-id');
@@ -99,7 +103,7 @@ export class WorkshopCompendium {
     // Listener for delete recipe button
     html.find('.delete-recipe').on('click', async (event) => {
       event.preventDefault();
-      event.stopPropagation(); // Prevent triggering the recipe selection
+      event.stopPropagation();
       
       const recipeId = $(event.currentTarget).closest('.recipe-item').data('recipe-id');
       const recipes = game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'workshopRecipes') || {};
@@ -107,7 +111,6 @@ export class WorkshopCompendium {
                         (await fromUuid(recipes[recipeId].componentId))?.name || "this recipe" : 
                         "this recipe";
       
-      // Show confirmation dialog
       const confirmed = await Dialog.confirm({
         title: "Delete Recipe",
         content: `<p>Are you sure you want to delete "${recipeName}"?</p><p>This action cannot be undone.</p>`,
@@ -117,17 +120,14 @@ export class WorkshopCompendium {
       });
       
       if (confirmed) {
-        // Delete the recipe
         const workshopRecipes = game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'workshopRecipes') || {};
         delete workshopRecipes[recipeId];
         await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'workshopRecipes', workshopRecipes);
         
-        // Reset selected recipe if it was the deleted one
         if (this.interface.selectedRecipeId === recipeId) {
           this.interface.selectedRecipeId = null;
         }
         
-        // Re-render the interface
         this.interface.render(false);
         ui.notifications.info(`Recipe "${recipeName}" has been deleted.`);
       }

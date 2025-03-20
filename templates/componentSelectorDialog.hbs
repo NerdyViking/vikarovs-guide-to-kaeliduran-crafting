@@ -1,0 +1,16 @@
+<div class="vikarovs-workshop-interface vikarovs-component-selector">
+  <div class="vikarovs-dialog-content">
+    <h2>Select a Component</h2>
+    <div class="vikarovs-component-list">
+      {{#each components}}
+        <div class="vikarovs-component-item" data-uuid="{{uuid}}">
+          <span class="vikarovs-component-icon" style="background-image: url('{{img}}');"></span>
+          <span class="vikarovs-component-name">{{name}} (Quantity: {{quantity}})</span>
+        </div>
+      {{/each}}
+      {{#unless components.length}}
+        <p>No components found in your inventory.</p>
+      {{/unless}}
+    </div>
+  </div>
+</div>

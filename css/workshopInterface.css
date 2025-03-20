@@ -2,8 +2,8 @@
 
 /* ===== MAIN CONTAINER STYLES ===== */
 .vikarovs-workshop-interface {
-  background: url(../assets/denim075.png);
-  background-color: #1a1a1a;
+  background: url(../assets/denim075.png) !important;
+  background-color: #1a1a1a !important;
   color: #f0f0e0;
   padding: 10px;
   padding-top: 0px;
@@ -19,6 +19,10 @@
   background: url("../assets/banner-item-dark.png") no-repeat top center / cover;
   mask-image: linear-gradient(to bottom, black, transparent);
   z-index: 0;
+}
+
+.vikarovs-workshop-interface .window-content {
+  padding: 0px;
 }
 
 .vikarovs-workshop-interface .content {
@@ -695,4 +699,210 @@
 /* Hide the blue indicator dots from tooltips */
 .tooltip-trigger:after {
   display: none;
+}
+
+.crafting-workshop {
+  padding: 10px;
+  text-align: center;
+}
+
+.component-slot {
+  margin: 20px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.outcome-options {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.outcome-option {
+  position: relative;
+  width: 150px;
+  text-align: center;
+}
+
+.workshop-tooltip {
+  /* Existing styles */
+  display: none;
+}
+
+/* Component Selector Dialog Styles */
+.vikarovs-component-selector {
+  background: url(../assets/denim075.png);
+  background-color: #1a1a1a;
+  color: #f0f0e0;
+  padding: 10px;
+  padding-top: 0px;
+}
+
+.vikarovs-component-selector .vikarovs-dialog-content {
+  position: relative;
+  min-height: 200px;
+  z-index: 1;
+}
+
+.vikarovs-component-selector .window-header {
+  border-bottom: none;
+}
+
+.vikarovs-component-selector section.window-content::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 150px;
+  border-radius: 5px 5px 0 0;
+  opacity: 0.2;
+  background: url("../assets/banner-item-dark.png") no-repeat top center / cover;
+  mask-image: linear-gradient(to bottom, black, transparent);
+  z-index: 0;
+}
+
+.vikarovs-component-selector h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  border-bottom: 2px solid #4b4a44;
+  color: #c4b998;
+  font-family: "Modesto Condensed", "Palatino Linotype", serif;
+  font-size: 1.5rem;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.vikarovs-component-selector .vikarovs-component-list {
+  max-height: 400px;
+  overflow-y: auto;
+  position: relative;
+  z-index: 1;
+}
+
+.vikarovs-component-selector .vikarovs-component-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  margin-bottom: 5px;
+  background: #252830;
+  border: 1px solid #3c3c3c;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.vikarovs-component-selector .vikarovs-component-item:hover {
+  border-color: #ff0000;
+}
+
+.vikarovs-component-selector .vikarovs-component-icon {
+  width: 45px;
+  height: 45px;
+  margin-right: 10px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-image: url('/icons/svg/mystery-man.svg');
+}
+
+.vikarovs-component-selector .vikarovs-component-name {
+  flex: 1;
+  color: #f0f0e0;
+  font-size: 14px;
+}
+
+/* Clear Component Button */
+.component-drop-zone {
+  position: relative;
+}
+
+.clear-component {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 16px;
+  height: 16px;
+  background: #ff0000;
+  color: #fff;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  border-radius: 50%;
+  cursor: pointer;
+  display: none;
+}
+
+.clear-component:hover {
+  background: #cc0000;
+}
+
+/* Outcome Selection */
+.outcome-options {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.outcome-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 150px;
+  padding: 5px;
+  border: 2px solid transparent;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.outcome-option:hover {
+  border-color: #ff0000;
+}
+
+.outcome-option.selected {
+  border-color: #ff0000;
+  background: rgba(255, 0, 0, 0.1);
+}
+
+.outcome-icon-wrapper {
+  position: relative;
+}
+
+.outcome-icon {
+  border: 2px solid #4b4a44;
+  border-radius: 5px;
+}
+
+.outcome-name, .tool-name {
+  margin: 5px 0 0;
+  text-align: center;
+  font-size: 14px;
+  color: #f0f0e0;
+}
+
+/* Craft Button Container */
+.craft-button-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.craft-btn {
+  padding: 8px 20px;
+  background: #4b4a44;
+  color: #f0f0e0;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s ease;
+}
+
+.craft-btn:hover {
+  background: #5b5a54;
+}
+
+.craft-btn:disabled {
+  background: #3c3c3c;
+  cursor: not-allowed;
 }

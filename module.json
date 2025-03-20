@@ -17,7 +17,8 @@
     "js/workshop/workshopWorkshop.js",
     "js/workshop/workshopCrafting.js",
     "js/workshop/components.js",
-    "js/shared/utils.js"
+    "js/shared/utils.js",
+    "js/workshop/componentSelector.js"
   ],
   "styles": [
     "css/inventoryInterfaceButtons.css",
@@ -26,7 +27,8 @@
   ],
   "templates": [
     "templates/alchemyInterface.hbs",
-    "templates/workshopInterface.hbs"
+    "templates/workshopInterface.hbs",
+    "templates/componentSelectorDialog.hbs"
   ],
   "url": "",
   "manifest": "",
