@@ -106,7 +106,7 @@
 }
 
 .recipe-viewer h2 {
-  flex: 0 0 40px; /* Fixed height for the header */
+  flex: 0 0 27px; /* Fixed height for the header */
 }
 
 /* ===== LEFT PANE - RECIPE LIST ITEMS ===== */
@@ -905,4 +905,39 @@
 .craft-btn:disabled {
   background: #3c3c3c;
   cursor: not-allowed;
+}
+
+/* Workshop Component Row */
+.crafting-workshop .component-row {
+  margin-bottom: 10px;
+  height: 100px;
+}
+
+/* Crafting Requirements Sidebar */
+.crafting-workshop .crafting-requirements {
+  background: #252830;
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
+  padding: 8px;
+  width: 120px;
+  text-align: left;
+  margin-top: -119px;
+  margin-left: 239px;
+}
+
+.crafting-workshop .requirement-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.crafting-workshop .requirement-label {
+  color: #f0f0e0;
+  font-size: 14px;
+}
+
+.crafting-workshop .dc-value,
+.crafting-workshop .gold-value {
+  color: #c4b998;
+  font-size: 14px;
 }

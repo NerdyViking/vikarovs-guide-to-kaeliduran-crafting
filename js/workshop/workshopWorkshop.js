@@ -20,21 +20,32 @@ export class WorkshopWorkshop {
           <div class="workshop-tooltip" style="display: none;">A mysterious creation awaiting discovery.</div>
         </div>
         <p class="outcome-name">Unknown Craft</p>
-        <p class="tool-name">Tool: Unknown</p>
+        <p class="tool-name">Unknown</p>
       </div>
     `).join('');
 
     return `
       <div class="crafting-workshop">
-        <h3>Workshop</h3>
-        <p>Drop a component to begin crafting:</p>
-        <div class="component-slot">
-          <div class="component-icon drop-zone component-drop-zone" 
-               data-type="component" 
-               style="background-image: url('modules/vikarovs-guide-to-kaeliduran-crafting/assets/question-mark.png');">
-            <span class="clear-component" style="display: none;">X</span>
+        <p>Drop or select a component to begin crafting:</p>
+        <div class="component-row">
+          <div class="component-slot">
+            <div class="component-icon drop-zone component-drop-zone" 
+                 data-type="component" 
+                 style="background-image: url('modules/vikarovs-guide-to-kaeliduran-crafting/assets/question-mark.png');">
+              <span class="clear-component" style="display: none;">X</span>
+            </div>
+            <p class="component-name">Drop or Select a Component Here</p>
           </div>
-          <p class="component-name">Drop a Component Here</p>
+          <div class="crafting-requirements">
+            <div class="requirement-row">
+              <span class="requirement-label">DC:</span>
+              <span class="dc-value">0</span>
+            </div>
+            <div class="requirement-row">
+              <span class="requirement-label">Gold:</span>
+              <span class="gold-value">0 gp</span>
+            </div>
+          </div>
         </div>
         <div class="outcome-options">
           ${outcomeSlots}
@@ -47,7 +58,6 @@ export class WorkshopWorkshop {
   }
 
   async activateListeners(html) {
-    // Drag-and-drop for component
     html.find('.component-drop-zone').on('dragover', (event) => {
       event.preventDefault();
       event.originalEvent.dataTransfer.dropEffect = 'copy';
@@ -73,7 +83,6 @@ export class WorkshopWorkshop {
       await this.handleComponentSelection(data.uuid || data.UUID, html);
     });
 
-    // Click handler for the component slot to open the component selector application
     html.find('.component-drop-zone').on('click', async (event) => {
       const actor = this.interface._actor;
       if (!actor) {
@@ -90,7 +99,6 @@ export class WorkshopWorkshop {
       }).render(true);
     });
 
-    // Show/hide the clear button on hover
     html.find('.component-drop-zone').on('mouseenter', (event) => {
       const dropZone = $(event.currentTarget);
       if (dropZone.data('component-id')) {
@@ -100,7 +108,6 @@ export class WorkshopWorkshop {
       $(event.currentTarget).find('.clear-component').css('display', 'none');
     });
 
-    // Clear the component slot when the "X" is clicked
     html.find('.clear-component').on('click', (event) => {
       event.stopPropagation();
       const dropZone = $(event.currentTarget).closest('.component-drop-zone');
@@ -116,15 +123,18 @@ export class WorkshopWorkshop {
         $element.attr('data-recipe-unlocked', 'false');
         $element.find('.outcome-icon').attr('src', '/icons/svg/mystery-man.svg');
         $element.find('.outcome-name').text('Unknown Craft');
-        $element.find('.tool-name').text('Tool: Unknown');
+        $element.find('.tool-name').text('Unknown');
         $element.find('.workshop-tooltip').text('A mysterious creation awaiting discovery.');
       });
+
+      const requirementsContainer = html.find('.crafting-requirements');
+      requirementsContainer.find('.dc-value').text('0');
+      requirementsContainer.find('.gold-value').text('0 gp');
 
       html.find('.craft-btn').prop('disabled', true);
       this.selectedOutcomeIndex = null;
     });
 
-    // Outcome selection
     html.find('.outcome-option').on('click', (event) => {
       const $outcome = $(event.currentTarget);
       const index = parseInt($outcome.data('outcome-index'));
@@ -140,7 +150,6 @@ export class WorkshopWorkshop {
       html.find('.craft-btn').prop('disabled', false);
     });
 
-    // Tooltip hover for outcomes (only show if recipe is locked)
     html.on('mouseenter', '.outcome-icon-wrapper', (event) => {
       const $wrapper = $(event.currentTarget);
       const $outcome = $wrapper.closest('.outcome-option');
@@ -160,7 +169,6 @@ export class WorkshopWorkshop {
       $(event.currentTarget).find('.workshop-tooltip').hide();
     });
 
-    // Craft button listener
     html.on('click', '.craft-btn', async (event) => {
       if (this.selectedOutcomeIndex === null) {
         ui.notifications.warn("Please select an outcome to craft.");
@@ -205,6 +213,14 @@ export class WorkshopWorkshop {
     dropZone.css('background-image', `url('${item.img || '/icons/svg/mystery-man.svg'}')`);
     dropZone.siblings('.component-name').text(item.name);
 
+    const rarity = item.system?.rarity || "common";
+    const craftingDC = this.calculateDC(rarity);
+    const goldCost = this.calculateGoldCost(rarity);
+
+    const requirementsContainer = html.find('.crafting-requirements');
+    requirementsContainer.find('.dc-value').text(craftingDC);
+    requirementsContainer.find('.gold-value').text(`${goldCost.toLocaleString()} gp`);
+
     const workshopRecipes = game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'workshopRecipes') || {};
     console.log("workshopRecipes:", workshopRecipes);
 
@@ -237,13 +253,13 @@ export class WorkshopWorkshop {
         $outcome.attr('data-recipe-unlocked', recipe.unlocked);
         $outcome.find('.outcome-icon').attr('src', outcomeItem?.img || '/icons/svg/mystery-man.svg');
         $outcome.find('.outcome-name').text(outcomeItem?.name || 'Unknown Craft');
-        $outcome.find('.tool-name').text(`Tool: ${toolName || 'Unknown'}`);
+        $outcome.find('.tool-name').text(toolName || 'Unknown');
         $outcome.find('.workshop-tooltip').text(unidentifiedDesc);
       } else {
         $outcome.attr('data-recipe-unlocked', recipe.unlocked);
         $outcome.find('.outcome-icon').attr('src', '/icons/svg/mystery-man.svg');
         $outcome.find('.outcome-name').text('Unknown Craft');
-        $outcome.find('.tool-name').text('Tool: Unknown');
+        $outcome.find('.tool-name').text('Unknown');
         $outcome.find('.workshop-tooltip').text('A mysterious creation awaiting discovery.');
       }
     }
