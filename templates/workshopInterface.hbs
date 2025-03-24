@@ -1,37 +1,303 @@
-<!-- templates/workshopInterface.hbs -->
 <div class="vikarovs-workshop-interface">
-  <div class="pane-container">
-    <!-- Left Pane: Vikarov's Compendium -->
+  <!-- Top Row: Compendium Section -->
+  <div class="compendium-section">
     <div class="recipe-browser">
-      <h2>Vikarov's Compendium</h2>
-      <div class="recipe-list">
-        <p>Recipes: {{recipes.length}}</p>
-        {{#each recipes}}
-          <div class="recipe-item" data-recipe-id="{{id}}">
-            <span class="recipe-icon" style="background-image: url('{{componentIcon}}');"></span>
-            <span class="recipe-name" data-tooltip="{{description}}">{{#if unlocked}}{{name}}{{else}}???{{/if}}</span>
-            {{#if ../isGM}}
-              <span class="delete-recipe" title="Delete Recipe"><i class="fas fa-times"></i></span>
-            {{/if}}
-          </div>
-        {{/each}}
+      <div class="recipe-tabs">
+        {{#if recipes.length}}
+          {{#each recipes}}
+            <div class="recipe-tab {{#if (eq ../selectedRecipe.id id)}}active{{/if}}" data-recipe-id="{{id}}">
+              {{#if componentImg}}
+                <img src="{{componentImg}}" class="component-icon" alt="{{name}} Component" />
+              {{/if}}
+              <span class="recipe-name">{{name}}</span>
+              {{#if ../isGM}}
+                <span class="delete-tab" title="Delete Recipe"><i class="fas fa-times"></i></span>
+              {{/if}}
+            </div>
+          {{/each}}
+        {{else}}
+          <p class="no-recipes">No recipes available.</p>
+        {{/if}}
         {{#if isGM}}
-          <button class="new-recipe-btn">Create New Recipe</button>
+          <div class="new-recipe-btn">
+            <span>Create New Recipe</span>
+          </div>
         {{/if}}
       </div>
     </div>
-    <!-- Middle Pane: Forge Ledger -->
+  </div>
+
+  <!-- Bottom Row: Ledger and Workshop Sections -->
+  <div class="bottom-row">
+    <!-- Ledger Section -->
     <div class="recipe-viewer">
       <h2>Forge Ledger</h2>
       <div class="recipe-content">
-        {{{recipeViewerContent}}}
+        {{#if selectedRecipe}}
+          <div class="ledger-details">
+            <!-- Component (Row 2, Column 1) -->
+            <div class="component-wrapper {{#if editMode}}drop-zone{{/if}}" data-type="component">
+              {{#if selectedRecipe.componentType}}
+                <span class="component-name">{{selectedRecipe.componentType}}</span>
+              {{/if}}
+              <div class="component-box">
+                {{#if selectedRecipe.componentImg}}
+                  <img src="{{selectedRecipe.componentImg}}" class="component-image" alt="Component" />
+                {{else}}
+                  <span class="slot-placeholder">None</span>
+                {{/if}}
+                {{#if selectedRecipe.componentUuid}}
+                  <span class="component-link" data-item-id="{{selectedRecipe.componentUuid}}"></span>
+                {{/if}}
+                {{#if editMode}}
+                  <span class="drop-hint">Drop a component here</span>
+                {{/if}}
+              </div>
+            </div>
+            <!-- DC and Cost (Row 2, Column 2) -->
+            <div class="ledger-dc-cost">
+              <p><strong>DC:</strong> {{selectedRecipe.dc}}</p>
+              <p><strong>Cost:</strong> {{formatNumber selectedRecipe.goldCost}} gp</p>
+            </div>
+            <!-- Outcome and Tool Sections -->
+            {{#with selectedRecipe}}
+              <!-- Outcome 1 (Row 1, Column 4) -->
+              <div class="outcome-wrapper {{#if ../editMode}}drop-zone{{/if}}" data-type="outcome" data-index="0">
+                {{#if outcomes.[0]}}
+                  <span class="outcome-name">{{outcomes.[0].name}}</span>
+                {{/if}}
+                <div class="outcome-box">
+                  {{#if outcomeImgs.[0]}}
+                    <img src="{{outcomeImgs.[0]}}" class="outcome-image" alt="Outcome" />
+                  {{else}}
+                    <span class="slot-placeholder">None</span>
+                  {{/if}}
+                  {{#if outcomes.[0]}}
+                    <span class="outcome-link" data-item-id="{{outcomes.[0].id}}"></span>
+                  {{/if}}
+                  {{#if ../editMode}}
+                    <span class="drop-hint">Drop an item here</span>
+                  {{/if}}
+                </div>
+              </div>
+              <!-- Tool Drop Zone for Outcome 1 (Row 1, Column 5) -->
+              <div class="tool-icon-wrapper {{#if ../editMode}}drop-zone{{/if}}" data-type="tool" data-index="0">
+                {{#if toolTypes.[0]}}
+                  {{#if toolImgs.[0]}}
+                    <img src="{{toolImgs.[0]}}" alt="{{toolTypes.[0]}}" class="tool-icon">
+                    <span class="tool-link" data-item-id="{{toolUuids.[0]}}"></span>
+                  {{else}}
+                    <span class="tool-icon">{{toolTypes.[0]}}</span>
+                  {{/if}}
+                  <span class="tool-name">{{toolTypes.[0]}}</span>
+                {{else}}
+                  <span class="tool-placeholder">None</span>
+                  {{#if ../editMode}}
+                    <span class="drop-hint">Drop a tool here</span>
+                  {{/if}}
+                {{/if}}
+              </div>
+              <!-- Outcome 2 (Row 2, Column 4) -->
+              <div class="outcome-wrapper {{#if ../editMode}}drop-zone{{/if}}" data-type="outcome" data-index="1">
+                {{#if outcomes.[1]}}
+                  <span class="outcome-name">{{outcomes.[1].name}}</span>
+                {{/if}}
+                <div class="outcome-box">
+                  {{#if outcomeImgs.[1]}}
+                    <img src="{{outcomeImgs.[1]}}" class="outcome-image" alt="Outcome" />
+                  {{else}}
+                    <span class="slot-placeholder">None</span>
+                  {{/if}}
+                  {{#if outcomes.[1]}}
+                    <span class="outcome-link" data-item-id="{{outcomes.[1].id}}"></span>
+                  {{/if}}
+                  {{#if ../editMode}}
+                    <span class="drop-hint">Drop an item here</span>
+                  {{/if}}
+                </div>
+              </div>
+              <!-- Tool Drop Zone for Outcome 2 (Row 2, Column 5) -->
+              <div class="tool-icon-wrapper {{#if ../editMode}}drop-zone{{/if}}" data-type="tool" data-index="1">
+                {{#if toolTypes.[1]}}
+                  {{#if toolImgs.[1]}}
+                    <img src="{{toolImgs.[1]}}" alt="{{toolTypes.[1]}}" class="tool-icon">
+                    <span class="tool-link" data-item-id="{{toolUuids.[1]}}"></span>
+                  {{else}}
+                    <span class="tool-icon">{{toolTypes.[1]}}</span>
+                  {{/if}}
+                  <span class="tool-name">{{toolTypes.[1]}}</span>
+                {{else}}
+                  <span class="tool-placeholder">None</span>
+                  {{#if ../editMode}}
+                    <span class="drop-hint">Drop a tool here</span>
+                  {{/if}}
+                {{/if}}
+              </div>
+              <!-- Outcome 3 (Row 3, Column 4) -->
+              <div class="outcome-wrapper {{#if ../editMode}}drop-zone{{/if}}" data-type="tool" data-index="2">
+                {{#if outcomes.[2]}}
+                  <span class="outcome-name">{{outcomes.[2].name}}</span>
+                {{/if}}
+                <div class="outcome-box">
+                  {{#if outcomeImgs.[2]}}
+                    <img src="{{outcomeImgs.[2]}}" class="outcome-image" alt="Outcome" />
+                  {{else}}
+                    <span class="slot-placeholder">None</span>
+                  {{/if}}
+                  {{#if outcomes.[2]}}
+                    <span class="outcome-link" data-item-id="{{outcomes.[2].id}}"></span>
+                  {{/if}}
+                  {{#if ../editMode}}
+                    <span class="drop-hint">Drop an item here</span>
+                  {{/if}}
+                </div>
+              </div>
+              <!-- Tool Drop Zone for Outcome 3 (Row 3, Column 5) -->
+              <div class="tool-icon-wrapper {{#if ../editMode}}drop-zone{{/if}}" data-type="tool" data-index="2">
+                {{#if toolTypes.[2]}}
+                  {{#if toolImgs.[2]}}
+                    <img src="{{toolImgs.[2]}}" alt="{{toolTypes.[2]}}" class="tool-icon">
+                    <span class="tool-link" data-item-id="{{toolUuids.[2]}}"></span>
+                  {{else}}
+                    <span class="tool-icon">{{toolTypes.[2]}}</span>
+                  {{/if}}
+                  <span class="tool-name">{{toolTypes.[2]}}</span>
+                {{else}}
+                  <span class="tool-placeholder">None</span>
+                  {{#if ../editMode}}
+                    <span class="drop-hint">Drop a tool here</span>
+                  {{/if}}
+                {{/if}}
+              </div>
+            {{/with}}
+          </div>
+          <!-- Edit and Delete Buttons (GM-only) -->
+          {{#if isGM}}
+            <div class="ledger-controls">
+              <button class="toggle-edit-btn">{{#if editMode}}Save{{else}}Edit{{/if}}</button>
+              <button class="delete-recipe-btn">Delete</button>
+            </div>
+          {{/if}}
+        {{else}}
+          <p>Select a recipe to view details.</p>
+        {{/if}}
       </div>
     </div>
-    <!-- Right Pane: Workshop -->
+
+    <!-- Workshop Section -->
     <div class="crafting-area">
       <h2>Workshop</h2>
       <div class="crafting-content">
-        {{{craftingContent}}}
+        <div class="workshop-details">
+          <!-- Mirrored Component (Row 2, Column 6) -->
+          <div class="workshop-component-wrapper drop-zone" data-type="workshop-component">
+            {{#if component}}
+              <span class="workshop-component-name">{{component.name}}</span>
+            {{/if}}
+            <div class="workshop-component-box">
+              {{#if component.img}}
+                <img src="{{component.img}}" class="workshop-component-image" alt="Component" />
+              {{else}}
+                <span class="workshop-slot-placeholder">None</span>
+              {{/if}}
+              {{!-- Only show the drop hint if no component is slotted --}}
+              {{#unless component}}
+                <span class="drop-hint">Drop a component here</span>
+              {{/unless}}
+            </div>
+          </div>
+          <!-- Mirrored DC and Cost (Row 2, Column 5) -->
+          <div class="workshop-dc-cost">
+            <p><strong>DC:</strong> {{workshopDc}}</p>
+            <p><strong>Cost:</strong> {{formatNumber workshopGoldCost}} gp</p>
+          </div>
+          <!-- Mirrored Outcome and Tool Sections -->
+          <!-- Outcome 1 (Row 1, Column 3) -->
+          <div class="workshop-outcome-wrapper" data-index="0">
+            {{#if workshopOutcomes.[0]}}
+              <span class="workshop-outcome-name">{{workshopOutcomes.[0].name}}</span>
+            {{/if}}
+            <div class="workshop-outcome-box {{#if (eq selectedOutcomeIndex 0)}}selected{{/if}}" data-index="0">
+              {{#if workshopOutcomeImgs.[0]}}
+                <img src="{{workshopOutcomeImgs.[0]}}" class="workshop-outcome-image" alt="Outcome" />
+              {{else}}
+                <span class="workshop-slot-placeholder">None</span>
+              {{/if}}
+            </div>
+          </div>
+          <!-- Tool Drop Zone for Outcome 1 (Row 1, Column 2) -->
+          <div class="workshop-tool-icon-wrapper" data-index="0">
+            {{#if workshopTools.[0]}}
+              {{#if workshopToolImgs.[0]}}
+                <img src="{{workshopToolImgs.[0]}}" alt="{{workshopTools.[0]}}" class="workshop-tool-icon">
+                <span class="workshop-tool-link" data-item-id="{{workshopToolUuids.[0]}}"></span>
+              {{else}}
+                <span class="workshop-tool-icon">{{workshopTools.[0]}}</span>
+              {{/if}}
+              <span class="workshop-tool-name">{{workshopOutcomeDescriptions.[0]}}</span>
+            {{else}}
+              <span class="workshop-tool-placeholder">None</span>
+            {{/if}}
+          </div>
+          <!-- Outcome 2 (Row 2, Column 3) -->
+          <div class="workshop-outcome-wrapper" data-index="1">
+            {{#if workshopOutcomes.[1]}}
+              <span class="workshop-outcome-name">{{workshopOutcomes.[1].name}}</span>
+            {{/if}}
+            <div class="workshop-outcome-box {{#if (eq selectedOutcomeIndex 1)}}selected{{/if}}" data-index="1">
+              {{#if workshopOutcomeImgs.[1]}}
+                <img src="{{workshopOutcomeImgs.[1]}}" class="workshop-outcome-image" alt="Outcome" />
+              {{else}}
+                <span class="workshop-slot-placeholder">None</span>
+              {{/if}}
+            </div>
+          </div>
+          <!-- Tool Drop Zone for Outcome 2 (Row 2, Column 2) -->
+          <div class="workshop-tool-icon-wrapper" data-index="1">
+            {{#if workshopTools.[1]}}
+              {{#if workshopToolImgs.[1]}}
+                <img src="{{workshopToolImgs.[1]}}" alt="{{workshopTools.[1]}}" class="workshop-tool-icon">
+                <span class="workshop-tool-link" data-item-id="{{workshopToolUuids.[1]}}"></span>
+              {{else}}
+                <span class="workshop-tool-icon">{{workshopTools.[1]}}</span>
+              {{/if}}
+              <span class="workshop-tool-name">{{workshopOutcomeDescriptions.[1]}}</span>
+            {{else}}
+              <span class="workshop-tool-placeholder">None</span>
+            {{/if}}
+          </div>
+          <!-- Outcome 3 (Row 3, Column 3) -->
+          <div class="workshop-outcome-wrapper" data-index="2">
+            {{#if workshopOutcomes.[2]}}
+              <span class="workshop-outcome-name">{{workshopOutcomes.[2].name}}</span>
+            {{/if}}
+            <div class="workshop-outcome-box {{#if (eq selectedOutcomeIndex 2)}}selected{{/if}}" data-index="2">
+              {{#if workshopOutcomeImgs.[2]}}
+                <img src="{{workshopOutcomeImgs.[2]}}" class="workshop-outcome-image" alt="Outcome" />
+              {{else}}
+                <span class="workshop-slot-placeholder">None</span>
+              {{/if}}
+            </div>
+          </div>
+          <!-- Tool Drop Zone for Outcome 3 (Row 3, Column 2) -->
+          <div class="workshop-tool-icon-wrapper" data-index="2">
+            {{#if workshopTools.[2]}}
+              {{#if workshopToolImgs.[2]}}
+                <img src="{{workshopToolImgs.[2]}}" alt="{{workshopTools.[2]}}" class="workshop-tool-icon">
+                <span class="workshop-tool-link" data-item-id="{{workshopToolUuids.[2]}}"></span>
+              {{else}}
+                <span class="workshop-tool-icon">{{workshopTools.[2]}}</span>
+              {{/if}}
+              <span class="workshop-tool-name">{{workshopOutcomeDescriptions.[2]}}</span>
+            {{else}}
+              <span class="workshop-tool-placeholder">None</span>
+            {{/if}}
+          </div>
+        </div>
+        <div class="crafting-controls">
+          <button class="craft-btn">Craft</button>
+          <button class="clear-btn">Clear</button>
+        </div>
       </div>
     </div>
   </div>

@@ -1,6 +1,5 @@
-// js/shared/inventoryInterfaceButtons.js
 import { AlchemyInterface } from "../alchemy/alchemyInterface.js";
-import { VikarovsWorkshopInterface } from "../workshop/workshopInterface.js"; // Update import
+import { WorkshopInterface } from "../workshop/workshopInterface.js"; // Update import to use WorkshopInterface
 
 // Function to inject buttons into a new div before .middle
 function injectButtons(app, html) {
@@ -48,7 +47,7 @@ function injectButtons(app, html) {
 
     craftingControls.find('.workshop-btn').on('click', () => {
       const actor = app.actor;
-      new VikarovsWorkshopInterface(actor).render(true);
+      new WorkshopInterface(actor).render(true); // Update to use WorkshopInterface
     });
 
     return true;

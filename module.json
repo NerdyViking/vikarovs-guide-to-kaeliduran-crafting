@@ -15,7 +15,6 @@
     "js/workshop/workshopCompendium.js",
     "js/workshop/workshopLedger.js",
     "js/workshop/workshopWorkshop.js",
-    "js/workshop/workshopCrafting.js",
     "js/workshop/components.js",
     "js/shared/utils.js",
     "js/workshop/componentSelector.js"
@@ -23,7 +22,10 @@
   "styles": [
     "css/inventoryInterfaceButtons.css",
     "css/alchemyInterface.css",
-    "css/workshopInterface.css"
+    "css/workshopInterface.css",
+    "css/workshopCompendium.css",
+    "css/workshopLedger.css",
+    "css/workshopWorkshop.css"
   ],
   "templates": [
     "templates/alchemyInterface.hbs",

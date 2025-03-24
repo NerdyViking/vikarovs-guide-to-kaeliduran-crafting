@@ -1,478 +1,348 @@
-// js/workshop/workshopWorkshop.js
-console.log("workshopWorkshop.js loaded");
-
 import { ComponentSelectorApplication } from './componentSelector.js';
 
-export class WorkshopWorkshop {
-  constructor(workshopInterface) {
-    this.interface = workshopInterface;
-    this.selectedOutcomeIndex = null;
-  }
-
-  async getCraftingContent() {
-    const actor = this.interface._actor;
-    if (!actor) return "<p>No actor selected. Please open this interface via a character sheet.</p>";
-
-    const outcomeSlots = [0, 1, 2].map(index => `
-      <div class="outcome-option" data-outcome-index="${index}" data-recipe-unlocked="false">
-        <div class="outcome-icon-wrapper">
-          <img class="outcome-icon" src="/icons/svg/mystery-man.svg" width="50" height="50" alt="Unknown Outcome">
-          <div class="workshop-tooltip" style="display: none;">A mysterious creation awaiting discovery.</div>
-        </div>
-        <p class="outcome-name">Unknown Craft</p>
-        <p class="tool-name">Unknown</p>
-      </div>
-    `).join('');
-
-    return `
-      <div class="crafting-workshop">
-        <p>Drop or select a component to begin crafting:</p>
-        <div class="component-row">
-          <div class="component-slot">
-            <div class="component-icon drop-zone component-drop-zone" 
-                 data-type="component" 
-                 style="background-image: url('modules/vikarovs-guide-to-kaeliduran-crafting/assets/question-mark.png');">
-              <span class="clear-component" style="display: none;">X</span>
-            </div>
-            <p class="component-name">Drop or Select a Component Here</p>
-          </div>
-          <div class="crafting-requirements">
-            <div class="requirement-row">
-              <span class="requirement-label">DC:</span>
-              <span class="dc-value">0</span>
-            </div>
-            <div class="requirement-row">
-              <span class="requirement-label">Gold:</span>
-              <span class="gold-value">0 gp</span>
-            </div>
-          </div>
-        </div>
-        <div class="outcome-options">
-          ${outcomeSlots}
-        </div>
-        <div class="craft-button-container">
-          <button class="craft-btn" disabled>Craft</button>
-        </div>
-      </div>
-    `;
-  }
-
-  async activateListeners(html) {
-    html.find('.component-drop-zone').on('dragover', (event) => {
+export function handleWorkshopListeners(workshopInterface, html) {
+  // Handle drag-and-drop for the component slot
+  html.find('.workshop-component-wrapper.drop-zone').each((index, element) => {
+    const $element = $(element);
+    $element.on('dragover', (event) => {
       event.preventDefault();
       event.originalEvent.dataTransfer.dropEffect = 'copy';
     });
 
-    html.find('.component-drop-zone').on('drop', async (event) => {
+    $element.on('drop', async (event) => {
       event.preventDefault();
-      const rawData = event.originalEvent.dataTransfer.getData('text/plain');
-      console.log("Raw drag data:", rawData);
-
-      let data;
-      try {
-        if (!rawData || rawData === "undefined") {
-          throw new Error("No valid drag data provided.");
-        }
-        data = JSON.parse(rawData);
-      } catch (e) {
-        console.error("Failed to parse drag data:", e, "Raw data:", rawData);
-        ui.notifications.error("Failed to drop component: Invalid drag data.");
+      const data = JSON.parse(event.originalEvent.dataTransfer.getData('text/plain'));
+      if (!data.type || !data.uuid) {
+        ui.notifications.warn("Invalid item data.");
         return;
       }
 
-      await this.handleComponentSelection(data.uuid || data.UUID, html);
-    });
-
-    html.find('.component-drop-zone').on('click', async (event) => {
-      const actor = this.interface._actor;
-      if (!actor) {
-        ui.notifications.error("No actor selected.");
-        return;
-      }
-
-      if (html.find('.component-drop-zone').data('component-id')) {
-        return;
-      }
-
-      new ComponentSelectorApplication(actor, async (selectedComponent) => {
-        await this.handleComponentSelection(selectedComponent.uuid, html);
-      }).render(true);
-    });
-
-    html.find('.component-drop-zone').on('mouseenter', (event) => {
-      const dropZone = $(event.currentTarget);
-      if (dropZone.data('component-id')) {
-        dropZone.find('.clear-component').css('display', 'block');
-      }
-    }).on('mouseleave', (event) => {
-      $(event.currentTarget).find('.clear-component').css('display', 'none');
-    });
-
-    html.find('.clear-component').on('click', (event) => {
-      event.stopPropagation();
-      const dropZone = $(event.currentTarget).closest('.component-drop-zone');
-      dropZone.data('component-id', null);
-      dropZone.data('component-name', null);
-      dropZone.css('background-image', `url('modules/vikarovs-guide-to-kaeliduran-crafting/assets/question-mark.png')`);
-      dropZone.siblings('.component-name').text("Drop a Component Here");
-
-      const outcomeOptions = html.find('.outcome-options');
-      outcomeOptions.find('.outcome-option').each((index, element) => {
-        const $element = $(element);
-        $element.removeClass('selected');
-        $element.attr('data-recipe-unlocked', 'false');
-        $element.find('.outcome-icon').attr('src', '/icons/svg/mystery-man.svg');
-        $element.find('.outcome-name').text('Unknown Craft');
-        $element.find('.tool-name').text('Unknown');
-        $element.find('.workshop-tooltip').text('A mysterious creation awaiting discovery.');
-      });
-
-      const requirementsContainer = html.find('.crafting-requirements');
-      requirementsContainer.find('.dc-value').text('0');
-      requirementsContainer.find('.gold-value').text('0 gp');
-
-      html.find('.craft-btn').prop('disabled', true);
-      this.selectedOutcomeIndex = null;
-    });
-
-    html.find('.outcome-option').on('click', (event) => {
-      const $outcome = $(event.currentTarget);
-      const index = parseInt($outcome.data('outcome-index'));
-
-      if (!html.find('.component-drop-zone').data('component-id')) {
-        return;
-      }
-
-      html.find('.outcome-option').removeClass('selected');
-      $outcome.addClass('selected');
-      this.selectedOutcomeIndex = index;
-
-      html.find('.craft-btn').prop('disabled', false);
-    });
-
-    html.on('mouseenter', '.outcome-icon-wrapper', (event) => {
-      const $wrapper = $(event.currentTarget);
-      const $outcome = $wrapper.closest('.outcome-option');
-      const isRecipeUnlocked = $outcome.data('recipe-unlocked') === true || $outcome.data('recipe-unlocked') === 'true';
-
-      if (isRecipeUnlocked) {
-        return;
-      }
-
-      const $tooltip = $wrapper.find('.workshop-tooltip');
-      $tooltip.css({
-        display: 'block',
-        top: $wrapper.position().top + $wrapper.outerHeight() + 10,
-        left: $wrapper.position().left + ($wrapper.outerWidth() - $tooltip.outerWidth()) / 2
-      });
-    }).on('mouseleave', '.outcome-icon-wrapper', (event) => {
-      $(event.currentTarget).find('.workshop-tooltip').hide();
-    });
-
-    html.on('click', '.craft-btn', async (event) => {
-      if (this.selectedOutcomeIndex === null) {
-        ui.notifications.warn("Please select an outcome to craft.");
-        return;
-      }
-      await this.handleCrafting(this.selectedOutcomeIndex, html);
-    });
-  }
-
-  async handleComponentSelection(uuid, html) {
-    if (!uuid) {
-      console.error("No UUID found in drag data:");
-      ui.notifications.error("Invalid component dropped: No UUID found.");
-      return;
-    }
-
-    let item;
-    try {
-      item = await fromUuid(uuid);
+      const item = await fromUuid(data.uuid);
       if (!item) {
-        const itemId = uuid.split('.').pop();
-        item = game.items.get(itemId) || this.interface._actor?.items.get(itemId);
-        if (!item) throw new Error("Item not found.");
+        ui.notifications.warn("Item not found.");
+        return;
       }
-    } catch (e) {
-      console.error("Failed to fetch item with UUID:", uuid, e);
-      ui.notifications.error("Failed to fetch component: Invalid UUID.");
-      return;
-    }
 
-    if (!item || !item.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'isComponent')) {
-      ui.notifications.warn("Please drop a valid component.");
-      return;
-    }
-
-    const componentName = item.name.replace(/\(Copy\)/g, '').trim();
-    console.log("Component name for recipe matching:", componentName);
-
-    const dropZone = html.find('.component-drop-zone');
-    dropZone.data('component-id', uuid);
-    dropZone.data('component-name', componentName);
-    dropZone.css('background-image', `url('${item.img || '/icons/svg/mystery-man.svg'}')`);
-    dropZone.siblings('.component-name').text(item.name);
-
-    const rarity = item.system?.rarity || "common";
-    const craftingDC = this.calculateDC(rarity);
-    const goldCost = this.calculateGoldCost(rarity);
-
-    const requirementsContainer = html.find('.crafting-requirements');
-    requirementsContainer.find('.dc-value').text(craftingDC);
-    requirementsContainer.find('.gold-value').text(`${goldCost.toLocaleString()} gp`);
-
-    const workshopRecipes = game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'workshopRecipes') || {};
-    console.log("workshopRecipes:", workshopRecipes);
-
-    let recipe = null;
-    for (const r of Object.values(workshopRecipes)) {
-      if (r.componentId) {
-        const component = await fromUuid(r.componentId);
-        if (component && component.name.replace(/\(Copy\)/g, '').trim() === componentName) {
-          recipe = r;
-          break;
-        }
+      // Validate that the item is a component
+      const isComponent = item.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'isComponent') === true;
+      if (!isComponent) {
+        ui.notifications.warn("Only components can be dropped into the crafting area.");
+        return;
       }
-    }
 
-    if (!recipe) {
-      ui.notifications.warn("No known recipe exists for this component.");
-      return;
-    }
+      // Store the component
+      workshopInterface.component = {
+        name: item.name,
+        uuid: item.uuid,
+        img: item.img || 'icons/svg/mystery-man.svg'
+      };
 
-    const outcomeOptions = html.find('.outcome-options');
-    for (let i = 0; i < 3; i++) {
-      const $outcome = outcomeOptions.find(`.outcome-option[data-outcome-index="${i}"]`);
-      const outcomeData = recipe.outcomes[i];
-      if (outcomeData) {
-        const outcomeItem = await fromUuid(outcomeData.uuid);
-        const toolItem = outcomeData.toolId ? await fromUuid(outcomeData.toolId) : null;
-        const toolName = toolItem ? toolItem.name : this.getToolDisplayName(outcomeData.tool);
-        const unidentifiedDesc = this.getUnidentifiedDescription(outcomeItem);
-        
-        $outcome.attr('data-recipe-unlocked', recipe.unlocked);
-        $outcome.find('.outcome-icon').attr('src', outcomeItem?.img || '/icons/svg/mystery-man.svg');
-        $outcome.find('.outcome-name').text(outcomeItem?.name || 'Unknown Craft');
-        $outcome.find('.tool-name').text(toolName || 'Unknown');
-        $outcome.find('.workshop-tooltip').text(unidentifiedDesc);
+      // Calculate DC and gold cost based on component rarity
+      let rarity = item.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'rarity') || item.system?.rarity || 'Common';
+      rarity = rarity.charAt(0).toUpperCase() + rarity.slice(1).toLowerCase();
+      const rarityOrder = ['Common', 'Uncommon', 'Rare', 'Very Rare', 'Legendary'];
+      const rarityIndex = rarityOrder.indexOf(rarity);
+      workshopInterface.workshopDc = rarityIndex >= 0 ? 10 + (rarityIndex * 5) : 10;
+      const goldCosts = [50, 200, 2000, 20000, 100000];
+      workshopInterface.workshopGoldCost = rarityIndex >= 0 ? goldCosts[rarityIndex] : 50;
+
+      // Query the compendium for a matching recipe
+      const { getRecipes } = await import('./workshopCompendium.js');
+      const recipes = await getRecipes();
+      const matchingRecipe = recipes.find(recipe => recipe.componentType === item.name);
+
+      if (matchingRecipe) {
+        // Populate outcome slots
+        workshopInterface.workshopOutcomes = matchingRecipe.outcomes || new Array(3).fill(null);
+        workshopInterface.workshopOutcomeImgs = matchingRecipe.outcomeImgs || new Array(3).fill(null);
+        // Populate tool slots
+        workshopInterface.workshopTools = matchingRecipe.toolTypes || new Array(3).fill(null);
+        workshopInterface.workshopToolImgs = matchingRecipe.toolImgs || new Array(3).fill(null);
+        workshopInterface.workshopToolUuids = matchingRecipe.toolUuids || new Array(3).fill(null);
       } else {
-        $outcome.attr('data-recipe-unlocked', recipe.unlocked);
-        $outcome.find('.outcome-icon').attr('src', '/icons/svg/mystery-man.svg');
-        $outcome.find('.outcome-name').text('Unknown Craft');
-        $outcome.find('.tool-name').text('Unknown');
-        $outcome.find('.workshop-tooltip').text('A mysterious creation awaiting discovery.');
+        // No matching recipe found, clear outcomes and tools
+        workshopInterface.workshopOutcomes = new Array(3).fill(null);
+        workshopInterface.workshopOutcomeImgs = new Array(3).fill(null);
+        workshopInterface.workshopTools = new Array(3).fill(null);
+        workshopInterface.workshopToolImgs = new Array(3).fill(null);
+        workshopInterface.workshopToolUuids = new Array(3).fill(null);
+        ui.notifications.info("No recipe found for this component. Outcomes and tools cleared.");
       }
-    }
-  }
 
-  async handleCrafting(outcomeIndex, html) {
-    const componentId = html.find('.component-drop-zone').data('component-id');
-    const componentName = html.find('.component-drop-zone').data('component-name');
-    if (!componentId || !componentName) return ui.notifications.error("No component selected.");
+      workshopInterface.selectedOutcomeIndex = null;
+      workshopInterface.render();
+    });
+  });
 
-    const actor = this.interface._actor;
-    const component = await fromUuid(componentId);
-    const workshopRecipes = game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'workshopRecipes') || {};
+  // Handle outcome clicking (selection only)
+  html.find('.workshop-outcome-box').on('click', async (event) => {
+    const index = parseInt(event.currentTarget.dataset.index);
+    workshopInterface.selectedOutcomeIndex = index;
+    workshopInterface.render();
+  });
 
-    let recipe = null;
-    for (const r of Object.values(workshopRecipes)) {
-      if (r.componentId) {
-        const component = await fromUuid(r.componentId);
-        if (component && component.name.replace(/\(Copy\)/g, '').trim() === componentName) {
-          recipe = r;
-          break;
-        }
-      }
-    }
-
-    if (!recipe) return;
-
-    const outcomeData = recipe.outcomes[outcomeIndex];
-    if (!outcomeData) {
-      ui.notifications.error("Selected outcome is not available.");
+  // Handle component slot clicking to open the component selector
+  html.find('.workshop-component-box').on('click', async (event) => {
+    const actor = workshopInterface._actor;
+    if (!actor) {
+      ui.notifications.error("No actor found to select components.");
       return;
     }
 
-    const outcomeItem = await fromUuid(outcomeData.uuid);
-    const toolItem = outcomeData.toolId ? await fromUuid(outcomeData.toolId) : null;
-    const toolType = toolItem ? toolItem.system?.type?.baseItem : outcomeData.tool || "none";
+    // Open the component selector application
+    const componentSelector = new ComponentSelectorApplication(actor, async (componentData) => {
+      // Fetch the actual item using the UUID
+      const component = await fromUuid(componentData.uuid);
+      if (!component) {
+        ui.notifications.error("Failed to load selected component.");
+        return;
+      }
 
-    const goldOwned = actor.system.currency.gp || 0;
-    const goldCost = this.calculateGoldCost(component.system.rarity);
-    if (goldOwned < goldCost) {
-      return ui.notifications.error(`You need ${goldCost} gp (have ${goldOwned} gp).`);
-    }
+      // Store the component
+      workshopInterface.component = {
+        name: componentData.name,
+        uuid: componentData.uuid,
+        img: componentData.img || 'icons/svg/mystery-man.svg'
+      };
 
-    const toolName = this.getToolDisplayName(toolType);
-    console.log("Looking for tool in inventory:", toolName, "toolType:", toolType);
-    const tool = actor.items.find(i => 
-      i.type === "tool" && i.name.toLowerCase().includes(toolName.toLowerCase())
-    );
+      // Calculate DC and gold cost based on component rarity
+      let rarity = component.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'rarity') || component.system?.rarity || 'Common';
+      rarity = rarity.charAt(0).toUpperCase() + rarity.slice(1).toLowerCase();
+      const rarityOrder = ['Common', 'Uncommon', 'Rare', 'Very Rare', 'Legendary'];
+      const rarityIndex = rarityOrder.indexOf(rarity);
+      workshopInterface.workshopDc = rarityIndex >= 0 ? 10 + (rarityIndex * 5) : 10;
+      const goldCosts = [50, 200, 2000, 20000, 100000];
+      workshopInterface.workshopGoldCost = rarityIndex >= 0 ? goldCosts[rarityIndex] : 50;
 
-    if (!tool) {
-      return ui.notifications.warn(`${actor.name} does not have ${toolName} in their inventory.`);
-    }
+      // Query the compendium for a matching recipe
+      const { getRecipes } = await import('./workshopCompendium.js');
+      const recipes = await getRecipes();
+      const matchingRecipe = recipes.find(recipe => recipe.componentType === componentData.name);
 
-    const dc = this.calculateDC(component.system.rarity);
-    const rollResult = await tool.rollToolCheck({
-      dc: dc,
-      rollMode: "publicroll",
-      fastForward: false
+      if (matchingRecipe) {
+        // Populate outcome slots
+        workshopInterface.workshopOutcomes = matchingRecipe.outcomes || new Array(3).fill(null);
+        workshopInterface.workshopOutcomeImgs = matchingRecipe.outcomeImgs || new Array(3).fill(null);
+        // Populate tool slots
+        workshopInterface.workshopTools = matchingRecipe.toolTypes || new Array(3).fill(null);
+        workshopInterface.workshopToolImgs = matchingRecipe.toolImgs || new Array(3).fill(null);
+        workshopInterface.workshopToolUuids = matchingRecipe.toolUuids || new Array(3).fill(null);
+      } else {
+        // No matching recipe found, clear outcomes and tools
+        workshopInterface.workshopOutcomes = new Array(3).fill(null);
+        workshopInterface.workshopOutcomeImgs = new Array(3).fill(null);
+        workshopInterface.workshopTools = new Array(3).fill(null);
+        workshopInterface.workshopToolImgs = new Array(3).fill(null);
+        workshopInterface.workshopToolUuids = new Array(3).fill(null);
+        ui.notifications.info("No recipe found for this component. Outcomes and tools cleared.");
+      }
+
+      workshopInterface.selectedOutcomeIndex = null;
+      await workshopInterface.render();
     });
 
-    if (!rollResult) return;
+    componentSelector.render(true);
+  });
 
-    const rollTotal = rollResult[0]?.total;
-    if (rollTotal === undefined) {
-      console.error("Failed to get roll total from rollResult:", rollResult);
-      ui.notifications.error("Failed to process tool check result.");
+  // Handle tool clicking to open item sheet
+  html.find('.workshop-tool-link').on('click', async (event) => {
+    const itemId = event.currentTarget.dataset.itemId;
+    if (itemId) {
+      const item = await fromUuid(itemId);
+      if (item) {
+        item.sheet.render(true);
+      } else {
+        ui.notifications.warn("Tool not found.");
+      }
+    }
+  });
+
+  // Craft button logic
+  html.find('.craft-btn').on('click', async () => {
+    if (!workshopInterface.component) {
+      ui.notifications.warn("Please drop a component to craft.");
       return;
     }
 
-    console.log("Roll total:", rollTotal, "DC:", dc, "Difference:", rollTotal - dc);
-    const quality = this.determineQuality(rollTotal, dc);
-    const craftedItem = await this.createCraftedItem(outcomeItem, quality);
-
-    const existingItem = actor.items.find(i => i.name === craftedItem.name);
-    if (existingItem) {
-      const currentQuantity = existingItem.system.quantity || 1;
-      await existingItem.update({ "system.quantity": currentQuantity + 1 });
-      ui.notifications.info(`Increased quantity of ${craftedItem.name} to ${currentQuantity + 1}.`);
-    } else {
-      await actor.createEmbeddedDocuments("Item", [craftedItem]);
-      ui.notifications.info(`Crafted: ${craftedItem.name}`);
+    if (workshopInterface.selectedOutcomeIndex === null) {
+      ui.notifications.warn("Please select an outcome to craft.");
+      return;
     }
 
-    await actor.update({ "system.currency.gp": goldOwned - goldCost });
-
-    if (componentId.includes("Actor.")) {
-      const parts = componentId.split('.');
-      const actorId = parts[1];
-      const itemId = parts[3];
-      const sourceActor = game.actors.get(actorId);
-      if (sourceActor) {
-        const item = sourceActor.items.get(itemId);
-        if (item) {
-          const currentQuantity = item.system.quantity || 1;
-          const newQuantity = currentQuantity - 1;
-          if (newQuantity <= 0) {
-            await item.delete();
-            ui.notifications.info(`Consumed component: ${item.name}`);
-          } else {
-            await item.update({ "system.quantity": newQuantity });
-            ui.notifications.info(`Reduced quantity of ${item.name} to ${newQuantity}.`);
-          }
-        }
-      }
-    } else {
-      ui.notifications.info("Component was not consumed (sourced from world or compendium).");
+    // Get the actor (assuming the actor is the one who opened the interface)
+    const actor = workshopInterface._actor;
+    if (!actor) {
+      ui.notifications.error("No actor found to perform the crafting.");
+      return;
     }
 
-    if (!recipe.unlocked) {
-      recipe.unlocked = true;
-      await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'workshopRecipes', workshopRecipes);
-      this.interface.render(false);
+    // Get the required tool for the selected outcome
+    const requiredTool = workshopInterface.workshopTools[workshopInterface.selectedOutcomeIndex];
+    if (!requiredTool) {
+      ui.notifications.warn("No tool specified for this outcome.");
+      return;
     }
-  }
 
-  getToolDisplayName(toolType) {
-    const toolMap = {
-      "alchemist": "Alchemist's Supplies",
-      "brewer": "Brewer's Supplies",
-      "calligrapher": "Calligrapher's Supplies",
-      "carpenter": "Carpenter's Tools",
-      "cartographer": "Cartographer's Tools",
-      "cobbler": "Cobbler's Tools",
-      "cook": "Cook's Utensils",
-      "glassblower": "Glassblower's Tools",
-      "jeweler": "Jeweler's Tools",
-      "leatherworker": "Leatherworker's Tools",
-      "mason": "Mason's Tools",
-      "painter": "Painter's Supplies",
-      "potter": "Potter's Tools",
-      "smith": "Smith's Tools",
-      "tinker": "Tinker's Tools",
-      "weaver": "Weaver's Tools",
-      "woodcarver": "Woodcarver's Tools",
-      "none": "No Tool"
-    };
-    return toolMap[toolType] || "Unknown Tool";
-  }
-
-  calculateDC(rarity) {
-    switch (rarity) {
-      case "uncommon": return 15;
-      case "rare": return 20;
-      case "very rare": case "veryrare": return 25;
-      case "legendary": return 30;
-      default: return 10;
+    // Check if the actor has the required tool in their inventory
+    const toolItem = actor.items.find(item => item.name === requiredTool && (item.type === 'tool' || item.system?.type?.value === 'tool'));
+    if (!toolItem) {
+      ui.notifications.warn(`You need ${requiredTool} in your inventory to craft this item.`);
+      return;
     }
-  }
 
-  calculateGoldCost(rarity) {
-    switch (rarity) {
-      case "uncommon": return 200;
-      case "rare": return 2000;
-      case "very rare": case "veryrare": return 20000;
-      case "legendary": return 100000;
-      default: return 50;
+    // Roll using the tool with rollToolCheck
+    const dc = workshopInterface.workshopDc;
+    let roll;
+    try {
+      roll = await toolItem.rollToolCheck({
+        dc: dc,
+        rollMode: "publicroll",
+        fastForward: false
+      });
+    } catch (err) {
+      console.error("Failed to roll with the tool:", err);
+      ui.notifications.error(`Failed to roll with ${requiredTool}: ${err.message}`);
+      return;
     }
-  }
 
-  determineQuality(rollTotal, dc) {
-    const difference = rollTotal - dc;
-    if (difference >= 10) return "masterwork";
-    if (difference >= 0) return "normal";
-    if (difference >= -9) return "shoddy";
-    return "patchwork";
-  }
+    if (!roll || !roll[0]) {
+      ui.notifications.error("Failed to roll with the tool.");
+      return;
+    }
 
-  async createCraftedItem(baseItem, quality) {
-    const itemData = baseItem.toObject();
+    // Get the roll result using roll[0].total
+    const rollResult = roll[0].total;
+    console.log(`Roll result: ${rollResult}, DC: ${dc}`);
+
+    // Determine the degree of success and prepend the item name
+    let prepend = "";
     let priceMultiplier = 1;
     let flavorText = "";
-
-    switch (quality) {
-      case "masterwork":
-        priceMultiplier = 4;
-        flavorText = "<p><i>This item is of masterwork quality, showcasing exceptional craftsmanship.</i></p>";
-        itemData.name = `Masterwork ${itemData.name}`;
-        break;
-      case "shoddy":
-        priceMultiplier = 0.5;
-        flavorText = "<p><i>This item bears the marks of shoddy workmanship, reducing its reliability.</i></p>";
-        itemData.name = `Shoddy ${itemData.name}`;
-        break;
-      case "patchwork":
-        priceMultiplier = 0;
-        flavorText = "<p><i>This item is a patchwork mess, barely holding together.</i></p>";
-        itemData.name = `Patchwork ${itemData.name}`;
-        break;
+    if (rollResult < dc - 10) {
+      prepend = "Patchwork "; // Fail by 10 or more
+      priceMultiplier = 0; // Set price to 0 gp
+      flavorText = "<p><i>Assembled with little care, this item is a crude amalgamation of errors, its worth diminished to naught in the eyes of any trader.</i></p>";
+    } else if (rollResult < dc) {
+      prepend = "Shoddy "; // Fail by less than 10
+      priceMultiplier = 0.5; // Halve the price
+      flavorText = "<p><i>Marred by imperfections, this item bears the marks of a rushed craft, its value lessened in the markets of discerning buyers.</i></p>";
+    } else if (rollResult >= dc + 10) {
+      prepend = "Masterwork "; // Beat by 10 or more
+      priceMultiplier = 2; // Double the price
+      flavorText = "<p><i>Forged with masterful precision, this item radiates superior craftsmanship, its value elevated for those who seek the finest wares.</i></p>";
+    } else {
+      // Success (meet or beat the DC, but less than 10 over)
+      flavorText = "<p><i>Crafted with competence, this item meets the expected standards, its value fair for trade and barter.</i></p>";
     }
 
-    itemData.system.description.value += flavorText;
-    if (itemData.system.price?.value) {
-      itemData.system.price.value = Math.round(itemData.system.price.value * priceMultiplier);
-    }
-    return itemData;
-  }
-
-  stripHtml(html) {
-    const div = document.createElement("div");
-    div.innerHTML = html;
-    return div.textContent || div.innerText || "";
-  }
-
-  getUnidentifiedDescription(item) {
-    const unidentifiedDesc = item?.system?.unidentified?.description;
-    if (unidentifiedDesc) {
-      return this.stripHtml(unidentifiedDesc);
+    // Get the crafted item (outcome)
+    const outcome = workshopInterface.workshopOutcomes[workshopInterface.selectedOutcomeIndex];
+    if (!outcome) {
+      ui.notifications.error("Selected outcome not found.");
+      return;
     }
 
-    const type = item.type;
-    const desc = item.system.description.value || "";
-    if (desc.includes("weapon")) return "A finely honed instrument of war.";
-    if (type === "armor") return "A sturdy shell to ward off blows.";
-    return "A mysterious creation awaiting discovery.";
-  }
+    const craftedItem = await fromUuid(outcome.id);
+    if (!craftedItem) {
+      ui.notifications.error("Crafted item not found.");
+      return;
+    }
+
+    // Create the new item data with the prepended name
+    const newItemData = craftedItem.toObject();
+    newItemData.name = `${prepend}${craftedItem.name}`;
+
+    // Set the base price if not defined (twice the crafting cost)
+    const craftingCost = workshopInterface.workshopGoldCost;
+    const basePrice = newItemData.system.price?.value || (craftingCost * 2);
+
+    // Adjust the price based on the degree of success
+    const adjustedPrice = basePrice * priceMultiplier;
+    newItemData.system.price = newItemData.system.price || {};
+    newItemData.system.price.value = adjustedPrice;
+    newItemData.system.price.denomination = "gp"; // Ensure the denomination is set
+
+    // Append flavor text to the description
+    const existingDescription = newItemData.system.description?.value || "";
+    newItemData.system.description = newItemData.system.description || {};
+    newItemData.system.description.value = existingDescription + flavorText;
+
+    // Check if the item already exists in the actor's inventory (including the prepend)
+    const existingItem = actor.items.find(item => item.name === newItemData.name);
+    if (existingItem) {
+      // If the item exists, increase its quantity by 1
+      const newQuantity = (existingItem.system.quantity || 1) + 1;
+      await existingItem.update({ "system.quantity": newQuantity });
+      ui.notifications.info(`Added 1 ${newItemData.name} to your inventory (total: ${newQuantity}).`);
+    } else {
+      // If the item doesn't exist, create a new one with quantity 1
+      newItemData.system.quantity = 1;
+      await actor.createEmbeddedDocuments("Item", [newItemData]);
+      ui.notifications.info(`Successfully crafted ${newItemData.name}!`);
+    }
+
+    // Deduct gold cost from the actor's currency
+    const goldCost = workshopInterface.workshopGoldCost;
+    const currentGold = actor.system.currency?.gp || 0;
+    if (currentGold < goldCost) {
+      ui.notifications.warn("You do not have enough gold to craft this item.");
+      // Remove the crafted item if gold deduction fails
+      const createdItem = actor.items.find(item => item.name === newItemData.name);
+      if (createdItem) {
+        await createdItem.delete();
+      }
+      return;
+    }
+    await actor.update({ "system.currency.gp": currentGold - goldCost });
+
+    // Reduce the component quantity by 1
+    const componentItem = actor.items.find(item => item.uuid === workshopInterface.component.uuid);
+    if (componentItem) {
+      const currentQuantity = componentItem.system.quantity || 1;
+      if (currentQuantity > 1) {
+        await componentItem.update({ "system.quantity": currentQuantity - 1 });
+      } else {
+        await componentItem.delete();
+      }
+    } else {
+      ui.notifications.warn("Component not found in inventory.");
+    }
+
+    // Unlock the recipe for the player
+    let unlockedRecipes = game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'unlockedRecipes');
+    let userUnlockedRecipes = unlockedRecipes[game.user.id] || [];
+    if (!userUnlockedRecipes.includes(workshopInterface.component.name)) {
+      userUnlockedRecipes.push(workshopInterface.component.name);
+      unlockedRecipes[game.user.id] = userUnlockedRecipes;
+      await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'unlockedRecipes', unlockedRecipes);
+      ui.notifications.info(`Recipe for ${workshopInterface.component.name} unlocked!`);
+    }
+
+    // Reset the crafting area after crafting
+    workshopInterface.component = null;
+    workshopInterface.workshopOutcomes = new Array(3).fill(null);
+    workshopInterface.workshopTools = new Array(3).fill(null);
+    workshopInterface.workshopOutcomeImgs = new Array(3).fill(null);
+    workshopInterface.workshopToolImgs = new Array(3).fill(null);
+    workshopInterface.workshopToolUuids = new Array(3).fill(null);
+    workshopInterface.workshopDc = 10;
+    workshopInterface.workshopGoldCost = 50;
+    workshopInterface.selectedOutcomeIndex = null;
+    workshopInterface.render();
+  });
+
+  // Clear the workshop slots
+  html.find('.clear-btn').on('click', () => {
+    workshopInterface.component = null;
+    workshopInterface.workshopOutcomes = new Array(3).fill(null);
+    workshopInterface.workshopTools = new Array(3).fill(null);
+    workshopInterface.workshopOutcomeImgs = new Array(3).fill(null);
+    workshopInterface.workshopToolImgs = new Array(3).fill(null);
+    workshopInterface.workshopToolUuids = new Array(3).fill(null);
+    workshopInterface.workshopDc = 10;
+    workshopInterface.workshopGoldCost = 50;
+    workshopInterface.selectedOutcomeIndex = null;
+    workshopInterface.render();
+    ui.notifications.info("Workshop slots cleared.");
+  });
 }

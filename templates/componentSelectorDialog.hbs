@@ -4,7 +4,7 @@
     <div class="vikarovs-component-list">
       {{#each components}}
         <div class="vikarovs-component-item" data-uuid="{{uuid}}">
-          <span class="vikarovs-component-icon" style="background-image: url('{{img}}');"></span>
+          <img src="{{img}}" alt="{{name}}" class="vikarovs-component-icon" />
           <span class="vikarovs-component-name">{{name}} (Quantity: {{quantity}})</span>
         </div>
       {{/each}}
