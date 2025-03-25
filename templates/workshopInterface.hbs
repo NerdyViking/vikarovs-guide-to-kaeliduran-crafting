@@ -134,7 +134,7 @@
                 {{/if}}
               </div>
               <!-- Outcome 3 (Row 3, Column 4) -->
-              <div class="outcome-wrapper {{#if ../editMode}}drop-zone{{/if}}" data-type="tool" data-index="2">
+              <div class="outcome-wrapper {{#if ../editMode}}drop-zone{{/if}}" data-type="outcome" data-index="2">
                 {{#if outcomes.[2]}}
                   <span class="outcome-name">{{outcomes.[2].name}}</span>
                 {{/if}}
@@ -186,10 +186,17 @@
 
     <!-- Workshop Section -->
     <div class="crafting-area">
-      <h2>Workshop</h2>
+      <h2>{{workshopName}}</h2>
+      <div class="workshop-subheading">
+        <p>Tier: {{workshopTier}} | Exp: {{workshopExp}}/{{expNeeded}}</p>
+      </div>
       <div class="crafting-content">
         <div class="workshop-details">
-          <!-- Mirrored Component (Row 2, Column 6) -->
+          <!-- Upgrades Button (Row 1, Column 6) -->
+          <div class="upgrades-wrapper">
+            <button class="upgrades-btn">Upgrades</button>
+          </div>
+          <!-- Mirrored Component (Row 1, Column 5) -->
           <div class="workshop-component-wrapper drop-zone" data-type="workshop-component">
             {{#if component}}
               <span class="workshop-component-name">{{component.name}}</span>
@@ -206,13 +213,7 @@
               {{/unless}}
             </div>
           </div>
-          <!-- Mirrored DC and Cost (Row 2, Column 5) -->
-          <div class="workshop-dc-cost">
-            <p><strong>DC:</strong> {{workshopDc}}</p>
-            <p><strong>Cost:</strong> {{formatNumber workshopGoldCost}} gp</p>
-          </div>
-          <!-- Mirrored Outcome and Tool Sections -->
-          <!-- Outcome 1 (Row 1, Column 3) -->
+          <!-- Mirrored Outcome 1 (Row 1, Column 3) -->
           <div class="workshop-outcome-wrapper" data-index="0">
             {{#if workshopOutcomes.[0]}}
               <span class="workshop-outcome-name">{{workshopOutcomes.[0].name}}</span>
@@ -239,7 +240,12 @@
               <span class="workshop-tool-placeholder">None</span>
             {{/if}}
           </div>
-          <!-- Outcome 2 (Row 2, Column 3) -->
+          <!-- Mirrored DC and Cost (Row 2, Column 5-6) -->
+          <div class="workshop-dc-cost">
+            <p><strong>DC:</strong> {{workshopDc}}</p>
+            <p><strong>Cost:</strong> {{formatNumber workshopGoldCost}} gp</p>
+          </div>
+          <!-- Mirrored Outcome 2 (Row 2, Column 3) -->
           <div class="workshop-outcome-wrapper" data-index="1">
             {{#if workshopOutcomes.[1]}}
               <span class="workshop-outcome-name">{{workshopOutcomes.[1].name}}</span>
@@ -266,7 +272,7 @@
               <span class="workshop-tool-placeholder">None</span>
             {{/if}}
           </div>
-          <!-- Outcome 3 (Row 3, Column 3) -->
+          <!-- Mirrored Outcome 3 (Row 3, Column 3) -->
           <div class="workshop-outcome-wrapper" data-index="2">
             {{#if workshopOutcomes.[2]}}
               <span class="workshop-outcome-name">{{workshopOutcomes.[2].name}}</span>

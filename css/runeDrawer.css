@@ -1,0 +1,22 @@
+.rune-drawer {
+    background: #252830;
+    color: #f0f0e0;
+    border-left: 1px solid #4b4a44;
+    transition: transform 0.3s ease;
+  }
+  
+  .rune-drawer .window-content {
+    padding: 10px;
+  }
+  
+  .rune-drawer h3 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    border-bottom: 1px solid #4b4a44;
+    padding-bottom: 5px;
+  }
+  
+  .rune-drawer p {
+    margin: 5px 0;
+    font-size: 12px;
+  }

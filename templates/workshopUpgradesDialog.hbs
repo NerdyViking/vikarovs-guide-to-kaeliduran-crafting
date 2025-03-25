@@ -1,0 +1,32 @@
+<div class="workshop-upgrades">
+  <h2>Workshop Upgrades</h2>
+  <div class="status">
+    <p><strong>Tier:</strong> {{tier}}</p>
+    <p><strong>Type:</strong> {{type}}</p>
+    <p><strong>Exp:</strong> {{exp}} / {{nextTierExp}}</p>
+  </div>
+  {{#if canUpgrade}}
+    <button class="upgrade-btn">Upgrade to Tier {{nextTier}} ({{nextTierCost}} gp)</button>
+  {{else}}
+    <p>Workshop is at maximum tier.</p>
+  {{/if}}
+  <div class="type-selection">
+    <label for="type-select"><strong>Change Type:</strong></label>
+    <select id="type-select" class="type-select">
+      {{#each types}}
+        <option value="{{this}}" {{#if (eq ../type this)}}selected{{/if}}>{{this}}</option>
+      {{/each}}
+    </select>
+  </div>
+  {{#if isGM}}
+    <div class="gm-controls">
+      <h3>GM Controls</h3>
+      <div class="gm-exp-control">
+        <input type="number" class="gm-exp-input" placeholder="Amount (+/-)" />
+        <button class="gm-modify-exp">Modify Exp</button>
+      </div>
+      <button class="gm-reset-tier">Reset Tier</button>
+      <button class="gm-reset-type">Reset Type to Standard</button>
+    </div>
+  {{/if}}
+</div>

@@ -1,9 +1,13 @@
 {
-  "name": "vikarovs-guide-to-kaeliduran-crafting",
+  "id": "vikarovs-guide-to-kaeliduran-crafting",
   "title": "Vikarov's Guide to Kaeliduran Crafting",
   "description": "A modular crafting system for Foundry VTT, featuring alchemy and future magic item crafting.",
   "version": "1.0.0",
-  "author": "Your Name",
+  "authors": [
+    {
+      "name": "Your Name"
+    }
+  ],
   "esmodules": [
     "js/shared/inventoryInterfaceButtons.js",
     "js/alchemy/alchemyInterface.js",
@@ -17,7 +21,11 @@
     "js/workshop/workshopWorkshop.js",
     "js/workshop/components.js",
     "js/shared/utils.js",
-    "js/workshop/componentSelector.js"
+    "js/workshop/componentSelector.js",
+    "js/workshop/workshopUpgrades.js",
+    "js/workshop/workshopRunes.js",
+    "js/workshop/workshopUpgradesDialog.js",
+    "js/workshop/runeDrawer.js"
   ],
   "styles": [
     "css/inventoryInterfaceButtons.css",
@@ -25,19 +33,30 @@
     "css/workshopInterface.css",
     "css/workshopCompendium.css",
     "css/workshopLedger.css",
-    "css/workshopWorkshop.css"
-  ],
-  "templates": [
-    "templates/alchemyInterface.hbs",
-    "templates/workshopInterface.hbs",
-    "templates/componentSelectorDialog.hbs"
+    "css/workshopWorkshop.css",
+    "css/workshopUpgradesDialog.css",
+    "css/runeDrawer.css"
   ],
   "url": "",
   "manifest": "",
   "download": "",
-  "minimumCoreVersion": "12",
-  "compatibleCoreVersion": "12.331",
-  "dependencies": [],
+  "compatibility": {
+    "minimum": "12",
+    "verified": "12.331"
+  },
+  "relationships": {
+    "requires": [
+      {
+        "id": "midi-qol",
+        "type": "module",
+        "manifest": "https://github.com/tposney/midi-qol/releases/latest/download/module.json",
+        "compatibility": {
+          "minimum": "12",
+          "verified": "12.331"
+        }
+      }
+    ]
+  },
   "socket": false,
   "protected": false
 }

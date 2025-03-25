@@ -1,4 +1,5 @@
 import { ComponentSelectorApplication } from './componentSelector.js';
+import { addCraftingExp } from './workshopUpgrades.js';
 
 export function handleWorkshopListeners(workshopInterface, html) {
   // Handle drag-and-drop for the component slot
@@ -71,11 +72,18 @@ export function handleWorkshopListeners(workshopInterface, html) {
 
       workshopInterface.selectedOutcomeIndex = null;
       workshopInterface.render();
+      await workshopInterface.toggleRuneDrawer();
     });
   });
 
   // Handle outcome clicking (selection only)
   html.find('.workshop-outcome-box').on('click', async (event) => {
+    // Only allow selection if a component is slotted
+    if (!workshopInterface.component) {
+      ui.notifications.warn("Please slot a component before selecting an outcome.");
+      return;
+    }
+
     const index = parseInt(event.currentTarget.dataset.index);
     workshopInterface.selectedOutcomeIndex = index;
     workshopInterface.render();
@@ -139,6 +147,7 @@ export function handleWorkshopListeners(workshopInterface, html) {
 
       workshopInterface.selectedOutcomeIndex = null;
       await workshopInterface.render();
+      await workshopInterface.toggleRuneDrawer();
     });
 
     componentSelector.render(true);
@@ -318,6 +327,9 @@ export function handleWorkshopListeners(workshopInterface, html) {
       ui.notifications.info(`Recipe for ${workshopInterface.component.name} unlocked!`);
     }
 
+    // Add crafting experience
+    await addCraftingExp(actor);
+
     // Reset the crafting area after crafting
     workshopInterface.component = null;
     workshopInterface.workshopOutcomes = new Array(3).fill(null);
@@ -329,10 +341,11 @@ export function handleWorkshopListeners(workshopInterface, html) {
     workshopInterface.workshopGoldCost = 50;
     workshopInterface.selectedOutcomeIndex = null;
     workshopInterface.render();
+    await workshopInterface.toggleRuneDrawer();
   });
 
   // Clear the workshop slots
-  html.find('.clear-btn').on('click', () => {
+  html.find('.clear-btn').on('click', async () => {
     workshopInterface.component = null;
     workshopInterface.workshopOutcomes = new Array(3).fill(null);
     workshopInterface.workshopTools = new Array(3).fill(null);
@@ -343,6 +356,7 @@ export function handleWorkshopListeners(workshopInterface, html) {
     workshopInterface.workshopGoldCost = 50;
     workshopInterface.selectedOutcomeIndex = null;
     workshopInterface.render();
+    await workshopInterface.toggleRuneDrawer();
     ui.notifications.info("Workshop slots cleared.");
   });
 }

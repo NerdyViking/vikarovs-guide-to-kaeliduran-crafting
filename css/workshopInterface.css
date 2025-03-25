@@ -65,6 +65,7 @@
 
 .crafting-area {
   flex: 1; /* Equal width for both columns */
+  position: relative; /* For absolute positioning of the rune drawer */
 }
 
 .vikarovs-workshop-interface .window-content {
@@ -75,4 +76,96 @@
   border-bottom: none;
   padding: 0px;
   z-index: 1;
+}
+
+/* Workshop details grid */
+.workshop-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-rows: auto auto auto;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+/* Upgrades button (Row 1, Column 6) */
+.upgrades-wrapper {
+  grid-column: 6;
+  grid-row: 1;
+  position: relative;
+  top: -105px;
+}
+
+.upgrades-btn {
+  background: #4b4a44;
+  color: #f0f0e0;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+  height: 32px;
+}
+
+.upgrades-btn:hover {
+  background: #5b5a54;
+}
+
+/* Component (Row 1, Column 5) */
+.workshop-component-wrapper {
+  grid-column: 5;
+  grid-row: 1;
+}
+
+/* Outcome 1 (Row 1, Column 3) */
+.workshop-outcome-wrapper[data-index="0"] {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+/* Tool 1 (Row 1, Column 2) */
+.workshop-tool-icon-wrapper[data-index="0"] {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+/* DC and Cost (Row 2, Column 5-6) */
+.workshop-dc-cost {
+  grid-column: 5 / 7;
+  grid-row: 2;
+}
+
+/* Outcome 2 (Row 2, Column 3) */
+.workshop-outcome-wrapper[data-index="1"] {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+/* Tool 2 (Row 2, Column 2) */
+.workshop-tool-icon-wrapper[data-index="1"] {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+/* Outcome 3 (Row 3, Column 3) */
+.workshop-outcome-wrapper[data-index="2"] {
+  grid-column: 3;
+  grid-row: 3;
+}
+
+/* Tool 3 (Row 3, Column 2) */
+.workshop-tool-icon-wrapper[data-index="2"] {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+/* Workshop subheading */
+.workshop-subheading {
+  height: 14px;
+  margin: -5px 0 10px 0;
+}
+
+.workshop-subheading p {
+  margin: 0;
+  font-size: 12px;
+  color: #d0d0d0;
 }

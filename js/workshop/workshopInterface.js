@@ -23,6 +23,7 @@ export class WorkshopInterface extends FormApplication {
     this.editedToolImgs = null;
     this.editedDc = null;
     this.editedGoldCost = null;
+    this.runeDrawer = null; // Store the RuneDrawer instance
   }
 
   static get defaultOptions() {
@@ -56,6 +57,35 @@ export class WorkshopInterface extends FormApplication {
         type: Object,
         default: {}
       });
+
+      // Ensure existing actors get the workshopData flag
+      Hooks.on("ready", async () => {
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second to ensure actors are loaded
+        for (const actor of game.actors) {
+          if (!actor.getFlag("vikarovs-guide-to-kaeliduran-crafting", "workshopData")) {
+            await actor.setFlag("vikarovs-guide-to-kaeliduran-crafting", "workshopData", {
+              tier: 1,
+              type: "standard",
+              exp: 0,
+              knownRunes: [],
+              runeSwapCharge: true
+            });
+          }
+        }
+      });
+
+      // Also set on new actors
+      Hooks.on("preCreateActor", (actor) => {
+        if (!actor.getFlag("vikarovs-guide-to-kaeliduran-crafting", "workshopData")) {
+          actor.setFlag("vikarovs-guide-to-kaeliduran-crafting", "workshopData", {
+            tier: 1,
+            type: "standard",
+            exp: 0,
+            knownRunes: [],
+            runeSwapCharge: true
+          });
+        }
+      });
     });
   }
 
@@ -64,21 +94,53 @@ export class WorkshopInterface extends FormApplication {
     return buttons;
   }
 
+  async toggleRuneDrawer() {
+    const workshopData = this._actor.getFlag("vikarovs-guide-to-kaeliduran-crafting", "workshopData") || { type: "standard" };
+    const isEssenceWorkshop = workshopData.type !== "standard" && !!this.component;
+
+    if (isEssenceWorkshop && !this.runeDrawer) {
+      const { RuneDrawer } = await import('./runeDrawer.js');
+      this.runeDrawer = new RuneDrawer(this);
+      await this.runeDrawer.render(true);
+    } else if (!isEssenceWorkshop && this.runeDrawer) {
+      await this.runeDrawer.close();
+      this.runeDrawer = null;
+    }
+  }
+
   activateListeners(html) {
     Promise.all([
       import('./workshopCompendium.js').then(module => module.handleCompendiumListeners),
       import('./workshopLedger.js').then(module => module.handleLedgerListeners),
-      import('./workshopWorkshop.js').then(module => module.handleWorkshopListeners)
-    ]).then(([handleCompendiumListeners, handleLedgerListeners, handleWorkshopListeners]) => {
+      import('./workshopWorkshop.js').then(module => module.handleWorkshopListeners),
+      import('./workshopUpgradesDialog.js').then(module => module.WorkshopUpgradesDialog)
+    ]).then(([handleCompendiumListeners, handleLedgerListeners, handleWorkshopListeners, WorkshopUpgradesDialog]) => {
       handleCompendiumListeners(this, html);
       handleLedgerListeners(this, html);
       handleWorkshopListeners(this, html);
+
+      // Add listener for Upgrades button
+      html.find('.upgrades-btn').on('click', () => {
+        new WorkshopUpgradesDialog(this._actor).render(true);
+      });
+
+      // Listen for updates to the actor's workshopData flag
+      Hooks.on("updateActor", (actor, updateData) => {
+        if (actor.id === this._actor.id && updateData.flags?.["vikarovs-guide-to-kaeliduran-crafting"]?.workshopData) {
+          this.render();
+          this.toggleRuneDrawer();
+        }
+      });
+
+      // Initial toggle of the rune drawer
+      this.toggleRuneDrawer();
     });
   }
 
   async getData() {
     const data = await super.getData();
     const { getRecipes } = await import('./workshopCompendium.js');
+    const { capitalize } = await import('../shared/utils.js');
     data.isGM = game.user.isGM;
     let recipes = await getRecipes();
 
@@ -90,6 +152,28 @@ export class WorkshopInterface extends FormApplication {
     if (!data.isGM) {
       recipes = recipes.filter(recipe => userUnlockedRecipes.includes(recipe.componentType));
     }
+
+    // Fetch workshop data from actor flags, initialize if missing
+    let workshopData = this._actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'workshopData');
+    if (!workshopData) {
+      workshopData = {
+        tier: 1,
+        type: "standard",
+        exp: 0,
+        knownRunes: [],
+        runeSwapCharge: true
+      };
+      await this._actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', 'workshopData', workshopData);
+    }
+    data.workshopTier = workshopData.tier;
+    data.workshopType = workshopData.type;
+    data.workshopExp = workshopData.exp;
+    data.knownRunes = workshopData.knownRunes;
+    data.runeSwapCharge = workshopData.runeSwapCharge;
+
+    // Compute workshop name and subheading data
+    data.workshopName = `${capitalize(workshopData.type)} Workshop`;
+    data.expNeeded = workshopData.tier * 5; // Exp needed for current tier
 
     data.recipes = recipes;
     data.selectedRecipe = this.selectedRecipeId
@@ -115,9 +199,7 @@ export class WorkshopInterface extends FormApplication {
         try {
           const item = await fromUuid(outcome.id);
           if (item) {
-            // Get the unidentified description (corrected path)
             description = item.system?.unidentified?.description || "";
-            // If no unidentified description, provide a default based on item type
             if (!description) {
               switch (item.type) {
                 case 'weapon':
@@ -140,7 +222,6 @@ export class WorkshopInterface extends FormApplication {
                   break;
               }
             }
-            // Strip HTML tags
             description = description.replace(/<[^>]+>/g, '').trim();
           } else {
             description = "An unknown item, its true nature lost to time.";
@@ -153,7 +234,6 @@ export class WorkshopInterface extends FormApplication {
       data.workshopOutcomeDescriptions[i] = description;
     }
 
-    // Check if the component has been crafted before
     data.isFirstCraft = this.component && !userUnlockedRecipes.includes(this.component.name);
 
     if (data.selectedRecipe) {
@@ -207,6 +287,10 @@ export class WorkshopInterface extends FormApplication {
     this.editedToolImgs = null;
     this.editedDc = null;
     this.editedGoldCost = null;
+    if (this.runeDrawer) {
+      this.runeDrawer.close();
+      this.runeDrawer = null;
+    }
     return super.close(options);
   }
 }

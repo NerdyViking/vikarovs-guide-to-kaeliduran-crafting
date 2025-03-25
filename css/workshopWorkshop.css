@@ -10,7 +10,7 @@
     grid-template-columns: 1fr 90px 90px 1fr 90px 90px;
     grid-template-rows: 90px 90px 90px;
     gap: 60px 5px;
-    padding-top: 60px;
+    padding-top: 41px;
 }
 
 .workshop-component-wrapper {
@@ -115,7 +115,7 @@
 }
 
 .workshop-outcome-box.selected {
-    border: 2px solid #00ff00 !important;
+    border: 2px solid #ff0000 !important;
     box-shadow: 0 0 10px 2px #ff0000 !important;
 }
 

@@ -1,0 +1,90 @@
+.workshop-upgrades {
+    background: #1a1a1a;
+    color: #f0f0e0;
+    padding: 10px;
+  }
+  
+  .workshop-upgrades h2 {
+    margin-top: 0;
+    border-bottom: 1px solid #4b4a44;
+    padding-bottom: 5px;
+  }
+  
+  .workshop-upgrades .status p {
+    margin: 5px 0;
+  }
+  
+  .workshop-upgrades .upgrade-btn {
+    background: #4b4a44;
+    color: #f0f0e0;
+    border: none;
+    border-radius: 3px;
+    padding: 5px 10px;
+    margin: 10px 0;
+    cursor: pointer;
+    width: 100%;
+  }
+  
+  .workshop-upgrades .upgrade-btn:hover {
+    background: #5b5a54;
+  }
+  
+  .workshop-upgrades .type-selection {
+    margin-top: 10px;
+  }
+  
+  .workshop-upgrades .type-selection label {
+    margin-right: 5px;
+  }
+  
+  .workshop-upgrades .type-selection select {
+    background: #252830;
+    color: #f0f0e0;
+    border: 1px solid #4b4a44;
+    border-radius: 3px;
+    padding: 2px;
+  }
+  
+  .workshop-upgrades .gm-controls {
+    margin-top: 20px;
+    border-top: 1px solid #4b4a44;
+    padding-top: 10px;
+  }
+  
+  .workshop-upgrades .gm-controls h3 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+  }
+  
+  .workshop-upgrades .gm-exp-control {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+  }
+  
+  .workshop-upgrades .gm-exp-control input {
+    background: #252830;
+    color: #f0f0e0;
+    border: 1px solid #4b4a44;
+    border-radius: 3px;
+    padding: 2px;
+    width: 100px;
+  }
+  
+  .workshop-upgrades .gm-exp-control button,
+  .workshop-upgrades .gm-reset-tier,
+  .workshop-upgrades .gm-reset-type {
+    background: #4b4a44;
+    color: #f0f0e0;
+    border: none;
+    border-radius: 3px;
+    padding: 5px 10px;
+    cursor: pointer;
+    width: 100%;
+  }
+  
+  .workshop-upgrades .gm-exp-control button:hover,
+  .workshop-upgrades .gm-reset-tier:hover,
+  .workshop-upgrades .gm-reset-type:hover {
+    background: #5b5a54;
+  }
