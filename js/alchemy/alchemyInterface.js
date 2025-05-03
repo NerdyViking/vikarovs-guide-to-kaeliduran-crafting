@@ -5,7 +5,9 @@ import { isReagent } from '../shared/utils.js';
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
+// Alchemy Interface Application for crafting management
 export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) {
+  // Initialize the application with an actor and options
   constructor(actor, options = {}) {
     super(options);
     this._actor = actor;
@@ -16,6 +18,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     this.selectedCharacterId = null;
   }
 
+  // Default configuration options for the application window
   static DEFAULT_OPTIONS = {
     id: "alchemy-interface",
     classes: ["alchemy-interface"],
@@ -30,13 +33,16 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     }
   };
 
+  // Define the template for the application UI
   static PARTS = {
     main: {
       template: "modules/vikarovs-guide-to-kaeliduran-crafting/templates/alchemyInterface.hbs"
     }
   };
 
+  // Initialize settings and socket handlers
   static init() {
+    // Register settings for storing crafting outcomes and memory
     Hooks.once("init", () => {
       game.settings.register('vikarovs-guide-to-kaeliduran-crafting', 'consumableOutcomes', {
         name: 'Consumable Outcomes',
@@ -47,7 +53,6 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
         default: { Combat: {}, Utility: {}, Entropy: [] }
       });
 
-      // Register a setting for centralized crafting memory storage
       game.settings.register('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory', {
         name: 'Crafting Memory',
         hint: 'Stores crafting memory per campaign.',
@@ -58,10 +63,13 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
       });
     });
 
-    // Register socket handler for crafting memory updates
+    // Set up socket handlers for GM updates
     Hooks.once("ready", () => {
       game.socket.on('module.vikarovs-guide-to-kaeliduran-crafting', async (data) => {
-        if (data.operation === "updateCraftingMemory" && game.user.isGM) {
+        if (!game.user.isGM) return;
+
+        // Handle crafting memory updates
+        if (data.operation === "updateCraftingMemory") {
           const { groupId, category, sum } = data.payload;
           const craftingMemory = foundry.utils.deepClone(game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory') || {});
           if (!craftingMemory[groupId]) {
@@ -72,12 +80,18 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
             craftingMemory[groupId][capitalizedCategory].push(sum);
             await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory', craftingMemory);
           }
-        } else if (data.operation === "resetCraftingMemory" && game.user.isGM) {
+        }
+
+        // Handle resetting crafting memory for a group
+        else if (data.operation === "resetCraftingMemory") {
           const { groupId } = data.payload;
           const craftingMemory = foundry.utils.deepClone(game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory') || {});
           craftingMemory[groupId] = { Combat: [], Utility: [], Entropy: [] };
           await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory', craftingMemory);
-        } else if (data.operation === "resetOutcomeMemory" && game.user.isGM) {
+        }
+
+        // Handle resetting a specific outcome in crafting memory
+        else if (data.operation === "resetOutcomeMemory") {
           const { groupId, category, sum } = data.payload;
           const craftingMemory = foundry.utils.deepClone(game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory') || {});
           if (craftingMemory[groupId] && craftingMemory[groupId][category]) {
@@ -85,13 +99,24 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
             await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory', craftingMemory);
           }
         }
+
+        // Handle updating item ownership for campaign users
+        else if (data.operation === "updateItemPermissions") {
+          const { itemUuid, ownershipUpdates } = data.payload;
+          const item = await fromUuid(itemUuid);
+          if (item) {
+            await item.update({ ownership: ownershipUpdates });
+          }
+        }
       });
     });
   }
 
+  // Prepare the context data for rendering the interface
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
 
+    // Load the last active tab and edit mode from actor flags
     const lastTab = await this._actor.getFlag("vikarovs-guide-to-kaeliduran-crafting", "lastAlchemyInterfaceTab") || "combat";
     this.activeTab = lastTab;
 
@@ -100,6 +125,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
       this.editMode = savedEditMode;
     }
 
+    // Determine the active campaign group for the actor
     const actorGroups = await game.modules.get('vikarovs-guide-to-kaeliduran-crafting').api.groupManager.getActorGroups(this._actor.id);
     if (game.user.isGM) {
       this.activeGroup = await this._actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'activeGroup') || null;
@@ -111,6 +137,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
       ui.notifications.warn("This character is not assigned to any party group. Please ask the GM to add it to a group actor.");
     }
 
+    // Prepare crafting memory and UI data
     const groupId = this.activeGroup || actorGroups[0]?.id;
     let craftingMemory = groupId
       ? await this._getCraftingMemory(groupId)
@@ -120,6 +147,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     const craftingActor = this.selectedCharacterId ? game.actors.get(this.selectedCharacterId) : this._actor;
     const cauldronData = await prepareCauldronData(craftingActor);
 
+    // Populate the context for rendering
     context.actor = this._actor;
     context.tabs = compendiumData.tabs;
     context.activeTab = this.activeTab;
@@ -130,7 +158,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     context.highlight = cauldronData.highlight;
     context.outcomeIcons = cauldronData.outcomeIcons;
 
-    // Character selection
+    // Handle character selection for crafting
     context.characters = game.actors.filter(actor => 
       actor.type === 'character' && actor.testUserPermission(game.user, "OWNER")
     );
@@ -156,6 +184,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     }
     context.selectedCharacterId = this.selectedCharacterId;
 
+    // Populate group selection for GMs
     if (game.user.isGM) {
       const activeGroups = game.modules.get('vikarovs-guide-to-kaeliduran-crafting').api.groupManager.getActiveGroups();
       context.groups = Array.isArray(activeGroups) ? activeGroups.reduce((acc, group) => {
@@ -168,6 +197,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     return context;
   }
 
+  // Retrieve or initialize crafting memory for a group
   async _getCraftingMemory(groupId) {
     const craftingMemory = game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory') || {};
     if (!craftingMemory[groupId]) {
@@ -184,6 +214,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     return craftingMemory[groupId];
   }
 
+  // Update crafting memory for a group with a new outcome
   async _setCraftingMemory(groupId, category, sum) {
     if (game.user.isGM) {
       const craftingMemory = foundry.utils.deepClone(game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory') || {});
@@ -204,6 +235,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     }
   }
 
+  // Reset crafting memory for a group
   async _resetCraftingMemory(groupId) {
     if (game.user.isGM) {
       const craftingMemory = foundry.utils.deepClone(game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory') || {});
@@ -217,6 +249,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     }
   }
 
+  // Reset a specific outcome in crafting memory
   async _resetOutcomeMemory(groupId, category, sum) {
     if (game.user.isGM) {
       const craftingMemory = foundry.utils.deepClone(game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory') || {});
@@ -232,6 +265,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     }
   }
 
+  // Render an item sheet for viewing or editing
   async _renderItemSheet(item) {
     try {
       await item.sheet.render(true);
@@ -241,6 +275,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     }
   }
 
+  // Configure rendering options for the application
   _configureRenderOptions(options) {
     super._configureRenderOptions(options);
     if (options.isFirstRender) {
@@ -248,6 +283,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     }
   }
 
+  // Safely render the application, avoiding re-entrant rendering
   async _safeRender(options = {}) {
     if (this.isRendering) return;
     this.isRendering = true;
@@ -260,6 +296,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     }
   }
 
+  // Handle UI interactions and event listeners after rendering
   _onRender(context, options) {
     super._onRender(context, options);
 
@@ -268,7 +305,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     const html = $(this.element);
     const actor = this._actor;
 
-    // Update active tab styling
+    // Update tab styling
     html.find('.interface-tabs .item').removeClass('active');
     html.find(`.interface-tabs .item[data-tab="${this.activeTab}"]`).addClass('active');
     html.find('.sheet-body .tab').removeClass('active');
@@ -287,7 +324,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
       await this._safeRender({ force: true });
     });
 
-    // Handle character selector
+    // Handle character selector for crafting
     html.find('.character-selector').on('change', async (event) => {
       this.selectedCharacterId = event.currentTarget.value || null;
       await this._safeRender({ force: true });
@@ -308,14 +345,14 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
       });
     }
 
-    // Handle reset crafting memory buttons
+    // Handle reset buttons for crafting memory
     html.find('.reset-crafting-memory-btn').on('click', (event) => this._onResetCraftingMemory(event));
     html.find('.reset-outcome-memory-btn').on('click', (event) => this._onResetOutcomeMemory(event));
 
-    // Attach compendium listeners
+    // Attach listeners for compendium interactions
     handleCompendiumListeners(this, html);
 
-    // Handle cauldron drag-and-drop for reagent slots
+    // Handle drag-and-drop for cauldron reagent slots
     html.find('.reagent-drop-zone').on('dragover', (event) => {
       event.preventDefault();
     });
@@ -329,10 +366,9 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
           return;
         }
 
-        // Resolve the item using UUID
+        // Resolve the dropped item
         let item = await fromUuid(data.uuid);
         if (!item) {
-          // Fallback for world items or actor items
           if (data.id) {
             item = game.items.get(data.id);
             if (!item && this.selectedCharacterId) {
@@ -346,16 +382,14 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
           }
         }
 
-        // Validation 1: Check if the item is a reagent
+        // Validate that the item is a reagent
         if (!isReagent(item)) {
           ui.notifications.warn("Only reagents can be dropped into the cauldron.");
           return;
         }
 
-        // Get the slot index
+        // Check for duplicate reagents in cauldron slots
         const slotIndex = $(event.currentTarget).closest('.reagent-slot').data('slot');
-
-        // Validation 2: Check if the reagent is already used in another slot
         const cauldronSlots = actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'cauldronSlots') || { 0: null, 1: null, 2: null };
         for (let i = 0; i < 3; i++) {
           if (i.toString() !== slotIndex.toString() && cauldronSlots[i.toString()] === data.uuid) {
@@ -364,22 +398,19 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
           }
         }
 
-        // Initialize cauldronSlots if it doesn't exist
+        // Update cauldron slots with the dropped item
         let slots = foundry.utils.deepClone(cauldronSlots);
         slots[slotIndex] = data.uuid; // Store the full UUID
-
-        // Store the slot data on the actor
         await actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', 'cauldronSlots', slots);
         await this._safeRender();
 
-        // Check if this is the third slot being filled
+        // Highlight outcome if all slots are filled
         const filledSlots = Object.values(slots).filter(uuid => uuid !== null).length;
         if (filledSlots === 3) {
           const craftingActor = this.selectedCharacterId ? game.actors.get(this.selectedCharacterId) : actor;
           const cauldronData = await prepareCauldronData(craftingActor);
           const { ipSums } = cauldronData;
           const maxSum = Math.max(ipSums.combat, ipSums.utility, ipSums.entropy);
-          // Determine the category with the highest sum
           let category = 'combat';
           if (ipSums.utility === maxSum) {
             category = 'utility';
@@ -393,7 +424,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
       }
     });
 
-    // Handle craft button
+    // Handle crafting action when the craft button is clicked
     html.find('.craft-btn').on('click', async (event) => {
       event.preventDefault();
 
@@ -405,17 +436,16 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
       }
 
       try {
-        // Fetch cauldron data
+        // Prepare cauldron data for crafting
         const cauldronData = await prepareCauldronData(craftingActor);
         const { outcomeIcons, ipSums } = cauldronData;
 
-        // Validate cauldron slots and outcome
+        // Validate cauldron slots and outcome selection
         if (!outcomeIcons || outcomeIcons.length === 0) {
           ui.notifications.warn("No outcome to craft. Please fill all reagent slots and select an outcome.");
           return;
         }
 
-        // Get cauldron slots
         const cauldronSlots = actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'cauldronSlots');
         if (!cauldronSlots || Object.values(cauldronSlots).filter(uuid => uuid).length !== 3) {
           ui.notifications.warn("Please fill all three cauldron slots with reagents.");
@@ -439,16 +469,12 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
           return;
         }
 
-        // Perform crafting
+        // Perform crafting and handle the result
         const craftingResult = await performCrafting(craftingActor, cauldronSlots, ipSums, selectedOutcome);
-
-        // Handle the crafting result
         if (craftingResult.success) {
-          // Determine the group membership of the crafting actor
+          // Update crafting memory if the actor is part of a group
           const actorGroups = await game.modules.get('vikarovs-guide-to-kaeliduran-crafting').api.groupManager.getActorGroups(craftingActor.id);
           const group = actorGroups.length > 0 ? actorGroups[0] : null;
-
-          // Update crafting memory if the actor is part of a group
           if (group) {
             const groupId = group.id;
             await this._setCraftingMemory(groupId, craftingResult.category, craftingResult.sum);
@@ -456,14 +482,14 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
             ui.notifications.warn("This character is not assigned to a campaign. Crafting memory will not be saved.");
           }
 
-          // Send chat message
+          // Send chat message with crafting result
           await ChatMessage.create({
             content: craftingResult.message,
             speaker: ChatMessage.getSpeaker({ actor: craftingActor }),
-            type: CONST.CHAT_MESSAGE_STYLES.OTHER
+            style: CONST.CHAT_MESSAGE_STYLES.OTHER
           });
 
-          // Clear the cauldron state after successful crafting
+          // Clear cauldron state after successful crafting
           const clearedSlots = { 0: null, 1: null, 2: null };
           await actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', 'cauldronSlots', clearedSlots);
           await actor.unsetFlag('vikarovs-guide-to-kaeliduran-crafting', 'selectedOutcome');
@@ -478,7 +504,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
       }
     });
 
-    // Handle clear button
+    // Handle clearing the cauldron slots
     html.find('.clear-btn').on('click', async (event) => {
       event.preventDefault();
       if (!actor) {
@@ -487,21 +513,16 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
       }
 
       try {
-        // Clear the cauldron slots
         const clearedSlots = { 0: null, 1: null, 2: null };
         await actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', 'cauldronSlots', clearedSlots);
-
-        // Clear the selected outcome
         await actor.unsetFlag('vikarovs-guide-to-kaeliduran-crafting', 'selectedOutcome');
-
-        // Re-render the interface to reflect the cleared state
         await this._safeRender();
       } catch (error) {
         ui.notifications.error("Failed to clear cauldron slots: " + error.message);
       }
     });
 
-    // Handle click to open item sheet when slotted
+    // Handle clicking on a slotted reagent to open its item sheet
     html.find('.reagent-drop-zone').on('click', (event) => {
       if (!actor) {
         ui.notifications.error("No actor selected. Please select a token or provide an actor context.");
@@ -523,7 +544,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
       }
     });
 
-    // Handle click on outcome icon: Shift+Click to open item sheet, regular click to select outcome
+    // Handle clicking on outcome icons (shift+click to open sheet, regular click to select)
     html.find('.outcome-icon').on('click', async (event) => {
       if (!actor) {
         ui.notifications.error("No actor selected. Please select a token or provide an actor context.");
@@ -552,8 +573,9 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
       // Ignore clicks on unknown outcomes
     });
 
-    // Handle clear outcome buttons in edit mode
+    // Handle edit mode interactions for GMs (clear outcomes, drag-and-drop outcomes)
     if (this.editMode && game.user.isGM) {
+      // Clear outcome button
       html.find('.clear-outcome').on('click', async (event) => {
         event.preventDefault();
         const sum = event.currentTarget.dataset.sum;
@@ -564,7 +586,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
         await this._safeRender({ force: true });
       });
 
-      // Handle drag-and-drop for outcome cells
+      // Drag-and-drop for outcome cells
       html.find('.outcome-cell').on('dragover', (event) => {
         event.preventDefault();
         event.originalEvent.dataTransfer.dropEffect = 'copy';
@@ -600,7 +622,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
       });
     }
 
-    // Adjust window height dynamically
+    // Adjust window height dynamically based on content
     const compendiumHeight = html.find('.compendium')[0]?.scrollHeight || 0;
     const cauldronHeight = html.find('.cauldron')[0]?.scrollHeight || 0;
     const tabsHeight = html.find('.interface-tabs')[0]?.offsetHeight || 0;
@@ -613,11 +635,11 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     }
   }
 
+  // Handle resetting all crafting memory for a group (GM only)
   async _onResetCraftingMemory(event) {
     event.preventDefault();
     if (!this.editMode || !game.user.isGM) return;
 
-    // Get all campaigns the actor is part of
     const actorGroups = await game.modules.get('vikarovs-guide-to-kaeliduran-crafting').api.groupManager.getActorGroups(this._actor.id);
     if (actorGroups.length === 0) {
       ui.notifications.warn("This actor is not part of any campaigns.");
@@ -652,7 +674,6 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
       no: () => false,
       defaultYes: false,
       render: (html) => {
-        // Populate the dropdown with campaigns
         const groups = actorGroups.reduce((acc, group) => {
           acc[group.id] = { name: group.name };
           return acc;
@@ -674,11 +695,11 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     }
   }
 
+  // Handle resetting a specific outcome in crafting memory (GM only)
   async _onResetOutcomeMemory(event) {
     event.preventDefault();
     if (!this.editMode || !game.user.isGM) return;
 
-    // Get all campaigns the actor is part of
     const actorGroups = await game.modules.get('vikarovs-guide-to-kaeliduran-crafting').api.groupManager.getActorGroups(this._actor.id);
     if (actorGroups.length === 0) {
       ui.notifications.warn("This actor is not part of any campaigns.");
@@ -728,7 +749,6 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
       no: () => false,
       defaultYes: false,
       render: (html) => {
-        // Populate the campaign dropdown
         const groups = actorGroups.reduce((acc, group) => {
           acc[group.id] = { name: group.name };
           return acc;
@@ -750,9 +770,9 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     }
   }
 
+  // Clean up actor flags when closing the interface
   async close(options = {}) {
     try {
-      // Clear the cauldron state on close
       const clearedSlots = { 0: null, 1: null, 2: null };
       await this._actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', 'cauldronSlots', clearedSlots);
       await this._actor.unsetFlag('vikarovs-guide-to-kaeliduran-crafting', 'selectedOutcome');
@@ -771,4 +791,5 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
   }
 }
 
+// Initialize the Alchemy Interface
 AlchemyInterface.init();
