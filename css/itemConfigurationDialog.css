@@ -1,0 +1,56 @@
+.vikarovs-item-configuration .item-configuration-form {
+    padding: 10px;
+  }
+  
+  .vikarovs-item-configuration .form-group {
+    margin-bottom: 10px;
+  }
+  
+  .vikarovs-item-configuration .form-group label {
+    display: inline-block;
+    width: 100px;
+    font-weight: bold;
+  }
+  
+  .vikarovs-item-configuration .drop-zone {
+    border: 2px dashed #ccc;
+    padding: 10px;
+    text-align: center;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .vikarovs-item-configuration .drop-zone:hover {
+    border-color: #666;
+  }
+  
+  .vikarovs-item-configuration .slot-image {
+    max-width: 40px;
+    max-height: 40px;
+    margin-right: 5px;
+  }
+  
+  .vikarovs-item-configuration .slot-name {
+    flex: 1;
+    text-align: left;
+  }
+  
+  .vikarovs-item-configuration .slot-placeholder {
+    color: #666;
+  }
+  
+  .vikarovs-item-configuration select,
+  .vikarovs-item-configuration input[type="number"] {
+    width: 200px;
+  }
+  
+  .vikarovs-item-configuration .buttons {
+    text-align: right;
+  }
+  
+  .vikarovs-item-configuration .buttons button {
+    margin-left: 5px;
+  }

@@ -1,0 +1,133 @@
+<div class="vikarovs-workshop-interface">
+  <!-- Compendium Section -->
+  <div class="compendium-section">
+    <div class="recipe-browser">
+      <div class="recipe-tabs">
+        {{#if recipes.length}}
+          {{#each recipes}}
+            <div class="recipe-tab {{#if (eq ../selectedRecipe.id id)}}active{{/if}}" data-recipe-id="{{id}}">
+              {{#if componentImg}}
+                <img src="{{componentImg}}" class="component-icon" alt="{{name}} Component" />
+              {{/if}}
+              <span class="recipe-name">{{name}}</span>
+              {{#if ../isGM}}
+                <span class="delete-tab" title="Delete Recipe"><i class="fas fa-times"></i></span>
+              {{/if}}
+            </div>
+          {{/each}}
+        {{else}}
+          <p class="no-recipes">No recipes available.</p>
+        {{/if}}
+        {{#if isGM}}
+          <div class="new-recipe-btn">
+            <span>Create New Recipe</span>
+          </div>
+        {{/if}}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recipe Book Section -->
+  <div class="recipe-book">
+    <h2>Recipe Book</h2>
+    <div class="recipe-book-content">
+      <!-- Inventory Sidebar -->
+      <div class="inventory-section">
+        <div class="character-selector-wrapper">
+          <select class="character-selector">
+            <option value="">Select Character</option>
+            {{#each characters as |character|}}
+              <option value="{{character.id}}" {{#if (eq ../selectedCharacterId character.id)}}selected{{/if}}>{{character.name}}</option>
+            {{/each}}
+          </select>
+        </div>
+        <div class="component-list">
+          {{#if selectedCharacterId}}
+            {{#if components.length}}
+              {{#each components as |component|}}
+                <div class="component-item {{#if (eq ../selectedComponentUuid component.uuid)}}selected{{/if}}" data-uuid="{{component.uuid}}">
+                  <img src="{{component.img}}" alt="{{component.name}}" class="component-icon" />
+                  <span class="component-list-name">{{component.name}}</span>
+                </div>
+              {{/each}}
+            {{else}}
+              <p class="no-components">No components in inventory.</p>
+            {{/if}}
+          {{else}}
+            <p class="no-character">Please select a character.</p>
+          {{/if}}
+        </div>
+      </div>
+      <!-- Recipe Details -->
+      <div class="recipe-details">
+        <!-- Component Slot (Centered) -->
+        {{#if selectedRecipe}}
+          <div class="component-slot" data-uuid="{{selectedRecipe.componentUuid}}">
+            {{#if selectedRecipe.componentImg}}
+              <img src="{{selectedRecipe.componentImg}}" alt="{{selectedRecipe.name}}" class="component-image" data-uuid="{{selectedRecipe.componentUuid}}" />
+              <span class="component-name">{{selectedRecipe.name}}</span>
+            {{else}}
+              <span class="slot-placeholder">Missing Component</span>
+            {{/if}}
+          </div>
+          <!-- Tool and Outcome Container (Pentagon) -->
+          <div class="tool-and-outcome-container">
+            {{#each selectedRecipe.outcomes as |outcome index|}}
+              <div class="tool-and-outcome-slots {{#if outcome.isSelected}}selected{{/if}}" data-index="{{index}}">
+                <!-- Outcome Slot -->
+                <div class="outcome-slot" data-uuid="{{outcome.uuid}}" data-index="{{index}}">
+                  {{#if outcome.uuid}}
+                    <img src="{{outcome.img}}" alt="{{outcome.name}}" class="outcome-image" data-uuid="{{outcome.uuid}}" />
+                    <span class="outcome-name">{{outcome.name}}</span>
+                  {{else}}
+                    <span class="slot-placeholder">Empty</span>
+                  {{/if}}
+                </div>
+                <!-- Tool Slot -->
+                {{#with (lookup ../selectedRecipe.tools index) as |tool|}}
+                  <div class="tool-slot" data-uuid="{{tool.uuid}}">
+                    {{#if tool}}
+                      <img src="{{tool.img}}" alt="{{tool.name}}" class="tool-image" data-uuid="{{tool.uuid}}" />
+                    {{else}}
+                      <span class="slot-placeholder">Empty</span>
+                    {{/if}}
+                  </div>
+                {{/with}}
+              </div>
+            {{/each}}
+          </div>
+          <!-- Recipe Info (DC and Cost) -->
+          <div class="recipe-info">
+            <p><strong>DC to Craft:</strong> {{dc}}</p>
+            <p><strong>Cost to Craft:</strong> {{goldCostCraft}} GP</p>
+            <p><strong>Cost to Enchant:</strong> {{goldCostEnchant}} GP</p>
+          </div>
+          <!-- Controls -->
+          <div class="recipe-controls">
+            <button class="craft-btn" disabled>Craft</button>
+            <button class="enchant-btn" disabled>Enchant</button>
+            {{#if isGM}}
+              <button class="edit-btn">Edit</button>
+            {{/if}}
+          </div>
+        {{else}}
+          <p>Select a recipe to view details.</p>
+        {{/if}}
+      </div>
+    </div>
+  </div>
+
+  <!-- Campaign Selector at Bottom Left -->
+  {{#if campaigns}}
+    <div class="campaign-selector-container">
+      <div class="campaign-selector-wrapper">
+        <select class="character-selector">
+          <option value="">All Campaigns</option>
+          {{#each campaigns as |campaign campaignId|}}
+            <option value="{{campaignId}}" {{#if (eq ../activeGroup campaignId)}}selected{{/if}}>{{campaign.name}}</option>
+          {{/each}}
+        </select>
+      </div>
+    </div>
+  {{/if}}
+</div>

@@ -1,0 +1,79 @@
+<form class="recipe-form">
+  <div class="form-group">
+    <label>Recipe Name:</label>
+    <input type="text" name="name" value="{{formData.name}}" maxlength="100" required>
+  </div>
+  <div class="form-group component-section">
+    <label>Component:</label>
+    <div class="component-wrapper">
+      <div class="component-slot drop-zone" data-type="component">
+        {{#if formData.component}}
+          <img src="{{formData.component.img}}" alt="{{formData.component.name}}" class="slot-image" data-uuid="{{formData.component.uuid}}" />
+          <span class="slot-name">{{formData.component.name}}</span>
+          <span class="clear-slot" data-type="component" title="Clear Slot"><i class="fas fa-times"></i></span>
+        {{else}}
+          <span class="slot-placeholder">Drop Component</span>
+        {{/if}}
+      </div>
+    </div>
+  </div>
+  <div class="form-group outcomes-tools">
+    <h3>Outcomes and Tools</h3>
+    <div class="outcomes-tools-grid">
+      {{#each formData.outcomes as |outcome index|}}
+        <div class="outcome-tool-pair">
+          <div class="outcome-slot drop-zone" data-type="outcome" data-index="{{index}}">
+            {{#if outcome}}
+              <img src="{{outcome.img}}" alt="{{outcome.name}}" class="slot-image" data-uuid="{{outcome.uuid}}" />
+              <span class="slot-name">{{outcome.name}}</span>
+              <span class="clear-slot" data-type="outcome" data-index="{{index}}" title="Clear Slot"><i class="fas fa-times"></i></span>
+            {{else}}
+              <span class="slot-placeholder">Drop Outcome {{add index 1}}</span>
+            {{/if}}
+          </div>
+          <div class="tool-slot drop-zone" data-type="tool" data-index="{{index}}">
+            {{#with (lookup ../tools index) as |tool|}}
+              {{#if tool}}
+                <img src="{{tool.img}}" alt="{{tool.name}}" class="slot-image" data-uuid="{{tool.uuid}}" />
+                <span class="slot-name">{{tool.name}}</span>
+                <span class="clear-slot" data-type="tool" data-index="{{index}}" title="Clear Slot"><i class="fas fa-times"></i></span>
+              {{else}}
+                <span class="slot-placeholder">Drop Tool {{add ../index 1}}</span>
+              {{/if}}
+            {{/with}}
+          </div>
+        </div>
+      {{/each}}
+    </div>
+  </div>
+  <div class="form-group">
+    <label>DC:</label>
+    <input type="number" name="dc" value="{{formData.dc}}" min="1">
+  </div>
+  <div class="form-group">
+    <label>Gold Cost:</label>
+    <input type="number" name="goldCost" value="{{formData.goldCost}}" min="0">
+  </div>
+  <div class="form-group">
+    <label>Campaigns:</label>
+    <div class="campaign-grid">
+      {{#each campaigns as |campaign id|}}
+        <label>
+          <input type="checkbox" name="campaign-{{id}}" value="{{id}}" {{#if (includes ../formData.allowedGroups id)}}checked{{/if}}>
+          {{campaign.name}}
+        </label>
+      {{/each}}
+    </div>
+  </div>
+  <div class="form-group">
+    <label>
+      <input type="checkbox" name="hideFromPlayers" {{#if formData.hideFromPlayers}}checked{{/if}}>
+      Hide from players
+    </label>
+  </div>
+  <div class="form-group buttons">
+    <button type="button" class="save-btn">Save</button>
+    <button type="button" class="clear-all-btn">Clear All Slots</button>
+    <button type="button" class="cancel-btn">Cancel</button>
+  </div>
+</form>

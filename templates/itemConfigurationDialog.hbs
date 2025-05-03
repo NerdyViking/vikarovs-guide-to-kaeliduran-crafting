@@ -1,0 +1,49 @@
+<form class="item-configuration-form">
+  <div class="form-group">
+    <label>Drop Item:</label>
+    <div class="drop-zone" data-type="item">
+      {{#if itemData}}
+        <img src="{{itemData.img}}" alt="{{itemData.name}}" class="slot-image" data-uuid="{{itemData.uuid}}" />
+        <span class="slot-name">{{itemData.name}}</span>
+      {{else}}
+        <span class="slot-placeholder">Drop Loot Item</span>
+      {{/if}}
+    </div>
+  </div>
+  <div class="form-group">
+    <label>Type:</label>
+    <select name="type">
+      <option value="none" {{#if (eq formData.type 'none')}}selected{{/if}}>None</option>
+      <option value="component" {{#if (eq formData.type 'component')}}selected{{/if}}>Component</option>
+      <option value="reagent" {{#if (eq formData.type 'reagent')}}selected{{/if}}>Reagent</option>
+    </select>
+  </div>
+  {{#if (eq formData.type 'reagent')}}
+    <div class="form-group">
+      <label>Essence:</label>
+      <select name="essence">
+        <option value="None" {{#if (eq formData.essence 'None')}}selected{{/if}}>None</option>
+        <option value="Primal" {{#if (eq formData.essence 'Primal')}}selected{{/if}}>Primal</option>
+        <option value="Fey" {{#if (eq formData.essence 'Fey')}}selected{{/if}}>Fey</option>
+        <option value="Eldritch" {{#if (eq formData.essence 'Eldritch')}}selected{{/if}}>Eldritch</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Combat IP:</label>
+      <input type="number" name="ipValues.combat" value="{{formData.ipValues.combat}}" min="0">
+    </div>
+    <div class="form-group">
+      <label>Utility IP:</label>
+      <input type="number" name="ipValues.utility" value="{{formData.ipValues.utility}}" min="0">
+    </div>
+    <div class="form-group">
+      <label>Entropy IP:</label>
+      <input type="number" name="ipValues.entropy" value="{{formData.ipValues.entropy}}" min="0">
+    </div>
+  {{/if}}
+  <div class="form-group buttons">
+    <button type="button" class="save-btn">Save</button>
+    <button type="button" class="clear-btn">Clear</button>
+    <button type="button" class="cancel-btn">Cancel</button>
+  </div>
+</form>

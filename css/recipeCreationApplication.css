@@ -1,0 +1,195 @@
+#recipe-creation-app .recipe-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    background: var(--background-dark);
+  }
+  
+  #recipe-creation-app .form-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  #recipe-creation-app .form-group label {
+    width: 100px;
+    color: var(--text-color);
+    font-size: 14px;
+  }
+  
+  #recipe-creation-app .form-group input[type="text"],
+  #recipe-creation-app .form-group input[type="number"] {
+    flex: 1;
+    padding: 5px;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    background: var(--background-dark);
+    color: var(--text-color);
+  }
+  
+  #recipe-creation-app .form-group input[type="number"] {
+    width: 100px;
+  }
+  
+  #recipe-creation-app .component-section {
+    justify-content: center;
+    align-items: center;
+  }
+  
+  #recipe-creation-app .component-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+  
+  #recipe-creation-app .outcomes-tools {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  #recipe-creation-app .outcomes-tools h3 {
+    margin: 0 0 10px 0;
+    color: #c4b998;
+    font-size: 1.1em;
+  }
+  
+  #recipe-creation-app .outcomes-tools-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    width: 100%;
+  }
+  
+  #recipe-creation-app .outcome-tool-pair {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: center;
+  }
+  
+  #recipe-creation-app .component-slot,
+  #recipe-creation-app .outcome-slot,
+  #recipe-creation-app .tool-slot {
+    width: 60px;
+    height: 60px;
+    border: 1px dashed var(--border-color);
+    border-radius: 3px;
+    background: var(--background-dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  
+  #recipe-creation-app .drop-zone:hover {
+    border-color: var(--active-border-color);
+    box-shadow: 0 0 5px var(--active-border-color);
+  }
+  
+  #recipe-creation-app .drop-zone:hover .clear-slot {
+    opacity: 1;
+  }
+  
+  #recipe-creation-app .slot-placeholder {
+    font-size: 10px;
+    color: #808080;
+    text-align: center;
+    padding: 5px;
+    line-height: 1.2;
+    max-width: 100%;
+  }
+  
+  #recipe-creation-app .slot-image {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    border-radius: 3px;
+    z-index: 2;
+    cursor: pointer;
+  }
+  
+  #recipe-creation-app .clear-slot {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: rgba(255, 0, 0, 0.7);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 3;
+  }
+  
+  #recipe-creation-app .clear-slot:hover {
+    background: rgba(255, 0, 0, 1);
+  }
+  
+  #recipe-creation-app .slot-name {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 10px;
+    color: var(--text-color);
+    text-shadow: var(--text-shadow);
+    z-index: 1;
+  }
+  
+  #recipe-creation-app .campaign-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  #recipe-creation-app .campaign-grid label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-color);
+    font-size: 12px;
+  }
+  
+  #recipe-creation-app .form-group input[type="checkbox"] {
+    margin: 0;
+  }
+  
+  #recipe-creation-app .form-group.buttons {
+    justify-content: center;
+    gap: 5px;
+  }
+  
+  #recipe-creation-app .save-btn,
+  #recipe-creation-app .clear-all-btn,
+  #recipe-creation-app .cancel-btn {
+    padding: 5px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    background: var(--background-dark);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  
+  #recipe-creation-app .save-btn:hover,
+  #recipe-creation-app .clear-all-btn:hover,
+  #recipe-creation-app .cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  #recipe-creation-app .clear-all-btn {
+    background: rgba(255, 0, 0, 0.7);
+  }
+  
+  #recipe-creation-app .clear-all-btn:hover {
+    background: rgba(255, 0, 0, 1);
+  }

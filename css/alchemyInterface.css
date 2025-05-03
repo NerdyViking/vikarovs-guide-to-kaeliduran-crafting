@@ -1,0 +1,331 @@
+/* css/alchemyInterface.css */
+
+/* General Sheet Styling */
+.alchemy-interface {
+  height: auto !important;
+}
+
+.alchemy-interface .window-header {
+  height: 36px;
+}
+
+/* Tabs Styling */
+.alchemy-interface .tabs.interface-tabs {
+  display: flex;
+  justify-content: center;
+  border-bottom: 1px solid #4b4a44;
+  border-top: none;
+  position: relative;
+}
+
+.alchemy-interface .tabs.interface-tabs .item {
+  padding: 0px 10px;
+  color: #f0f0e0;
+  border: 1px solid transparent;
+  border-radius: 3px 3px 0 0;
+  margin: 0 2px;
+  cursor: pointer;
+}
+
+.alchemy-interface .tabs.interface-tabs .item:hover {
+  border-color: #ff0000;
+}
+
+.alchemy-interface .tabs.interface-tabs .item.active {
+  background: #252830;
+  border: 2px solid #4b4a44;
+  border-bottom: none;
+}
+
+/* Group Selector and Edit Button Styling */
+.alchemy-interface .group-selector-wrapper {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  right: 10px;
+  height: 36px;
+}
+
+.alchemy-interface .group-selector {
+  padding: 3px;
+  background: #252830;
+  color: #f0f0e0;
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
+  font-size: 0.9em;
+  margin-right: 5px;
+}
+
+.alchemy-interface .group-selector:focus {
+  outline: none;
+  border-color: #ff0000;
+}
+
+.alchemy-interface .edit-outcomes {
+  padding: 0px 8px;
+  color: #f0f0e0;
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
+  cursor: pointer;
+  background: #252830;
+  height: 32px;
+  margin-left: 3px;
+}
+
+.alchemy-interface .edit-outcomes:hover {
+  border-color: #ff0000;
+}
+
+/* Reset Crafting Memory Button */
+.alchemy-interface .reset-crafting-memory-btn {
+  display: block;
+  margin: 5px auto;
+  padding: 5px 10px;
+  background: #252830;
+  color: #f0f0e0;
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.alchemy-interface .reset-crafting-memory-btn:hover {
+  border-color: #ff0000;
+}
+
+/* Sheet Body */
+.alchemy-interface .sheet-body {
+  padding: 10px;
+}
+
+/* Compendium Section */
+.alchemy-interface .compendium {
+  margin-bottom: 20px;
+}
+
+.alchemy-interface .rarity-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.alchemy-interface .rarity-group {
+  flex: 1;
+  min-width: 200px;
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
+  padding: 5px;
+}
+
+.alchemy-interface .rarity-label {
+  margin: 0;
+  font-size: 1.1em;
+  text-align: center;
+  border-bottom: 1px solid #4b4a44;
+  padding-bottom: 5px;
+}
+
+.alchemy-interface .outcomes-grid {
+  display: grid;
+  gap: 5px;
+  padding: 5px;
+}
+
+.alchemy-interface .outcome-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.alchemy-interface .outcome-icon {
+  width: 50px;
+  height: 50px;
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
+  background: #252830;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.alchemy-interface .outcome-icon.unknown-icon {
+  filter: grayscale(100%);
+  opacity: 0.5;
+}
+
+.alchemy-interface .outcome-icon img {
+  max-width: 100%;
+  max-height: 100%;
+  border: none;
+}
+
+.alchemy-interface .outcome-sum {
+  margin-top: 5px;
+  font-size: 0.9em;
+}
+
+.alchemy-interface .outcome-cell .clear-outcome {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #ff0000;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Cauldron Section */
+.alchemy-interface .cauldron {
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
+  padding: 10px;
+}
+
+.alchemy-interface .cauldron-title {
+  margin: 0;
+  font-size: 1.2em;
+  text-align: center;
+  border-bottom: 1px solid #4b4a44;
+  padding-bottom: 5px;
+}
+
+.alchemy-interface .reagent-slots {
+  display: flex;
+  justify-content: space-around;
+  margin: 10px 0;
+}
+
+.alchemy-interface .reagent-slot {
+  text-align: center;
+}
+
+.alchemy-interface .reagent-name {
+  font-size: 0.9em;
+  margin-bottom: 5px;
+}
+
+.alchemy-interface .reagent-drop-zone {
+  width: 60px;
+  height: 60px;
+  border: 1px dashed #4b4a44;
+  border-radius: 3px;
+  background: #252830;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.alchemy-interface .reagent-drop-zone img {
+  max-width: 100%;
+  max-height: 100%;
+  border: none;
+}
+
+.alchemy-interface .ip-sums {
+  display: flex;
+  justify-content: space-around;
+  margin: 10px 0;
+}
+
+.alchemy-interface .ip-sum {
+  text-align: center;
+}
+
+.alchemy-interface .ip-sum.highlight {
+  color: #ff0000;
+}
+
+.alchemy-interface .ip-label {
+  display: block;
+  font-size: 0.9em;
+}
+
+.alchemy-interface .ip-value {
+  font-size: 1em;
+  font-weight: bold;
+}
+
+.alchemy-interface .outcome-icons {
+  display: flex;
+  justify-content: space-around;
+  margin: 10px 0;
+}
+
+.alchemy-interface .outcome-container {
+  text-align: center;
+}
+
+.alchemy-interface .outcome-text {
+  font-size: 0.9em;
+  margin-bottom: 5px;
+}
+
+.alchemy-interface .outcome-icon {
+  width: 50px;
+  height: 50px;
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
+  background: #252830;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.alchemy-interface .outcome-icon.selected {
+  border-color: #ff0000;
+}
+
+.alchemy-interface .outcome-icon img {
+  max-width: 100%;
+  max-height: 100%;
+  border: none;
+}
+
+.alchemy-interface .details-btn {
+  margin-top: 5px;
+  padding: 3px 6px;
+  background: #252830;
+  color: #f0f0e0;
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.alchemy-interface .details-btn:hover {
+  border-color: #ff0000;
+}
+
+.alchemy-interface .details-btn:disabled {
+  color: #808080;
+  cursor: not-allowed;
+}
+
+.alchemy-interface .crafting-controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.alchemy-interface .craft-btn,
+.alchemy-interface .clear-btn {
+  padding: 5px 10px;
+  background: #252830;
+  color: #f0f0e0;
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.alchemy-interface .craft-btn:hover,
+.alchemy-interface .clear-btn:hover {
+  border-color: #ff0000;
+}

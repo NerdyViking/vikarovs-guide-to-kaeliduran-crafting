@@ -1,0 +1,100 @@
+/* Define CSS Variables for Common Values */
+:root {
+  --primary-background: #1a1a1a;
+  --text-color: #f0f0e0;
+  --border-color: #4b4a44;
+  --highlight-color: #ff0000;
+  --active-border-color: rgb(0, 255, 0);
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  --text-shadow: 0 0 2px #000;
+  --background-dark: #252830;
+  --parchment-bg: url('../assets/parchment.jpg') no-repeat center center;
+  --parchment-bg-size: cover;
+}
+
+
+
+/* Style the root element */
+.vikarovs-workshop-interface {
+  background-color: var(--primary-background) ;
+  background: url("../assets/denim075.png") ;
+  color: var(--text-color) ;
+  display: flex ;
+  flex-direction: column ;
+  min-height: 800px ;
+  min-width: 800px ;
+}
+
+.vikarovs-workshop-interface .window-header {
+  border-bottom: none;
+  cursor: move !important;
+}
+
+
+/* Ensure the window content is visible and takes full height */
+.vikarovs-workshop-interface .window-content {
+  padding: 0px 10px 10px 10px ;
+  display: flex ;
+  flex-direction: column ;
+  flex: 1 ; /* Ensure it takes available space */
+  overflow: auto ; /* Ensure content is scrollable if it overflows */
+  background: url("../assets/denim075.png") ; /* Avoid overriding the root background */
+  min-height: 600px ; /* Ensure visibility */
+  position: relative ; /* For positioning the campaign selector */
+}
+
+/* Ensure the inner container is styled correctly */
+.vikarovs-workshop-interface .vikarovs-workshop-interface {
+  display: flex ;
+  flex-direction: column ;
+  flex: 1 ; /* Ensure it takes available space */
+  width: 100% ;
+  min-height: 500px ; /* Ensure visibility */
+}
+
+/* Campaign Selector Container (Bottom Left) */
+.vikarovs-workshop-interface .campaign-selector-container {
+  position: absolute ;
+  bottom: 10px ;
+  left: 10px ;
+  z-index: 1 ;
+}
+
+/* Campaign Selector Styling */
+.vikarovs-workshop-interface .campaign-selector-wrapper {
+  margin-left: 0 ; /* Adjusted since it's no longer inside sheet-header */
+}
+
+.vikarovs-workshop-interface .campaign-selector {
+  padding: 3px ;
+  background: white ;
+  color: black ;
+  border: 1px solid var(--border-color) ;
+  border-radius: 3px ;
+  font-size: 0.9em ;
+}
+
+.vikarovs-workshop-interface .campaign-selector:focus {
+  outline: none ;
+  border-color: var(--highlight-color) ;
+}
+
+/* Compendium Section */
+.vikarovs-workshop-interface .compendium-section {
+  flex: 0 0 auto ;
+  margin-bottom: 10px ;
+}
+
+.vikarovs-workshop-interface .recipe-browser {
+  border: 1px solid var(--border-color) ;
+  border-radius: 3px ;
+  padding: 5px ;
+  width: 100% ;
+  height: 150px ;
+  margin-bottom: 5px ;
+  background: url(../assets/leather-banner.png) ;
+  background-size: contain ;
+  border: 1px solid #370606 ;
+  border-radius: 0 0 20px 20px ;
+  box-shadow: inset 0 3px 20px black ;
+}

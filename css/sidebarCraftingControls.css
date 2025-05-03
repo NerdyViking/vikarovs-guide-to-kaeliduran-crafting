@@ -1,0 +1,36 @@
+/* css/sidebarCraftingControls.css */
+
+/* Style for crafting tools buttons in the sidebar */
+.control-tools .control-tool[data-tool="cauldron"],
+.control-tools .control-tool[data-tool="workshop"] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+  color: #fff;
+  background: #252830;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+/* Hover effect with red border */
+.control-tools .control-tool[data-tool="cauldron"]:hover,
+.control-tools .control-tool[data-tool="workshop"]:hover {
+  border: 1px solid red;
+}
+
+.control-tools .control-tool[data-tool="cauldron"]:hover::after,
+.control-tools .control-tool[data-tool="workshop"]:hover::after {
+  opacity: 1;
+}
+
+/* Disabled state */
+.control-tools .control-tool[data-tool="cauldron"][disabled],
+.control-tools .control-tool[data-tool="workshop"][disabled] {
+  color: #808080;
+  cursor: not-allowed;
+}

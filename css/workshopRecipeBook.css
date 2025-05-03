@@ -1,0 +1,329 @@
+.vikarovs-workshop-interface .recipe-book {
+    flex: 1;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    padding: 10px;
+    position: relative;
+  }
+  
+  .vikarovs-workshop-interface .recipe-book h2 {
+    margin: 0 0 10px 0;
+    font-size: 1.2em;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    color: #c4b998;
+  }
+  
+  .vikarovs-workshop-interface .recipe-book-content {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .vikarovs-workshop-interface .recipe-details {
+    flex: 1;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 475px;
+  }
+  
+  /* Inventory Sidebar */
+  .vikarovs-workshop-interface .inventory-section {
+    flex: 0 0 200px;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .vikarovs-workshop-interface .character-selector-wrapper {
+    width: 100%;
+  }
+  
+  .vikarovs-workshop-interface .character-selector {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    background: var(--background-dark);
+    color: var(--text-color);
+  }
+  
+  .vikarovs-workshop-interface .character-selector:focus {
+    outline: none;
+    border-color: var(--highlight-color);
+  }
+  
+  .vikarovs-workshop-interface .component-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .vikarovs-workshop-interface .component-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  .vikarovs-workshop-interface .component-item:hover {
+    border-color: var(--active-border-color);
+    box-shadow: 0 0 5px var(--active-border-color);
+  }
+  
+  .vikarovs-workshop-interface .component-item.selected {
+    border-color: red;
+    box-shadow: 0 0 10px red;
+  }
+  
+  .vikarovs-workshop-interface .component-item .component-icon {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+  }
+  
+  .vikarovs-workshop-interface .component-item .component-list-name {
+    font-size: 12px;
+    color: var(--text-color);
+    white-space: normal;
+    flex: 1;
+  }
+  
+  .vikarovs-workshop-interface .no-components,
+  .vikarovs-workshop-interface .no-character {
+    color: #808080;
+    text-align: center;
+    padding: 10px;
+    font-size: 12px;
+  }
+  
+  .vikarovs-workshop-interface .component-slot {
+    width: 60px;
+    height: 60px;
+    border: 1px dashed var(--border-color);
+    border-radius: 3px;
+    background: var(--background-dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+  }
+  
+  .vikarovs-workshop-interface .component-slot:hover {
+    border-color: var(--active-border-color);
+    box-shadow: 0 0 5px var(--active-border-color);
+  }
+  
+  .vikarovs-workshop-interface .component-image {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    border-radius: 3px;
+    z-index: 2;
+    cursor: pointer;
+  }
+  
+  .vikarovs-workshop-interface .component-name {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 10px;
+    color: var(--text-color);
+    text-shadow: var(--text-shadow);
+    z-index: 1;
+  }
+  
+  .vikarovs-workshop-interface .tool-and-outcome-container {
+    position: relative;
+    width: 300px;
+    height: 300px;
+  }
+  
+  .vikarovs-workshop-interface .tool-and-outcome-slots {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Highlight both outcome-slot and tool-slot when parent is selected */
+  .vikarovs-workshop-interface .tool-and-outcome-slots.selected .outcome-slot,
+  .vikarovs-workshop-interface .tool-and-outcome-slots.selected .tool-slot {
+    box-shadow: 0px 0px 10px 3px red;
+  }
+  
+  /* Pentagon positions for tool-and-outcome-slots */
+  .vikarovs-workshop-interface .tool-and-outcome-slots:nth-child(1) { transform: translate(120px, 0px); }
+  .vikarovs-workshop-interface .tool-and-outcome-slots:nth-child(2) { transform: translate(234px, 83px); }
+  .vikarovs-workshop-interface .tool-and-outcome-slots:nth-child(3) { transform: translate(191px, 217px); }
+  .vikarovs-workshop-interface .tool-and-outcome-slots:nth-child(4) { transform: translate(50px, 217px); }
+  .vikarovs-workshop-interface .tool-and-outcome-slots:nth-child(5) { transform: translate(6px, 83px); }
+  
+  .vikarovs-workshop-interface .tool-and-outcome-slots:nth-child(1) .outcome-name {
+    width: 120px;
+    height: 20px;
+    text-align: center;
+    white-space: normal;
+    bottom: -22px;
+    transform: translateX(-50%);
+  }
+  
+  .vikarovs-workshop-interface .tool-and-outcome-slots:nth-child(2) .outcome-name {
+    left: 65px;
+    bottom: 0px;
+  }
+  
+  .vikarovs-workshop-interface .tool-and-outcome-slots:nth-child(3) .outcome-name {
+    left: 65px;
+    bottom: 0px;
+  }
+  
+  .vikarovs-workshop-interface .tool-and-outcome-slots:nth-child(4) .outcome-name {
+    right: 65px;
+    left: auto;
+    text-align: right;
+    bottom: 0px;
+  }
+  
+  .vikarovs-workshop-interface .tool-and-outcome-slots:nth-child(5) .outcome-name {
+    right: 65px;
+    left: auto;
+    text-align: right;
+    bottom: 0px;
+  }
+  
+  .vikarovs-workshop-interface .outcome-slot {
+    width: 60px;
+    height: 60px;
+    border: 1px dashed var(--border-color);
+    border-radius: 3px;
+    background: var(--background-dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  
+  .vikarovs-workshop-interface .outcome-slot:hover {
+    border-color: var(--active-border-color);
+    box-shadow: 0 0 5px var(--active-border-color);
+  }
+  
+  .vikarovs-workshop-interface .tool-slot {
+    width: 30px;
+    height: 30px;
+    border: 1px dashed var(--border-color);
+    border-radius: 3px;
+    background: var(--background-dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
+  .vikarovs-workshop-interface .tool-slot:hover {
+    border-color: var(--active-border-color);
+    box-shadow: 0 0 5px var(--active-border-color);
+  }
+  
+  /* Position tools relative to their parent tool-and-outcome-slots */
+  .vikarovs-workshop-interface .tool-and-outcome-slots:nth-child(1) .tool-slot { transform: translate(-15px, -58px); }
+  .vikarovs-workshop-interface .tool-and-outcome-slots:nth-child(2) .tool-slot { transform: translate(0px, -58px); }
+  .vikarovs-workshop-interface .tool-and-outcome-slots:nth-child(3) .tool-slot { transform: translate(0px, 28px); }
+  .vikarovs-workshop-interface .tool-and-outcome-slots:nth-child(4) .tool-slot { transform: translate(-30px, 28px); }
+  .vikarovs-workshop-interface .tool-and-outcome-slots:nth-child(5) .tool-slot { transform: translate(-30px, -58px); }
+  
+  .vikarovs-workshop-interface .outcome-image,
+  .vikarovs-workshop-interface .tool-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 3px;
+    z-index: 2;
+    cursor: pointer;
+  }
+  
+  .vikarovs-workshop-interface .outcome-name,
+  .vikarovs-workshop-interface .tool-name {
+    position: absolute;
+    left: 50%;
+    white-space: nowrap;
+    font-size: 15px;
+    color: var(--text-color);
+    text-shadow: var(--text-shadow);
+    z-index: 1;
+  }
+  
+  .vikarovs-workshop-interface .slot-placeholder {
+    font-size: 10px;
+    color: #808080;
+    text-align: center;
+    padding: 5px;
+    line-height: 1.2;
+    max-width: 100%;
+  }
+  
+  .vikarovs-workshop-interface .recipe-info {
+    position: absolute;
+    bottom: 10px; /* Positioned above the controls */
+    width: 100%;
+    text-align: center;
+    color: var(--text-color);
+    font-size: 12px;
+  }
+  
+  .vikarovs-workshop-interface .recipe-info p {
+    margin: 2px 0;
+  }
+  
+  .vikarovs-workshop-interface .recipe-controls {
+    position: absolute;
+    bottom: -28px;
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .vikarovs-workshop-interface .recipe-controls button {
+    padding: 5px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    background: var(--background-dark);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  
+  .vikarovs-workshop-interface .recipe-controls button:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .vikarovs-workshop-interface .recipe-controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
