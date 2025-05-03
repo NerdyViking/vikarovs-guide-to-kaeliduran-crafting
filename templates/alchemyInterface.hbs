@@ -24,9 +24,14 @@
     {{/if}}
   </nav>
   {{#if editMode}}
-    <button class="reset-crafting-memory-btn" title="Reset Crafting Memory">
-      <i class="fas fa-trash"></i> Reset Memory
-    </button>
+    <div class="memory-controls">
+      <button class="reset-crafting-memory-btn" title="Reset Crafting Memory">
+        <i class="fas fa-trash"></i> Reset Memory
+      </button>
+      <button class="reset-outcome-memory-btn" title="Reset Outcome Memory">
+        <i class="fas fa-undo"></i> Reset Outcome Memory
+      </button>
+    </div>
   {{/if}}
   <section class="sheet-body">
     <div class="compendium">
@@ -37,8 +42,8 @@
             <div class="outcomes-grid common-grid" style="grid-template-columns: repeat(4, minmax(60px, 1fr));">
               {{#each tabs.combat.rarityGroups.common.outcomes as |outcome sum|}}
                 <div class="outcome-cell" data-category="Combat" data-sum="{{sum}}">
-                  {{#if outcome.itemId}}
-                    <a class="outcome-icon consumable-link {{#if outcome.isUnknown}}unknown-icon{{/if}}" data-item-id="{{outcome.itemId}}" title="{{#if outcome.isUnknown}}Unknown Outcome{{else}}View Consumable{{/if}}">
+                  {{#if outcome.hasItem}}
+                    <a class="outcome-icon consumable-link" data-item-id="{{outcome.itemId}}" title="View Consumable">
                       <img src="{{outcome.itemImg}}" class="item-icon" alt="Item Icon" />
                     </a>
                   {{else}}
@@ -61,8 +66,8 @@
             <div class="outcomes-grid uncommon-grid" style="grid-template-columns: repeat(3, minmax(60px, 1fr));">
               {{#each tabs.combat.rarityGroups.uncommon.outcomes as |outcome sum|}}
                 <div class="outcome-cell" data-category="Combat" data-sum="{{sum}}">
-                  {{#if outcome.itemId}}
-                    <a class="outcome-icon consumable-link {{#if outcome.isUnknown}}unknown-icon{{/if}}" data-item-id="{{outcome.itemId}}" title="{{#if outcome.isUnknown}}Unknown Outcome{{else}}View Consumable{{/if}}">
+                  {{#if outcome.hasItem}}
+                    <a class="outcome-icon consumable-link" data-item-id="{{outcome.itemId}}" title="View Consumable">
                       <img src="{{outcome.itemImg}}" class="item-icon" alt="Item Icon" />
                     </a>
                   {{else}}
@@ -87,8 +92,8 @@
             <div class="outcomes-grid rare-grid" style="grid-template-columns: repeat(3, minmax(60px, 1fr));">
               {{#each tabs.combat.rarityGroups.rare.outcomes as |outcome sum|}}
                 <div class="outcome-cell" data-category="Combat" data-sum="{{sum}}">
-                  {{#if outcome.itemId}}
-                    <a class="outcome-icon consumable-link {{#if outcome.isUnknown}}unknown-icon{{/if}}" data-item-id="{{outcome.itemId}}" title="{{#if outcome.isUnknown}}Unknown Outcome{{else}}View Consumable{{/if}}">
+                  {{#if outcome.hasItem}}
+                    <a class="outcome-icon consumable-link" data-item-id="{{outcome.itemId}}" title="View Consumable">
                       <img src="{{outcome.itemImg}}" class="item-icon" alt="Item Icon" />
                     </a>
                   {{else}}
@@ -111,8 +116,8 @@
             <div class="outcomes-grid veryRare-grid" style="grid-template-columns: repeat(3, minmax(60px, 1fr));">
               {{#each tabs.combat.rarityGroups.veryRare.outcomes as |outcome sum|}}
                 <div class="outcome-cell" data-category="Combat" data-sum="{{sum}}">
-                  {{#if outcome.itemId}}
-                    <a class="outcome-icon consumable-link {{#if outcome.isUnknown}}unknown-icon{{/if}}" data-item-id="{{outcome.itemId}}" title="{{#if outcome.isUnknown}}Unknown Outcome{{else}}View Consumable{{/if}}">
+                  {{#if outcome.hasItem}}
+                    <a class="outcome-icon consumable-link" data-item-id="{{outcome.itemId}}" title="View Consumable">
                       <img src="{{outcome.itemImg}}" class="item-icon" alt="Item Icon" />
                     </a>
                   {{else}}
@@ -135,8 +140,8 @@
             <div class="outcomes-grid legendary-grid" style="grid-template-columns: repeat(3, minmax(60px, 1fr));">
               {{#each tabs.combat.rarityGroups.legendary.outcomes as |outcome sum|}}
                 <div class="outcome-cell" data-category="Combat" data-sum="{{sum}}">
-                  {{#if outcome.itemId}}
-                    <a class="outcome-icon consumable-link {{#if outcome.isUnknown}}unknown-icon{{/if}}" data-item-id="{{outcome.itemId}}" title="{{#if outcome.isUnknown}}Unknown Outcome{{else}}View Consumable{{/if}}">
+                  {{#if outcome.hasItem}}
+                    <a class="outcome-icon consumable-link" data-item-id="{{outcome.itemId}}" title="View Consumable">
                       <img src="{{outcome.itemImg}}" class="item-icon" alt="Item Icon" />
                     </a>
                   {{else}}
@@ -163,8 +168,8 @@
             <div class="outcomes-grid common-grid" style="grid-template-columns: repeat(4, minmax(60px, 1fr));">
               {{#each tabs.utility.rarityGroups.common.outcomes as |outcome sum|}}
                 <div class="outcome-cell" data-category="Utility" data-sum="{{sum}}">
-                  {{#if outcome.itemId}}
-                    <a class="outcome-icon consumable-link {{#if outcome.isUnknown}}unknown-icon{{/if}}" data-item-id="{{outcome.itemId}}" title="{{#if outcome.isUnknown}}Unknown Outcome{{else}}View Consumable{{/if}}">
+                  {{#if outcome.hasItem}}
+                    <a class="outcome-icon consumable-link" data-item-id="{{outcome.itemId}}" title="View Consumable">
                       <img src="{{outcome.itemImg}}" class="item-icon" alt="Item Icon" />
                     </a>
                   {{else}}
@@ -187,8 +192,8 @@
             <div class="outcomes-grid uncommon-grid" style="grid-template-columns: repeat(3, minmax(60px, 1fr));">
               {{#each tabs.utility.rarityGroups.uncommon.outcomes as |outcome sum|}}
                 <div class="outcome-cell" data-category="Utility" data-sum="{{sum}}">
-                  {{#if outcome.itemId}}
-                    <a class="outcome-icon consumable-link {{#if outcome.isUnknown}}unknown-icon{{/if}}" data-item-id="{{outcome.itemId}}" title="{{#if outcome.isUnknown}}Unknown Outcome{{else}}View Consumable{{/if}}">
+                  {{#if outcome.hasItem}}
+                    <a class="outcome-icon consumable-link" data-item-id="{{outcome.itemId}}" title="View Consumable">
                       <img src="{{outcome.itemImg}}" class="item-icon" alt="Item Icon" />
                     </a>
                   {{else}}
@@ -213,8 +218,8 @@
             <div class="outcomes-grid rare-grid" style="grid-template-columns: repeat(3, minmax(60px, 1fr));">
               {{#each tabs.utility.rarityGroups.rare.outcomes as |outcome sum|}}
                 <div class="outcome-cell" data-category="Utility" data-sum="{{sum}}">
-                  {{#if outcome.itemId}}
-                    <a class="outcome-icon consumable-link {{#if outcome.isUnknown}}unknown-icon{{/if}}" data-item-id="{{outcome.itemId}}" title="{{#if outcome.isUnknown}}Unknown Outcome{{else}}View Consumable{{/if}}">
+                  {{#if outcome.hasItem}}
+                    <a class="outcome-icon consumable-link" data-item-id="{{outcome.itemId}}" title="View Consumable">
                       <img src="{{outcome.itemImg}}" class="item-icon" alt="Item Icon" />
                     </a>
                   {{else}}
@@ -237,8 +242,8 @@
             <div class="outcomes-grid veryRare-grid" style="grid-template-columns: repeat(3, minmax(60px, 1fr));">
               {{#each tabs.utility.rarityGroups.veryRare.outcomes as |outcome sum|}}
                 <div class="outcome-cell" data-category="Utility" data-sum="{{sum}}">
-                  {{#if outcome.itemId}}
-                    <a class="outcome-icon consumable-link {{#if outcome.isUnknown}}unknown-icon{{/if}}" data-item-id="{{outcome.itemId}}" title="{{#if outcome.isUnknown}}Unknown Outcome{{else}}View Consumable{{/if}}">
+                  {{#if outcome.hasItem}}
+                    <a class="outcome-icon consumable-link" data-item-id="{{outcome.itemId}}" title="View Consumable">
                       <img src="{{outcome.itemImg}}" class="item-icon" alt="Item Icon" />
                     </a>
                   {{else}}
@@ -261,8 +266,8 @@
             <div class="outcomes-grid legendary-grid" style="grid-template-columns: repeat(3, minmax(60px, 1fr));">
               {{#each tabs.utility.rarityGroups.legendary.outcomes as |outcome sum|}}
                 <div class="outcome-cell" data-category="Utility" data-sum="{{sum}}">
-                  {{#if outcome.itemId}}
-                    <a class="outcome-icon consumable-link {{#if outcome.isUnknown}}unknown-icon{{/if}}" data-item-id="{{outcome.itemId}}" title="{{#if outcome.isUnknown}}Unknown Outcome{{else}}View Consumable{{/if}}">
+                  {{#if outcome.hasItem}}
+                    <a class="outcome-icon consumable-link" data-item-id="{{outcome.itemId}}" title="View Consumable">
                       <img src="{{outcome.itemImg}}" class="item-icon" alt="Item Icon" />
                     </a>
                   {{else}}
@@ -289,8 +294,8 @@
             <div class="outcomes-grid common-grid" style="grid-template-columns: repeat(4, minmax(60px, 1fr));">
               {{#each tabs.entropy.rarityGroups.common.outcomes as |outcome sum|}}
                 <div class="outcome-cell" data-category="Entropy" data-sum="{{sum}}">
-                  {{#if outcome.itemId}}
-                    <a class="outcome-icon consumable-link {{#if outcome.isUnknown}}unknown-icon{{/if}}" data-item-id="{{outcome.itemId}}" title="{{#if outcome.isUnknown}}Unknown Outcome{{else}}View Consumable{{/if}}">
+                  {{#if outcome.hasItem}}
+                    <a class="outcome-icon consumable-link" data-item-id="{{outcome.itemId}}" title="View Consumable">
                       <img src="{{outcome.itemImg}}" class="item-icon" alt="Item Icon" />
                     </a>
                   {{else}}
@@ -313,8 +318,8 @@
             <div class="outcomes-grid uncommon-grid" style="grid-template-columns: repeat(3, minmax(60px, 1fr));">
               {{#each tabs.entropy.rarityGroups.uncommon.outcomes as |outcome sum|}}
                 <div class="outcome-cell" data-category="Entropy" data-sum="{{sum}}">
-                  {{#if outcome.itemId}}
-                    <a class="outcome-icon consumable-link {{#if outcome.isUnknown}}unknown-icon{{/if}}" data-item-id="{{outcome.itemId}}" title="{{#if outcome.isUnknown}}Unknown Outcome{{else}}View Consumable{{/if}}">
+                  {{#if outcome.hasItem}}
+                    <a class="outcome-icon consumable-link" data-item-id="{{outcome.itemId}}" title="View Consumable">
                       <img src="{{outcome.itemImg}}" class="item-icon" alt="Item Icon" />
                     </a>
                   {{else}}
@@ -339,8 +344,8 @@
             <div class="outcomes-grid rare-grid" style="grid-template-columns: repeat(3, minmax(60px, 1fr));">
               {{#each tabs.entropy.rarityGroups.rare.outcomes as |outcome sum|}}
                 <div class="outcome-cell" data-category="Entropy" data-sum="{{sum}}">
-                  {{#if outcome.itemId}}
-                    <a class="outcome-icon consumable-link {{#if outcome.isUnknown}}unknown-icon{{/if}}" data-item-id="{{outcome.itemId}}" title="{{#if outcome.isUnknown}}Unknown Outcome{{else}}View Consumable{{/if}}">
+                  {{#if outcome.hasItem}}
+                    <a class="outcome-icon consumable-link" data-item-id="{{outcome.itemId}}" title="View Consumable">
                       <img src="{{outcome.itemImg}}" class="item-icon" alt="Item Icon" />
                     </a>
                   {{else}}
@@ -363,8 +368,8 @@
             <div class="outcomes-grid veryRare-grid" style="grid-template-columns: repeat(3, minmax(60px, 1fr));">
               {{#each tabs.entropy.rarityGroups.veryRare.outcomes as |outcome sum|}}
                 <div class="outcome-cell" data-category="Entropy" data-sum="{{sum}}">
-                  {{#if outcome.itemId}}
-                    <a class="outcome-icon consumable-link {{#if outcome.isUnknown}}unknown-icon{{/if}}" data-item-id="{{outcome.itemId}}" title="{{#if outcome.isUnknown}}Unknown Outcome{{else}}View Consumable{{/if}}">
+                  {{#if outcome.hasItem}}
+                    <a class="outcome-icon consumable-link" data-item-id="{{outcome.itemId}}" title="View Consumable">
                       <img src="{{outcome.itemImg}}" class="item-icon" alt="Item Icon" />
                     </a>
                   {{else}}
@@ -387,8 +392,8 @@
             <div class="outcomes-grid legendary-grid" style="grid-template-columns: repeat(3, minmax(60px, 1fr));">
               {{#each tabs.entropy.rarityGroups.legendary.outcomes as |outcome sum|}}
                 <div class="outcome-cell" data-category="Entropy" data-sum="{{sum}}">
-                  {{#if outcome.itemId}}
-                    <a class="outcome-icon consumable-link {{#if outcome.isUnknown}}unknown-icon{{/if}}" data-item-id="{{outcome.itemId}}" title="{{#if outcome.isUnknown}}Unknown Outcome{{else}}View Consumable{{/if}}">
+                  {{#if outcome.hasItem}}
+                    <a class="outcome-icon consumable-link" data-item-id="{{outcome.itemId}}" title="View Consumable">
                       <img src="{{outcome.itemImg}}" class="item-icon" alt="Item Icon" />
                     </a>
                   {{else}}
@@ -455,7 +460,7 @@
         {{#each outcomeIcons}}
           <div class="outcome-container">
             <div class="outcome-text">{{outcomeName}}</div>
-            <div class="outcome-icon {{#if isSelected}}selected{{/if}}" data-category="{{category}}" data-sum="{{sum}}" data-item-id="{{itemId}}" title="{{category}} {{sum}} (Shift+Click to View Item)">
+            <div class="outcome-icon {{#if isSelected}}selected{{/if}} {{#if hasItem}}has-item{{/if}} {{#if isUnknown}}unknown-icon{{/if}}" data-category="{{category}}" data-sum="{{sum}}" data-item-id="{{itemId}}" title="{{#if hasItem}}{{category}} {{sum}} (Shift+Click to View Item){{else}}Unknown Outcome{{/if}}">
               <img src="{{img}}" alt="{{category}} Outcome" />
             </div>
           </div>

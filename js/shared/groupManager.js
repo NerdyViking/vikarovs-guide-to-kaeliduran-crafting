@@ -34,25 +34,6 @@ export class GroupManager {
     return Object.values(recipes).filter(recipe => recipe.allowedGroups?.includes(groupId));
   }
 
-  static async getCraftingMemory(actor, groupId) {
-    const memoryFlag = `craftingMemory.${groupId}`;
-    let memory = actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', memoryFlag);
-    if (!memory) {
-      memory = { Combat: [], Utility: [], Entropy: [] };
-      await actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', memoryFlag, memory);
-    }
-    return memory;
-  }
-
-  static async setCraftingMemory(actor, groupId, category, sum) {
-    const memory = await this.getCraftingMemory(actor, groupId);
-    const capitalizedCategory = category.charAt(0).toUpperCase() + category.slice(1);
-    if (!memory[capitalizedCategory].includes(sum)) {
-      memory[capitalizedCategory].push(sum);
-      await actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', `craftingMemory.${groupId}`, memory);
-    }
-  }
-
   static async isItemValidForCrafting(item, type) {
     if (type === 'component') return isComponent(item);
     if (type === 'reagent') return isReagent(item);

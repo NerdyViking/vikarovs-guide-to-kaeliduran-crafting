@@ -2,3 +2,5 @@
 
 A modular crafting system for Foundry VTT, featuring alchemy and future magic item crafting.
 # vikarovs-guide-to-kaeliduran-crafting
+
+foundry.applications.api.ApplicationV2

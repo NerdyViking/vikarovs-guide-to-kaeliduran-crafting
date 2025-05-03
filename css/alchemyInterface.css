@@ -344,3 +344,29 @@
   outline: none;
   border-color: #ff0000;
 }
+
+.alchemy-interface .outcome-cell .clear-outcome {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #ff0000;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.alchemy-interface .outcome-cell .clear-outcome i {
+  font-size: 12px;
+}
+
+.alchemy-interface .outcome-cell .clear-outcome:hover {
+  background: #e60000;
+}

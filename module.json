@@ -52,6 +52,6 @@
       }
     ]
   },
-  "socket": false,
+  "socket": true,
   "protected": false
 }

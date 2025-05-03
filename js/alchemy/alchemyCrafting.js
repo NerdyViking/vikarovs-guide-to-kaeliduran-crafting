@@ -1,37 +1,34 @@
 import { getCompendiumItem } from './alchemyInterfaceCompendium.js';
 
 export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutcome = null) {
-  console.log("Starting performCrafting with actor:", actor.name, "cauldronSlots:", cauldronSlots, "ipSums:", ipSums, "selectedOutcome:", selectedOutcome);
-
-  if (!cauldronSlots || Object.values(cauldronSlots).filter(id => id).length !== 3) {
+  if (!cauldronSlots || Object.values(cauldronSlots).filter(uuid => uuid).length !== 3) {
     ui.notifications.warn("Please fill all three cauldron slots with reagents.");
-    console.log("Validation failed: Insufficient reagents.");
     return { success: false, message: "Crafting aborted: Insufficient reagents." };
   }
   if (!actor.system.currency || actor.system.currency.gp === undefined) {
     ui.notifications.warn("Actor has no gold data.");
-    console.log("Validation failed: No gold data.");
     return { success: false, message: "Crafting aborted: No gold data." };
   }
-  console.log("Validation passed.");
 
   const maxSum = Math.max(ipSums.combat, ipSums.utility, ipSums.entropy);
   let category = selectedOutcome?.category || Object.keys(ipSums).find(cat => ipSums[cat] === maxSum);
   if (!category) category = "combat";
   const rarity = getRarityFromSum(maxSum);
   const dc = getDcFromRarity(rarity);
-  console.log("Step 1: DC determined - maxSum:", maxSum, "category:", category, "rarity:", rarity, "dc:", dc);
 
-  const tools = actor.items.filter(item => item.type === "tool" && (item.system.identifier === "alchemist" || item.system.identifier === "herbalism"));
+  const tools = actor.items.filter(item => {
+    if (item.type !== "tool") return false;
+    const identifier = item.system.type?.baseItem || item.system.identifier;
+    const validIdentifiers = ["alchemist", "alchemistSupplies", "alchemistsSupplies", "herbalismKit"];
+    return validIdentifiers.includes(identifier);
+  });
+
   if (tools.length === 0) {
     ui.notifications.warn("You need Alchemist's Supplies or Herbalism Kit to craft!");
-    console.log("Step 2: No tools found.");
     return { success: false, message: "Crafting aborted: Missing tool." };
   }
-  const tool = tools.find(t => t.system.identifier === "alchemist") || tools[0];
-  console.log("Step 2: Tool selected:", tool.name, "toolId:", tool.system.identifier);
+  const tool = tools[0];
 
-  console.log("Step 3: Initiating tool check with DC:", dc, "tool:", tool.name);
   const roll = await tool.rollToolCheck({
     dc: dc,
     rollMode: "roll",
@@ -39,12 +36,10 @@ export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutc
     flavor: `Crafting Tool Check (DC ${dc}) using ${tool.name}`
   });
   if (!roll || !roll[0]) {
-    console.log("Step 3: Roll failed or cancelled, roll:", roll);
     return { success: false, message: "Crafting aborted: Roll cancelled or invalid." };
   }
   const total = roll[0].total;
   const margin = total - dc;
-  console.log("Step 3: Roll completed - total:", total, "margin:", margin);
 
   let finalSum = maxSum;
   let finalCategory = category;
@@ -63,36 +58,74 @@ export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutc
     const newMaxSum = Math.max(newIpSums.combat, newIpSums.utility, newIpSums.entropy);
     finalCategory = selectedOutcome?.category || Object.keys(newIpSums).find(cat => newIpSums[cat] === newMaxSum) || "combat";
   }
-  console.log("Step 4: Roll evaluated - finalSum:", finalSum, "finalCategory:", finalCategory, "quantity:", quantity);
 
   const finalRarity = getRarityFromSum(finalSum);
   const linkedItemId = getCompendiumItem(finalCategory, finalSum);
-  console.log("Step 5: Attempting to get linked item - finalCategory:", finalCategory, "finalSum:", finalSum, "linkedItemId:", linkedItemId);
   let itemData = linkedItemId ? await fromUuid(linkedItemId) : createPlaceholderItem(finalRarity, finalCategory);
-  console.log("Step 5: Item data after fetch - itemData:", itemData);
   if (!itemData) {
     ui.notifications.error("Failed to create consumable item.");
-    console.log("Step 5: Item creation failed - itemData is null or undefined.");
     return { success: false, message: "Crafting aborted: Item creation failed." };
   }
   if (typeof itemData.toObject === 'function') {
     itemData = itemData.toObject();
-    console.log("Step 5: Item data after toObject - itemData:", itemData);
-  } else {
-    console.log("Step 5: Item data is a plain object, skipping toObject - itemData:", itemData);
   }
 
   const existingItem = actor.items.find(i => i.name === itemData.name && i.type === "consumable");
-  if (existingItem) {
-    const newQuantity = (existingItem.system.quantity || 0) + quantity;
-    console.log("Step 5: Found existing item - existingItem:", existingItem.id, "updating quantity to:", newQuantity);
-    await existingItem.update({ "system.quantity": newQuantity });
-  } else {
-    itemData.system.quantity = quantity;
-    console.log("Step 5: Creating new item - itemData:", itemData);
-    await actor.createEmbeddedDocuments("Item", [itemData]);
+  let item;
+  try {
+    if (existingItem) {
+      const newQuantity = (existingItem.system.quantity || 0) + quantity;
+      await existingItem.update({ "system.quantity": newQuantity });
+      item = existingItem;
+    } else {
+      itemData.system.quantity = quantity;
+      const createdItems = await actor.createEmbeddedDocuments("Item", [itemData]);
+      if (!createdItems || createdItems.length === 0) {
+        throw new Error("Failed to create item: No items returned from createEmbeddedDocuments.");
+      }
+      item = createdItems[0];
+    }
+  } catch (error) {
+    console.error("Error creating or updating item:", error);
+    return { success: false, message: `Crafting aborted: Failed to create or update item - ${error.message}` };
   }
-  console.log("Step 5: Consumable creation or update completed.");
+
+  if (!item) {
+    console.error("Item is undefined after creation/update.");
+    return { success: false, message: "Crafting aborted: Item creation resulted in undefined item." };
+  }
+
+  // Update permissions for the source item in the sidebar or compendium
+  if (linkedItemId) {
+    try {
+      const sourceItem = await fromUuid(linkedItemId);
+      if (sourceItem) {
+        const actorGroups = await game.modules.get('vikarovs-guide-to-kaeliduran-crafting').api.groupManager.getActorGroups(actor.id);
+        const group = actorGroups.length > 0 ? actorGroups[0] : null;
+        if (group) {
+          const members = group.system.members || [];
+          const permissionUpdates = {};
+          for (const member of members) {
+            if (member.actor?.uuid) {
+              const memberActor = await fromUuid(member.actor.uuid);
+              if (memberActor) {
+                permissionUpdates[memberActor.id] = CONST.DOCUMENT_OWNERSHIP_LEVELS.LIMITED;
+              }
+            }
+          }
+          // Ensure the crafting actor and GM retain ownership
+          permissionUpdates[actor.id] = CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER;
+          permissionUpdates[game.user.id] = CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER;
+          await sourceItem.update({ permission: permissionUpdates });
+        }
+      } else {
+        console.warn("Source item not found for permission update:", linkedItemId);
+      }
+    } catch (error) {
+      console.error("Error updating source item permissions:", error);
+      return { success: false, message: `Crafting aborted: Failed to update source item permissions - ${error.message}` };
+    }
+  }
 
   const baseGoldCost = getBaseGoldCost(rarity);
   const reagentCosts = await calculateReagentCosts(actor, cauldronSlots);
@@ -101,14 +134,22 @@ export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutc
   const finalGoldCost = Math.max(minGoldCost, baseCost);
   if (actor.system.currency.gp < finalGoldCost) {
     ui.notifications.warn(`Insufficient gold! Need ${finalGoldCost} gp, have ${actor.system.currency.gp} gp.`);
-    console.log("Step 6: Insufficient gold.");
     return { success: false, message: "Crafting aborted: Insufficient gold." };
   }
   await consumeResources(actor, cauldronSlots, finalGoldCost);
-  console.log("Step 6: Resources consumed - finalGoldCost:", finalGoldCost);
 
   const itemName = itemData.name || `Unknown ${finalRarity} ${finalCategory} Consumable`;
-  console.log("Step 6: Returning result - itemName:", itemName);
+  try {
+    await ChatMessage.create({
+      content: itemName,
+      speaker: ChatMessage.getSpeaker({ actor }),
+      type: CONST.CHAT_MESSAGE_TYPES.OTHER
+    });
+  } catch (error) {
+    console.error("Error creating chat message:", error);
+    // Continue despite chat message failure, as it's not critical to crafting
+  }
+
   return {
     success: true,
     category: finalCategory,
@@ -138,9 +179,9 @@ export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutc
 
   async function calculateReagentCosts(actor, slots) {
     let totalCost = 0;
-    for (const slotId of Object.values(slots)) {
-      if (slotId) {
-        const item = actor.items.get(slotId) || (await fromUuid(slotId));
+    for (const slotUuid of Object.values(slots)) {
+      if (slotUuid) {
+        const item = await fromUuid(slotUuid);
         if (item) {
           const rarity = item.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'rarity') || "Common";
           const costMap = { Common: 10, Uncommon: 50, Rare: 600, "Very Rare": 6000, Legendary: 50000 };
@@ -153,9 +194,9 @@ export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutc
 
   async function consumeResources(actor, slots, goldCost) {
     await actor.update({ "system.currency.gp": actor.system.currency.gp - goldCost });
-    for (const slotId of Object.values(slots)) {
-      if (slotId) {
-        const item = actor.items.get(slotId) || (await fromUuid(slotId));
+    for (const slotUuid of Object.values(slots)) {
+      if (slotUuid) {
+        const item = await fromUuid(slotUuid);
         if (item) {
           const newQuantity = (item.system.quantity || 1) - 1;
           if (newQuantity <= 0) {

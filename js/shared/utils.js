@@ -1,5 +1,3 @@
-console.log("utils.js loaded");
-
 import { GroupManager } from './groupManager.js';
 
 // Helper function to strip HTML tags

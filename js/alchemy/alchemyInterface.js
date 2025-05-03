@@ -1,5 +1,3 @@
-console.log("alchemyInterface.js loaded");
-
 import { handleCompendiumListeners, prepareCompendiumData, highlightOutcome } from './alchemyInterfaceCompendium.js';
 import { prepareCauldronData } from './alchemyInterfaceCauldron.js';
 import { performCrafting } from './alchemyCrafting.js';
@@ -15,7 +13,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     this.activeGroup = null;
     this.activeTab = "combat";
     this.isRendering = false;
-    this.selectedCharacterId = null; // Track selected character
+    this.selectedCharacterId = null;
   }
 
   static DEFAULT_OPTIONS = {
@@ -46,7 +44,47 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
         scope: 'world',
         config: false,
         type: Object,
-        default: { Combat: {}, Utility: {}, Entropy: {} }
+        default: { Combat: {}, Utility: {}, Entropy: [] }
+      });
+
+      // Register a setting for centralized crafting memory storage
+      game.settings.register('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory', {
+        name: 'Crafting Memory',
+        hint: 'Stores crafting memory per campaign.',
+        scope: 'world',
+        config: false,
+        type: Object,
+        default: {}
+      });
+    });
+
+    // Register socket handler for crafting memory updates
+    Hooks.once("ready", () => {
+      game.socket.on('module.vikarovs-guide-to-kaeliduran-crafting', async (data) => {
+        if (data.operation === "updateCraftingMemory" && game.user.isGM) {
+          const { groupId, category, sum } = data.payload;
+          const craftingMemory = foundry.utils.deepClone(game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory') || {});
+          if (!craftingMemory[groupId]) {
+            craftingMemory[groupId] = { Combat: [], Utility: [], Entropy: [] };
+          }
+          const capitalizedCategory = category.charAt(0).toUpperCase() + category.slice(1);
+          if (!craftingMemory[groupId][capitalizedCategory].includes(sum)) {
+            craftingMemory[groupId][capitalizedCategory].push(sum);
+            await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory', craftingMemory);
+          }
+        } else if (data.operation === "resetCraftingMemory" && game.user.isGM) {
+          const { groupId } = data.payload;
+          const craftingMemory = foundry.utils.deepClone(game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory') || {});
+          craftingMemory[groupId] = { Combat: [], Utility: [], Entropy: [] };
+          await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory', craftingMemory);
+        } else if (data.operation === "resetOutcomeMemory" && game.user.isGM) {
+          const { groupId, category, sum } = data.payload;
+          const craftingMemory = foundry.utils.deepClone(game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory') || {});
+          if (craftingMemory[groupId] && craftingMemory[groupId][category]) {
+            craftingMemory[groupId][category] = craftingMemory[groupId][category].filter(s => s !== sum);
+            await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory', craftingMemory);
+          }
+        }
       });
     });
   }
@@ -75,11 +113,12 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
 
     const groupId = this.activeGroup || actorGroups[0]?.id;
     let craftingMemory = groupId
-      ? await game.modules.get('vikarovs-guide-to-kaeliduran-crafting').api.groupManager.getCraftingMemory(this._actor, groupId)
+      ? await this._getCraftingMemory(groupId)
       : { Combat: [], Utility: [], Entropy: [] };
 
     const compendiumData = await prepareCompendiumData(this._actor, this.editMode, craftingMemory);
-    const cauldronData = await prepareCauldronData(this._actor);
+    const craftingActor = this.selectedCharacterId ? game.actors.get(this.selectedCharacterId) : this._actor;
+    const cauldronData = await prepareCauldronData(craftingActor);
 
     context.actor = this._actor;
     context.tabs = compendiumData.tabs;
@@ -118,14 +157,88 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     context.selectedCharacterId = this.selectedCharacterId;
 
     if (game.user.isGM) {
-      context.groups = game.modules.get('vikarovs-guide-to-kaeliduran-crafting').api.groupManager.getActiveGroups().reduce((acc, group) => {
+      const activeGroups = game.modules.get('vikarovs-guide-to-kaeliduran-crafting').api.groupManager.getActiveGroups();
+      context.groups = Array.isArray(activeGroups) ? activeGroups.reduce((acc, group) => {
         acc[group.id] = { name: group.name };
         return acc;
-      }, {});
+      }, {}) : {};
       context.activeGroup = this.activeGroup;
     }
 
     return context;
+  }
+
+  async _getCraftingMemory(groupId) {
+    const craftingMemory = game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory') || {};
+    if (!craftingMemory[groupId]) {
+      craftingMemory[groupId] = { Combat: [], Utility: [], Entropy: [] };
+      if (game.user.isGM) {
+        await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory', craftingMemory);
+      } else {
+        await game.socket.emit('module.vikarovs-guide-to-kaeliduran-crafting', {
+          operation: "updateCraftingMemory",
+          payload: { groupId, category: "Combat", sum: 0 } // Dummy update to initialize
+        });
+      }
+    }
+    return craftingMemory[groupId];
+  }
+
+  async _setCraftingMemory(groupId, category, sum) {
+    if (game.user.isGM) {
+      const craftingMemory = foundry.utils.deepClone(game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory') || {});
+      if (!craftingMemory[groupId]) {
+        craftingMemory[groupId] = { Combat: [], Utility: [], Entropy: [] };
+      }
+      const capitalizedCategory = category.charAt(0).toUpperCase() + category.slice(1);
+      if (!craftingMemory[groupId][capitalizedCategory].includes(sum)) {
+        craftingMemory[groupId][capitalizedCategory].push(sum);
+        await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory', craftingMemory);
+      }
+    } else {
+      // Emit socket event for GM to update the setting
+      await game.socket.emit('module.vikarovs-guide-to-kaeliduran-crafting', {
+        operation: "updateCraftingMemory",
+        payload: { groupId, category, sum }
+      });
+    }
+  }
+
+  async _resetCraftingMemory(groupId) {
+    if (game.user.isGM) {
+      const craftingMemory = foundry.utils.deepClone(game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory') || {});
+      craftingMemory[groupId] = { Combat: [], Utility: [], Entropy: [] };
+      await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory', craftingMemory);
+    } else {
+      await game.socket.emit('module.vikarovs-guide-to-kaeliduran-crafting', {
+        operation: "resetCraftingMemory",
+        payload: { groupId }
+      });
+    }
+  }
+
+  async _resetOutcomeMemory(groupId, category, sum) {
+    if (game.user.isGM) {
+      const craftingMemory = foundry.utils.deepClone(game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory') || {});
+      if (craftingMemory[groupId] && craftingMemory[groupId][category]) {
+        craftingMemory[groupId][category] = craftingMemory[groupId][category].filter(s => s !== sum);
+        await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory', craftingMemory);
+      }
+    } else {
+      await game.socket.emit('module.vikarovs-guide-to-kaeliduran-crafting', {
+        operation: "resetOutcomeMemory",
+        payload: { groupId, category, sum }
+      });
+    }
+  }
+
+  async _renderItemSheet(item) {
+    try {
+      await item.sheet.render(true);
+    } catch (error) {
+      console.error("Error rendering item sheet:", error);
+      ui.notifications.error("Failed to open item sheet: " + error.message);
+    }
   }
 
   _configureRenderOptions(options) {
@@ -195,8 +308,9 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
       });
     }
 
-    // Handle reset crafting memory button
+    // Handle reset crafting memory buttons
     html.find('.reset-crafting-memory-btn').on('click', (event) => this._onResetCraftingMemory(event));
+    html.find('.reset-outcome-memory-btn').on('click', (event) => this._onResetOutcomeMemory(event));
 
     // Attach compendium listeners
     handleCompendiumListeners(this, html);
@@ -214,9 +328,18 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
           ui.notifications.warn("Only items can be dropped here.");
           return;
         }
+
+        // Resolve the item using UUID
         let item = await fromUuid(data.uuid);
         if (!item) {
-          item = game.items.get(data.id) || actor.items.get(data.id);
+          // Fallback for world items or actor items
+          if (data.id) {
+            item = game.items.get(data.id);
+            if (!item && this.selectedCharacterId) {
+              const selectedActor = game.actors.get(this.selectedCharacterId) || actor;
+              item = selectedActor.items.get(data.id);
+            }
+          }
           if (!item) {
             ui.notifications.error("Failed to resolve dropped item.");
             return;
@@ -235,7 +358,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
         // Validation 2: Check if the reagent is already used in another slot
         const cauldronSlots = actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'cauldronSlots') || { 0: null, 1: null, 2: null };
         for (let i = 0; i < 3; i++) {
-          if (i.toString() !== slotIndex.toString() && cauldronSlots[i.toString()] === item.id) {
+          if (i.toString() !== slotIndex.toString() && cauldronSlots[i.toString()] === data.uuid) {
             ui.notifications.warn("Cannot use the same reagent more than once in the cauldron.");
             return;
           }
@@ -243,16 +366,17 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
 
         // Initialize cauldronSlots if it doesn't exist
         let slots = foundry.utils.deepClone(cauldronSlots);
-        slots[slotIndex] = item.id;
+        slots[slotIndex] = data.uuid; // Store the full UUID
 
         // Store the slot data on the actor
         await actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', 'cauldronSlots', slots);
         await this._safeRender();
 
         // Check if this is the third slot being filled
-        const filledSlots = Object.values(slots).filter(id => id !== null).length;
+        const filledSlots = Object.values(slots).filter(uuid => uuid !== null).length;
         if (filledSlots === 3) {
-          const cauldronData = await prepareCauldronData(actor);
+          const craftingActor = this.selectedCharacterId ? game.actors.get(this.selectedCharacterId) : actor;
+          const cauldronData = await prepareCauldronData(craftingActor);
           const { ipSums } = cauldronData;
           const maxSum = Math.max(ipSums.combat, ipSums.utility, ipSums.entropy);
           // Determine the category with the highest sum
@@ -271,76 +395,87 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
 
     // Handle craft button
     html.find('.craft-btn').on('click', async (event) => {
-      if (!actor) {
-        ui.notifications.error("No actor selected. Please select a token or provide an actor context.");
-        return;
-      }
+      event.preventDefault();
 
-      // Use the selected character for crafting
+      // Determine the actor to use for crafting
       const craftingActor = this.selectedCharacterId ? game.actors.get(this.selectedCharacterId) : actor;
       if (!craftingActor) {
-        ui.notifications.error("Selected character not found.");
+        ui.notifications.error("No actor selected for crafting. Please select a character.");
         return;
       }
 
-      const cauldronData = await prepareCauldronData(actor);
-      const { outcomeIcons, ipSums } = cauldronData;
+      try {
+        // Fetch cauldron data
+        const cauldronData = await prepareCauldronData(craftingActor);
+        const { outcomeIcons, ipSums } = cauldronData;
 
-      if (!outcomeIcons || outcomeIcons.length === 0) {
-        ui.notifications.warn("No outcome to craft. Please fill all reagent slots.");
-        return;
-      }
-
-      // Determine the outcome to craft (use selected outcome in tiebreaker, or first outcome if no tiebreaker)
-      const selectedOutcome = actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'selectedOutcome');
-      let craftedOutcome;
-      if (selectedOutcome) {
-        craftedOutcome = outcomeIcons.find(outcome =>
-          outcome.category === selectedOutcome.category && outcome.sum === selectedOutcome.sum
-        );
-      }
-      if (!craftedOutcome) {
-        craftedOutcome = outcomeIcons[0]; // Default to the first outcome if no selection
-      }
-
-      if (!craftedOutcome) {
-        ui.notifications.error("Failed to determine the outcome to craft.");
-        return;
-      }
-
-      // Perform crafting with the selected character
-      const cauldronSlots = actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'cauldronSlots');
-      const craftingResult = await performCrafting(craftingActor, cauldronSlots, ipSums, selectedOutcome);
-
-      if (craftingResult.success) {
-        // Update crafting memory with the actual crafted category and sum
-        const groupId = await actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'groupId');
-        if (!groupId) {
-          ui.notifications.warn("This character is not assigned to a campaign. Crafting memory will not be saved.");
-        } else {
-          const memoryFlag = `craftingMemory.${groupId}`;
-          const memory = foundry.utils.deepClone(
-            actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', memoryFlag) || { Combat: [], Utility: [], Entropy: [] }
-          );
-          const capitalizedCategory = craftingResult.category.charAt(0).toUpperCase() + craftingResult.category.slice(1);
-          if (!memory[capitalizedCategory].includes(craftingResult.sum)) {
-            memory[capitalizedCategory].push(craftingResult.sum);
-            await actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', memoryFlag, memory);
-          }
+        // Validate cauldron slots and outcome
+        if (!outcomeIcons || outcomeIcons.length === 0) {
+          ui.notifications.warn("No outcome to craft. Please fill all reagent slots and select an outcome.");
+          return;
         }
 
-        // Send chat card
-        await ChatMessage.create({
-          content: craftingResult.message,
-          speaker: ChatMessage.getSpeaker({ actor: craftingActor }),
-          type: CONST.CHAT_MESSAGE_STYLES.OTHER
-        });
-      } else {
-        ui.notifications.warn(craftingResult.message);
-      }
+        // Get cauldron slots
+        const cauldronSlots = actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'cauldronSlots');
+        if (!cauldronSlots || Object.values(cauldronSlots).filter(uuid => uuid).length !== 3) {
+          ui.notifications.warn("Please fill all three cauldron slots with reagents.");
+          return;
+        }
 
-      // Re-render to update inventory
-      await this._safeRender();
+        // Determine the outcome to craft
+        const selectedOutcome = actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'selectedOutcome');
+        let craftedOutcome = null;
+        if (selectedOutcome) {
+          craftedOutcome = outcomeIcons.find(outcome =>
+            outcome.category === selectedOutcome.category && outcome.sum === selectedOutcome.sum
+          );
+        }
+        if (!craftedOutcome) {
+          craftedOutcome = outcomeIcons[0]; // Default to the first outcome if no selection
+        }
+
+        if (!craftedOutcome) {
+          ui.notifications.error("Failed to determine the outcome to craft.");
+          return;
+        }
+
+        // Perform crafting
+        const craftingResult = await performCrafting(craftingActor, cauldronSlots, ipSums, selectedOutcome);
+
+        // Handle the crafting result
+        if (craftingResult.success) {
+          // Determine the group membership of the crafting actor
+          const actorGroups = await game.modules.get('vikarovs-guide-to-kaeliduran-crafting').api.groupManager.getActorGroups(craftingActor.id);
+          const group = actorGroups.length > 0 ? actorGroups[0] : null;
+
+          // Update crafting memory if the actor is part of a group
+          if (group) {
+            const groupId = group.id;
+            await this._setCraftingMemory(groupId, craftingResult.category, craftingResult.sum);
+          } else {
+            ui.notifications.warn("This character is not assigned to a campaign. Crafting memory will not be saved.");
+          }
+
+          // Send chat message
+          await ChatMessage.create({
+            content: craftingResult.message,
+            speaker: ChatMessage.getSpeaker({ actor: craftingActor }),
+            type: CONST.CHAT_MESSAGE_STYLES.OTHER
+          });
+
+          // Clear the cauldron state after successful crafting
+          const clearedSlots = { 0: null, 1: null, 2: null };
+          await actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', 'cauldronSlots', clearedSlots);
+          await actor.unsetFlag('vikarovs-guide-to-kaeliduran-crafting', 'selectedOutcome');
+
+          // Refresh the UI
+          await this._safeRender();
+        } else {
+          ui.notifications.warn(craftingResult.message);
+        }
+      } catch (error) {
+        ui.notifications.error("An error occurred during crafting: " + error.message);
+      }
     });
 
     // Handle clear button
@@ -362,7 +497,6 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
         // Re-render the interface to reflect the cleared state
         await this._safeRender();
       } catch (error) {
-        console.error("Error clearing cauldron slots:", error);
         ui.notifications.error("Failed to clear cauldron slots: " + error.message);
       }
     });
@@ -377,12 +511,12 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
       const $dropZone = $(event.currentTarget);
       const slotIndex = $dropZone.closest('.reagent-slot').data('slot');
       const slots = actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'cauldronSlots') || { 0: null, 1: null, 2: null };
-      const itemId = slots[slotIndex];
+      const itemUuid = slots[slotIndex];
 
-      if (itemId) {
-        const item = game.items.get(itemId) || actor.items.get(itemId);
+      if (itemUuid) {
+        const item = game.items.get(itemUuid) || (itemUuid ? fromUuidSync(itemUuid) : null);
         if (item) {
-          item.sheet.render(true);
+          this._renderItemSheet(item);
         } else {
           ui.notifications.error("Item not found.");
         }
@@ -400,20 +534,22 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
       const category = $icon.data('category');
       const sum = $icon.data('sum');
       const itemId = $icon.data('item-id');
+      const hasItem = $icon.hasClass('has-item'); // Check if the outcome is known
 
-      if (event.shiftKey && itemId) {
+      if (event.shiftKey && itemId && hasItem) {
         // Shift+Click: Open item sheet
-        const item = game.items.get(itemId) || actor.items.get(itemId) || (itemId ? fromUuidSync(itemId) : null);
+        const item = game.items.get(itemId) || (itemId ? fromUuidSync(itemId) : null);
         if (item) {
-          item.sheet.render(true);
+          this._renderItemSheet(item);
         } else {
           ui.notifications.error("Item not found.");
         }
-      } else {
+      } else if (hasItem) {
         // Regular Click: Select outcome
         await actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', 'selectedOutcome', { category, sum });
         await this._safeRender();
       }
+      // Ignore clicks on unknown outcomes
     });
 
     // Handle clear outcome buttons in edit mode
@@ -454,6 +590,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
           const sum = event.currentTarget.dataset.sum;
           const category = event.currentTarget.dataset.category;
           const outcomes = foundry.utils.deepClone(game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'consumableOutcomes'));
+          if (!outcomes[category]) outcomes[category] = {};
           outcomes[category][sum] = data.uuid; // Store full UUID
           await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'consumableOutcomes', outcomes);
           await this._safeRender({ force: true });
@@ -480,32 +617,151 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     event.preventDefault();
     if (!this.editMode || !game.user.isGM) return;
 
+    // Get all campaigns the actor is part of
+    const actorGroups = await game.modules.get('vikarovs-guide-to-kaeliduran-crafting').api.groupManager.getActorGroups(this._actor.id);
+    if (actorGroups.length === 0) {
+      ui.notifications.warn("This actor is not part of any campaigns.");
+      return;
+    }
+
+    const dialogContent = `
+      <p>Select the campaign to reset crafting memory for:</p>
+      <form>
+        <div class="form-group">
+          <label for="groupId">Campaign:</label>
+          <select name="groupId" id="groupId">
+            {{#each groups as |group groupId|}}
+              <option value="{{groupId}}">{{group.name}}</option>
+            {{/each}}
+          </select>
+        </div>
+      </form>
+    `;
+
     const confirmed = await Dialog.confirm({
       title: "Reset Crafting Memory",
-      content: "<p>Are you sure you want to reset the crafting memory? This will mark all outcomes as unknown for players.</p>",
-      yes: () => true,
+      content: dialogContent,
+      yes: html => {
+        const groupId = html.find('#groupId').val();
+        if (!groupId) {
+          ui.notifications.error("Please select a campaign.");
+          return false;
+        }
+        return groupId;
+      },
       no: () => false,
-      defaultYes: false
+      defaultYes: false,
+      render: (html) => {
+        // Populate the dropdown with campaigns
+        const groups = actorGroups.reduce((acc, group) => {
+          acc[group.id] = { name: group.name };
+          return acc;
+        }, {});
+        const select = html.find('#groupId');
+        select.empty();
+        select.append('<option value="">Select Campaign</option>');
+        Object.entries(groups).forEach(([groupId, group]) => {
+          select.append(`<option value="${groupId}">${group.name}</option>`);
+        });
+      }
     });
 
     if (confirmed) {
-      const groupId = this.activeGroup;
-      if (groupId) {
-        await this._actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', `craftingMemory.${groupId}`, {
-          Combat: [],
-          Utility: [],
-          Entropy: []
+      const groupId = confirmed;
+      await this._resetCraftingMemory(groupId);
+      await this._safeRender({ force: true });
+      ui.notifications.info("Crafting memory has been reset.");
+    }
+  }
+
+  async _onResetOutcomeMemory(event) {
+    event.preventDefault();
+    if (!this.editMode || !game.user.isGM) return;
+
+    // Get all campaigns the actor is part of
+    const actorGroups = await game.modules.get('vikarovs-guide-to-kaeliduran-crafting').api.groupManager.getActorGroups(this._actor.id);
+    if (actorGroups.length === 0) {
+      ui.notifications.warn("This actor is not part of any campaigns.");
+      return;
+    }
+
+    const dialogContent = `
+      <p>Select the campaign and outcome to reset crafting memory for:</p>
+      <form>
+        <div class="form-group">
+          <label for="groupId">Campaign:</label>
+          <select name="groupId" id="groupId" required>
+            <option value="">Select Campaign</option>
+            {{#each groups as |group groupId|}}
+              <option value="{{groupId}}">{{group.name}}</option>
+            {{/each}}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="category">Category:</label>
+          <select name="category" id="category" required>
+            <option value="Combat">Combat</option>
+            <option value="Utility">Utility</option>
+            <option value="Entropy">Entropy</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="sum">Sum:</label>
+          <input type="number" name="sum" id="sum" min="1" required>
+        </div>
+      </form>
+    `;
+
+    const confirmed = await Dialog.confirm({
+      title: "Reset Outcome Crafting Memory",
+      content: dialogContent,
+      yes: html => {
+        const groupId = html.find('#groupId').val();
+        const category = html.find('#category').val();
+        const sum = parseInt(html.find('#sum').val());
+        if (!groupId || !category || isNaN(sum) || sum < 1) {
+          ui.notifications.error("Please select a valid campaign, category, and sum.");
+          return false;
+        }
+        return { groupId, category, sum };
+      },
+      no: () => false,
+      defaultYes: false,
+      render: (html) => {
+        // Populate the campaign dropdown
+        const groups = actorGroups.reduce((acc, group) => {
+          acc[group.id] = { name: group.name };
+          return acc;
+        }, {});
+        const select = html.find('#groupId');
+        select.empty();
+        select.append('<option value="">Select Campaign</option>');
+        Object.entries(groups).forEach(([groupId, group]) => {
+          select.append(`<option value="${groupId}">${group.name}</option>`);
         });
-        await this._safeRender({ force: true });
-        ui.notifications.info("Crafting memory has been reset.");
       }
+    });
+
+    if (confirmed) {
+      const { groupId, category, sum } = confirmed;
+      await this._resetOutcomeMemory(groupId, category, sum);
+      ui.notifications.info(`Crafting memory for ${category} ${sum} in campaign has been reset.`);
+      await this._safeRender({ force: true });
     }
   }
 
   async close(options = {}) {
-    await this._actor.unsetFlag('vikarovs-guide-to-kaeliduran-crafting', 'cauldronSlots');
-    await this._actor.unsetFlag('vikarovs-guide-to-kaeliduran-crafting', 'editMode');
-    await this._actor.unsetFlag('vikarovs-guide-to-kaeliduran-crafting', 'activeGroup');
+    try {
+      // Clear the cauldron state on close
+      const clearedSlots = { 0: null, 1: null, 2: null };
+      await this._actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', 'cauldronSlots', clearedSlots);
+      await this._actor.unsetFlag('vikarovs-guide-to-kaeliduran-crafting', 'selectedOutcome');
+      await this._actor.unsetFlag('vikarovs-guide-to-kaeliduran-crafting', 'editMode');
+      await this._actor.unsetFlag('vikarovs-guide-to-kaeliduran-crafting', 'activeGroup');
+    } catch (error) {
+      console.error("Error clearing cauldron state on close:", error);
+    }
+
     this.editMode = false;
     this.activeGroup = null;
     this.activeTab = "combat";
