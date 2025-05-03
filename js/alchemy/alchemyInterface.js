@@ -44,15 +44,6 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
         type: Object,
         default: { Combat: {}, Utility: {}, Entropy: {} }
       });
-
-      game.settings.register('vikarovs-guide-to-kaeliduran-crafting', 'craftingGroups', {
-        name: 'Crafting Groups',
-        hint: 'Stores group definitions for segregating crafting memory across campaigns.',
-        scope: 'world',
-        config: false,
-        type: Object,
-        default: {}
-      });
     });
   }
 
@@ -67,23 +58,21 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
       this.editMode = savedEditMode;
     }
 
-    const groupId = await this._actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'groupId') || "";
+    const actorGroups = game.modules.get('vikarovs-guide-to-kaeliduran-crafting').api.groupManager.getActorGroups(this._actor.id);
     if (game.user.isGM) {
       this.activeGroup = await this._actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'activeGroup') || null;
     } else {
-      this.activeGroup = groupId;
+      this.activeGroup = actorGroups.length > 0 ? actorGroups[0].id : null;
     }
 
-    if (!game.user.isGM && !groupId) {
-      ui.notifications.warn("This character is not assigned to a campaign. Please ask the GM to assign it in the Crafting Group Manager.");
+    if (!game.user.isGM && actorGroups.length === 0) {
+      ui.notifications.warn("This character is not assigned to any party group. Please ask the GM to add it to a group actor.");
     }
 
-    const memoryFlag = groupId ? `craftingMemory.${groupId}` : 'craftingMemory';
-    let craftingMemory = await this._actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', memoryFlag);
-    if (!craftingMemory) {
-      craftingMemory = { Combat: [], Utility: [], Entropy: [] };
-      await this._actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', memoryFlag, craftingMemory);
-    }
+    const groupId = this.activeGroup || actorGroups[0]?.id;
+    let craftingMemory = groupId
+      ? await game.modules.get('vikarovs-guide-to-kaeliduran-crafting').api.groupManager.getCraftingMemory(this._actor, groupId)
+      : { Combat: [], Utility: [], Entropy: [] };
 
     const compendiumData = await prepareCompendiumData(this._actor, this.editMode, craftingMemory);
     const cauldronData = await prepareCauldronData(this._actor);
@@ -99,7 +88,10 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     context.outcomeIcons = cauldronData.outcomeIcons;
 
     if (game.user.isGM) {
-      context.groups = game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingGroups');
+      context.groups = game.modules.get('vikarovs-guide-to-kaeliduran-crafting').api.groupManager.getActiveGroups().reduce((acc, group) => {
+        acc[group.id] = { name: group.name };
+        return acc;
+      }, {});
       context.activeGroup = this.activeGroup;
     }
 
@@ -183,13 +175,16 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     });
 
     if (confirmed) {
-      await this._actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory', {
-        Combat: [],
-        Utility: [],
-        Entropy: []
-      });
-      this.render({ force: true });
-      ui.notifications.info("Crafting memory has been reset.");
+      const groupId = this.activeGroup;
+      if (groupId) {
+        await this._actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', `craftingMemory.${groupId}`, {
+          Combat: [],
+          Utility: [],
+          Entropy: []
+        });
+        this.render({ force: true });
+        ui.notifications.info("Crafting memory has been reset.");
+      }
     }
   }
 

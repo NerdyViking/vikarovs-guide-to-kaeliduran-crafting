@@ -48,7 +48,10 @@ export class RecipeCreationApplication extends HandlebarsApplicationMixin(Applic
     const context = await super._prepareContext(options);
     context.formData = this.formData;
     context.tools = this.formData.tools;
-    context.campaigns = game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingGroups');
+    context.campaigns = game.modules.get('vikarovs-guide-to-kaeliduran-crafting').api.groupManager.getActiveGroups().reduce((acc, group) => {
+      acc[group.id] = { name: group.name };
+      return acc;
+    }, {});
     return context;
   }
 
@@ -124,17 +127,12 @@ export class RecipeCreationApplication extends HandlebarsApplicationMixin(Applic
       return;
     }
 
-    const { isComponent } = await import('./components.js');
     const type = target.dataset.type;
     const index = target.dataset.index;
 
-    if (type === 'component' && !isComponent(item)) {
-      ui.notifications.warn("Only components can be dropped here.");
-      return;
-    }
-
-    if (type === 'tool' && item.type !== 'tool') {
-      ui.notifications.warn("Only tools can be dropped here.");
+    const isValid = await game.modules.get('vikarovs-guide-to-kaeliduran-crafting').api.groupManager.isItemValidForCrafting(item, type);
+    if (!isValid) {
+      ui.notifications.warn(`Only ${type}s can be dropped here.`);
       return;
     }
 
@@ -228,7 +226,6 @@ export class RecipeCreationApplication extends HandlebarsApplicationMixin(Applic
       return;
     }
 
-    // Fetch tool types (system.type.baseItem) for each tool
     const toolTypes = await Promise.all(this.formData.tools.map(async (tool) => {
       if (!tool) return null;
       const toolItem = await fromUuid(tool.uuid);
@@ -274,7 +271,7 @@ export class RecipeCreationApplication extends HandlebarsApplicationMixin(Applic
       const saveButton = form.querySelector('.save-btn');
       if (saveButton) {
         saveButton.removeEventListener('click', this._handleSave);
-      }
+      };
       const cancelButton = form.querySelector('.cancel-btn');
       if (cancelButton) {
         cancelButton.removeEventListener('click', this._handleCancel);

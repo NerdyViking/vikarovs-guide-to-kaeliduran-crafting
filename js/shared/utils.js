@@ -1,5 +1,7 @@
 console.log("utils.js loaded");
 
+import { GroupManager } from './groupManager.js';
+
 // Helper function to strip HTML tags
 function stripHtml(html) {
   if (!html) return "";
@@ -87,12 +89,6 @@ Handlebars.registerHelper('includes', function(array, value) {
   return array.includes(value);
 });
 
-// New helper to check if an actor ID is in an array
-Handlebars.registerHelper('isInArray', function(array, value) {
-  if (!Array.isArray(array)) return false;
-  return array.includes(value);
-});
-
 // Get base gold cost for a rarity (used for upgrade costs)
 export function getRarityGoldCost(rarity) {
   const costs = {
@@ -110,12 +106,51 @@ export function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-// Register API on init
-Hooks.once("init", () => {
+// Register API and migrate data on init
+Hooks.once("init", async () => {
   game.modules.get("vikarovs-guide-to-kaeliduran-crafting").api = {
     getRarityGoldCost,
-    capitalize
+    capitalize,
+    groupManager: GroupManager
   };
+
+  // Migrate existing craftingGroups data if it exists
+  const settingKey = 'vikarovs-guide-to-kaeliduran-crafting.craftingGroups';
+  if (game.settings.settings.has(settingKey)) {
+    const oldGroups = game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingGroups') || {};
+    if (Object.keys(oldGroups).length) {
+      const activeGroups = {};
+      const recipes = foundry.utils.deepClone(
+        game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'workshopRecipes')
+      );
+
+      for (const [groupId, group] of Object.entries(oldGroups)) {
+        if (group.isPartyGroup) {
+          activeGroups[groupId] = true;
+          // Update recipe allowedGroups
+          for (const recipe of Object.values(recipes)) {
+            if (recipe.allowedGroups?.includes(groupId)) {
+              recipe.allowedGroups = recipe.allowedGroups.filter(id => id !== groupId).concat([groupId]);
+            }
+          }
+          // Migrate crafting memory
+          for (const actor of game.actors.filter(a => a.type === "character")) {
+            const oldMemory = actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', `craftingMemory.${groupId}`);
+            if (oldMemory) {
+              await actor.setFlag('vikarovs-guide-to-kaeliduran-crafting', `craftingMemory.${groupId}`, oldMemory);
+              await actor.unsetFlag('vikarovs-guide-to-kaeliduran-crafting', `craftingMemory.${groupId}`);
+            }
+            await actor.unsetFlag('vikarovs-guide-to-kaeliduran-crafting', 'groupId');
+          }
+        }
+      }
+
+      await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'activeGroups', activeGroups);
+      // Clear the old craftingGroups setting
+      await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'craftingGroups', {});
+      ui.notifications.info('Crafting groups migrated to new system.');
+    }
+  }
 });
 
 export const sharedUtilities = () => {

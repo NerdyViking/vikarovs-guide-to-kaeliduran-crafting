@@ -1,74 +1,20 @@
-<form>
-  <div class="form-group">
-    <label>Select or Create Campaign:</label>
-    <div class="campaign-selection">
-      <select name="select-campaign">
-        <option value="">Create New Campaign</option>
-        {{#each partyGroups as |group|}}
-          <option value="{{group.id}}">{{group.name}}</option>
-        {{/each}}
-      </select>
-      <button type="button" class="create-campaign">Create</button>
-    </div>
+<div class="group-manager-grid">
+  <div class="grid-header">
+    <span class="group-name">Group Name</span>
+    <span class="group-members">Members</span>
+    <span class="group-active">Active</span>
   </div>
-
-  {{#each campaigns as |campaign campaignId|}}
-    <div class="campaign-section">
-      <h2>{{campaign.name}} <button type="button" class="delete-campaign" data-campaign-id="{{campaignId}}"><i class="fas fa-trash"></i></button></h2>
-
-      <!-- Actor Assignment (only for custom groups) -->
-      {{#unless campaign.isPartyGroup}}
-        <div class="form-group">
-          <label>Assign Characters:</label>
-          <div class="checkbox-grid">
-            {{#each ../actors as |actor|}}
-              <label>
-                <input type="checkbox" name="campaign-{{campaignId}}-actor-{{actor.id}}" {{checked (isInArray campaign.actors actor.id)}} />
-                {{actor.name}}
-              </label>
-            {{/each}}
-          </div>
-        </div>
-      {{/unless}}
-
-      <!-- Crafting Memory -->
-      <div class="form-group">
-        <label>Crafting Memory:</label>
-        <div class="memory-grid">
-          {{#each (lookup ../campaignCraftingMemory campaignId) as |sums category|}}
-            <div>
-              <strong>{{category}}:</strong>
-              {{#if sums.length}}
-                {{#each sums as |sum|}}
-                  <span class="memory-sum">
-                    {{sum}}
-                    <button type="button" class="reset-sum" data-campaign-id="{{campaignId}}" data-category="{{category}}" data-sum="{{sum}}"><i class="fas fa-times"></i></button>
-                  </span>
-                {{/each}}
-              {{else}}
-                <span>None</span>
-              {{/if}}
-            </div>
-          {{/each}}
-        </div>
+  {{#if groups.length}}
+    {{#each groups}}
+      <div class="group-row">
+        <span class="group-name">{{name}}</span>
+        <span class="group-members">{{members}}</span>
+        <span class="group-active">
+          <input type="checkbox" class="active-toggle" data-group-id="{{id}}" {{checked active}} />
+        </span>
       </div>
-
-      <!-- Recipe Access -->
-      <div class="form-group">
-        <label>Recipe Access:</label>
-        <div class="recipe-grid">
-          {{#each ../recipes as |recipe|}}
-            <label>
-              <input type="checkbox" class="toggle-recipe-campaign" data-campaign-id="{{campaignId}}" data-recipe-id="{{recipe.id}}" {{checked (isInArray recipe.allowedGroups campaignId)}} />
-              {{recipe.name}}
-            </label>
-          {{/each}}
-        </div>
-      </div>
-    </div>
-  {{/each}}
-
-  <div class="form-group">
-    <button type="submit">Save Changes</button>
-  </div>
-</form>
+    {{/each}}
+  {{else}}
+    <p>No party groups found. Create a group actor with type 'party' to manage campaigns.</p>
+  {{/if}}
+</div>

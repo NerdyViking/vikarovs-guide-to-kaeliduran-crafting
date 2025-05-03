@@ -2,7 +2,7 @@
   "id": "vikarovs-guide-to-kaeliduran-crafting",
   "title": "Vikarov's Guide to Kaeliduran Crafting",
   "description": "A modular crafting system for Foundry VTT, featuring alchemy and future magic item crafting.",
-  "version": "13.0",
+  "version": "13.1",
   "authors": [
     {
       "name": "Your Name"
@@ -11,6 +11,7 @@
   "esmodules": [
     "js/shared/sidebarCraftingControls.js",
     "js/shared/craftingGroupManager.js",
+    "js/shared/groupManager.js",
     "js/shared/itemConfigurationDialog.js",
     "js/alchemy/alchemyInterface.js",
     "js/alchemy/alchemyInterfaceCompendium.js",
@@ -34,7 +35,7 @@
   ],
   "url": "https://github.com/NerdyViking/vikarovs-guide-to-kaeliduran-crafting",
   "manifest": "https://github.com/NerdyViking/vikarovs-guide-to-kaeliduran-crafting/releases/latest/download/module.json",
-  "download": "https://github.com/NerdyViking/vikarovs-guide-to-kaeliduran-crafting/releases/download/v13.0/module.zip",
+  "download": "https://github.com/NerdyViking/vikarovs-guide-to-kaeliduran-crafting/releases/download/v13.1/module.zip",
   "compatibility": {
     "minimum": "13.341",
     "verified": "13.341"

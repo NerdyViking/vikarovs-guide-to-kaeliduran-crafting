@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { handleCompendiumListeners } from './workshopCompendium.js';
 import { handleRecipeBookListeners, handleRecipeBookSlotInteractions, performCrafting, performEnchanting } from './workshopRecipeBook.js';
-import { isComponent } from './components.js';
+import { isComponent } from '../shared/utils.js';
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -15,7 +15,6 @@ export class WorkshopInterface extends HandlebarsApplicationMixin(ApplicationV2)
     this.selectedCharacterId = null;
     this.selectedComponentUuid = null;
     this.lastNotification = null;
-    // Add properties for DC and costs
     this.dc = null;
     this.goldCostCraft = null;
     this.goldCostEnchant = null;
@@ -47,39 +46,6 @@ export class WorkshopInterface extends HandlebarsApplicationMixin(ApplicationV2)
         type: Object,
         default: {}
       });
-
-      game.settings.register('vikarovs-guide-to-kaeliduran-crafting', 'unlockedRecipes', {
-        name: 'Unlocked Recipes',
-        hint: 'Stores which recipes each player has unlocked.',
-        scope: 'client',
-        config: false,
-        type: Object,
-        default: {}
-      });
-
-      game.settings.register('vikarovs-guide-to-kaeliduran-crafting', 'craftingGroups', {
-        name: 'Crafting Groups',
-        hint: 'Stores group definitions for segregating crafting memory across campaigns.',
-        scope: 'world',
-        config: false,
-        type: Object,
-        default: {}
-      });
-
-      Hooks.on("ready", async () => {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        for (const actor of game.actors) {
-          if (!actor.getFlag("vikarovs-guide-to-kaeliduran-crafting", "groupId")) {
-            await actor.setFlag("vikarovs-guide-to-kaeliduran-crafting", "groupId", "");
-          }
-        }
-      });
-
-      Hooks.on("preCreateActor", (actor) => {
-        if (!actor.getFlag("vikarovs-guide-to-kaeliduran-crafting", "groupId")) {
-          actor.setFlag("vikarovs-guide-to-kaeliduran-crafting", "groupId", "");
-        }
-      });
     });
   }
 
@@ -90,15 +56,27 @@ export class WorkshopInterface extends HandlebarsApplicationMixin(ApplicationV2)
     context.isGM = game.user.isGM;
     context.recipes = await getRecipes();
 
-    const groupId = await this._actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'groupId') || "";
+    let actorGroups;
+    try {
+      actorGroups = await game.modules.get('vikarovs-guide-to-kaeliduran-crafting').api.groupManager.getActorGroups(this._actor.id);
+    } catch (error) {
+      console.error(`WorkshopInterface: Error fetching actor groups for ${this._actor.name}:`, error);
+      actorGroups = [];
+    }
+
+    if (!Array.isArray(actorGroups)) {
+      console.warn(`WorkshopInterface: Actor groups is not an array for ${this._actor.name}, defaulting to empty array`);
+      actorGroups = [];
+    }
+
     if (game.user.isGM) {
       this.activeGroup = await this._actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'activeGroup') || null;
     } else {
-      this.activeGroup = groupId;
+      this.activeGroup = actorGroups.length > 0 ? actorGroups[0].id : null;
     }
 
     if (!context.isGM) {
-      context.recipes = context.recipes.filter(recipe => recipe.allowedGroups?.includes(groupId) && recipe.isVisible);
+      context.recipes = context.recipes.filter(recipe => actorGroups.some(group => recipe.allowedGroups?.includes(group.id)) && recipe.isVisible);
     } else if (this.activeGroup) {
       context.recipes = context.recipes.filter(recipe => recipe.allowedGroups?.includes(this.activeGroup));
     }
@@ -160,11 +138,13 @@ export class WorkshopInterface extends HandlebarsApplicationMixin(ApplicationV2)
     context.selectedComponentUuid = this.selectedComponentUuid;
 
     if (game.user.isGM) {
-      context.campaigns = game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingGroups');
+      context.campaigns = game.modules.get('vikarovs-guide-to-kaeliduran-crafting').api.groupManager.getActiveGroups().reduce((acc, group) => {
+        acc[group.id] = { name: group.name };
+        return acc;
+      }, {});
       context.activeGroup = this.activeGroup;
     }
 
-    // Pass DC and costs to the template context
     context.dc = this.dc;
     context.goldCostCraft = this.goldCostCraft;
     context.goldCostEnchant = this.goldCostEnchant;
@@ -352,7 +332,7 @@ export class WorkshopInterface extends HandlebarsApplicationMixin(ApplicationV2)
 
     const enchantButton = this.element.querySelector('.enchant-btn');
     if (enchantButton) {
-      enchantButton.addEventListener('click', async (event) => {
+      craftButton.addEventListener('click', async (event) => {
         event.preventDefault();
         await performEnchanting(this, context);
         await this.render({ force: true });
@@ -371,7 +351,7 @@ export class WorkshopInterface extends HandlebarsApplicationMixin(ApplicationV2)
 
       const editButton = this.element.querySelector('.edit-btn');
       if (editButton) {
-        editButton.addEventListener('click', async (event) => {
+        craftButton.addEventListener('click', async (event) => {
           event.preventDefault();
           const { RecipeCreationApplication } = await import('./recipeCreationApplication.js');
           const recipe = context.selectedRecipe;

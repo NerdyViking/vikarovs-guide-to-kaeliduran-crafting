@@ -1,77 +1,55 @@
 /* css/craftingGroupManager.css */
 
-.campaign-selection {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.campaign-selection select {
-  padding: 5px;
-  background: #252830;
-  color: #f0f0e0;
-  border: 1px solid #4b4a44;
-  border-radius: 3px;
-}
-
-.campaign-selection select:focus {
-  outline: none;
-  border-color: #ff0000;
-}
-
-.campaign-section {
-  border: 1px solid #4b4a44;
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 3px;
-}
-
-.campaign-section h2 {
-  margin-top: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.checkbox-grid, .recipe-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.memory-grid {
+.group-manager-grid {
   display: flex;
   flex-direction: column;
   gap: 5px;
-}
-
-.memory-sum {
-  display: inline-block;
-  margin-right: 10px;
-}
-
-.memory-sum button {
-  margin-left: 5px;
-  color: #ff0000;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  font-weight: bold;
-}
-
-button.create-campaign, button.delete-campaign, button.reset-sum, button[type="submit"] {
-  padding: 5px 10px;
-  background: #252830;
-  color: #fff;
-  border: 1px solid transparent;
+  padding: 10px;
+  background: #1c2526;
+  border: 1px solid #4b4a44;
   border-radius: 3px;
+}
+
+.grid-header, .group-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr 100px;
+  align-items: center;
+  padding: 5px;
+}
+
+.grid-header {
+  font-weight: bold;
+  border-bottom: 1px solid #4b4a44;
+}
+
+.group-row {
+  border-bottom: 1px solid #2a2e33;
+}
+
+.group-row:last-child {
+  border-bottom: none;
+}
+
+.group-name, .group-members, .group-active {
+  padding: 0 5px;
+}
+
+.group-members {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.group-active {
+  text-align: center;
+}
+
+.active-toggle {
   cursor: pointer;
 }
 
-button.create-campaign:hover, button.delete-campaign:hover, button.reset-sum:hover, button[type="submit"]:hover {
-  border: 1px solid red;
+.group-manager-grid p {
+  text-align: center;
+  color: #f0f0e0;
+  margin: 10px 0;
 }

@@ -10,13 +10,6 @@ Hooks.on('getSceneControlButtons', (controls) => {
     if (controlledTokens.length === 1) {
       const actor = controlledTokens[0].actor;
       if (actor) {
-        if (!game.user.isGM) {
-          const groupId = await actor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'groupId');
-          if (!groupId) {
-            console.warn("No groupId found for actor, cannot proceed.");
-            return null;
-          }
-        }
         return actor;
       }
     }
@@ -32,14 +25,6 @@ Hooks.on('getSceneControlButtons', (controls) => {
     }
 
     const selectedActor = actors[0];
-    if (!game.user.isGM) {
-      const groupId = await selectedActor.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'groupId');
-      if (!groupId) {
-        console.warn("No groupId found for assigned character, cannot proceed.");
-        return null;
-      }
-    }
-
     return selectedActor;
   };
 

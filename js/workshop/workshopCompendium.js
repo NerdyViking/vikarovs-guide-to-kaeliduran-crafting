@@ -59,11 +59,9 @@ export async function getRecipes() {
     const toolNames = recipe.toolNames || new Array(5).fill(null);
     const tools = toolUuids.map((uuid, idx) => uuid ? { uuid, img: toolImgs[idx], name: toolNames[idx] } : null);
 
-    // Normalize toolTypes to use correct DnD5e base tool types
     const toolTypes = recipe.toolTypes || new Array(5).fill(null);
     const normalizedToolTypes = toolTypes.map(type => {
-      if (!type || type === 'tool') return null; // Replace invalid "tool" with null
-      // Map any custom or incorrect tool types to DnD5e standard types if needed
+      if (!type || type === 'tool') return null;
       return type === 'calligraphers-su' ? 'calligrapher' : type;
     });
 
