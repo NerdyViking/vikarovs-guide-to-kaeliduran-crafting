@@ -139,11 +139,11 @@
   
   .vikarovs-workshop-interface .component-name {
     position: absolute;
-    bottom: -20px;
+    bottom: -25px;
     left: 50%;
     transform: translateX(-50%);
     white-space: nowrap;
-    font-size: 10px;
+    font-size: 20px;
     color: var(--text-color);
     text-shadow: var(--text-shadow);
     z-index: 1;
@@ -271,11 +271,12 @@
   .vikarovs-workshop-interface .tool-name {
     position: absolute;
     left: 50%;
-    white-space: nowrap;
     font-size: 15px;
     color: var(--text-color);
     text-shadow: var(--text-shadow);
     z-index: 1;
+    width: 120px;
+    text-wrap: normal;
   }
   
   .vikarovs-workshop-interface .slot-placeholder {

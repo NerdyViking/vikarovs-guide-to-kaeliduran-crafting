@@ -100,6 +100,7 @@
   align-items: center;
   justify-content: center;
   position: relative;
+  margin: 0px 0px 40px 0px;
 }
 
 #recipe-creation-app .drop-zone:hover {
@@ -154,14 +155,15 @@
 
 #recipe-creation-app .slot-name {
   position: absolute;
-  bottom: -20px;
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
+  bottom: -45px;
   font-size: 10px;
   color: var(--text-color);
   text-shadow: var(--text-shadow);
   z-index: 1;
+  text-wrap: auto;
+  width: 90px;
+  text-align: center;
+  height: 40px;
 }
 
 #recipe-creation-app .form-group input[type="checkbox"] {

@@ -163,8 +163,6 @@ export class RecipeCreationApplication extends HandlebarsApplicationMixin(Applic
       <span class="slot-name">${itemData.name}</span>
       <span class="clear-slot" data-type="${type}"${index !== undefined ? ` data-index="${index}"` : ''} title="Clear Slot"><i class="fas fa-times"></i></span>
     `;
-    ui.notifications.info(`Dropped ${itemData.name} (${type}${index !== undefined ? ` ${parseInt(index) + 1}` : ''})`);
-
     await this.render({ force: true });
   }
 
