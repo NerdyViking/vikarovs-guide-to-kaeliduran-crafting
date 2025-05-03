@@ -8,12 +8,9 @@ export class RecipeCreationApplication extends HandlebarsApplicationMixin(Applic
     this.workshopInterface = workshopInterface;
     this.recipeId = options.recipeId || null;
     this.formData = options.initialData || {
-      name: "New Recipe",
       component: null,
       outcomes: new Array(5).fill(null),
       tools: new Array(5).fill(null),
-      dc: 10,
-      goldCost: 50,
       allowedGroups: [],
       hideFromPlayers: true
     };
@@ -115,7 +112,14 @@ export class RecipeCreationApplication extends HandlebarsApplicationMixin(Applic
       return;
     }
 
-    const data = JSON.parse(event.dataTransfer.getData('text/plain'));
+    let data;
+    try {
+      data = JSON.parse(event.dataTransfer.getData('text/plain'));
+    } catch (error) {
+      ui.notifications.warn("Invalid drop data.");
+      return;
+    }
+
     if (!data.type || !data.uuid) {
       ui.notifications.warn("Invalid item data.");
       return;
@@ -148,18 +152,18 @@ export class RecipeCreationApplication extends HandlebarsApplicationMixin(Applic
 
     if (type === 'component') {
       this.formData.component = itemData;
-    } else if (type === 'outcome') {
+    } else if (type === 'outcome' && index !== undefined) {
       this.formData.outcomes[index] = itemData;
-    } else if (type === 'tool') {
+    } else if (type === 'tool' && index !== undefined) {
       this.formData.tools[index] = itemData;
     }
 
     target.innerHTML = `
-      <img src="${itemData.img}" alt="${itemData.name}" class="slot-image" data-uuid="${itemData.uuid}" />
+      <img src="${itemData.img}" alt="${itemData.name}" class="slot-image" data-uuid="${itemData.uuid}"/>
       <span class="slot-name">${itemData.name}</span>
-      <span class="clear-slot" data-type="${type}" ${index !== undefined ? `data-index="${index}"` : ''} title="Clear Slot"><i class="fas fa-times"></i></span>
+      <span class="clear-slot" data-type="${type}"${index !== undefined ? ` data-index="${index}"` : ''} title="Clear Slot"><i class="fas fa-times"></i></span>
     `;
-    ui.notifications.info(`Dropped ${itemData.name} (${type}${index !== undefined ? ` ${index}` : ''})`);
+    ui.notifications.info(`Dropped ${itemData.name} (${type}${index !== undefined ? ` ${parseInt(index) + 1}` : ''})`);
 
     await this.render({ force: true });
   }
@@ -205,25 +209,21 @@ export class RecipeCreationApplication extends HandlebarsApplicationMixin(Applic
     }
 
     const formData = new FormData(form);
-    const name = formData.get('name')?.trim();
-    if (!name) {
-      ui.notifications.error("Recipe name is required.");
+    if (!this.formData.component) {
+      ui.notifications.error("A component is required for the recipe.");
       return;
     }
 
-    const dc = parseInt(formData.get('dc')) || 10;
-    const goldCost = parseInt(formData.get('goldCost')) || 50;
+    // Resolve the component's name from its UUID
+    const component = await fromUuid(this.formData.component.uuid);
+    const name = component ? component.name : "Unknown Component";
+
     const hideFromPlayers = formData.get('hideFromPlayers') === 'on';
     const allowedGroups = [];
     for (const [key, value] of formData.entries()) {
       if (key.startsWith('campaign-') && value) {
         allowedGroups.push(value);
       }
-    }
-
-    if (!this.formData.component) {
-      ui.notifications.error("A component is required for the recipe.");
-      return;
     }
 
     const toolTypes = await Promise.all(this.formData.tools.map(async (tool) => {
@@ -236,7 +236,7 @@ export class RecipeCreationApplication extends HandlebarsApplicationMixin(Applic
     const recipeId = this.recipeId || foundry.utils.randomID();
     const newRecipe = {
       id: recipeId,
-      name,
+      name, // Use the component's name
       componentUuid: this.formData.component.uuid,
       componentImg: this.formData.component.img,
       outcomes: this.formData.outcomes.map(outcome => outcome ? { uuid: outcome.uuid, img: outcome.img, name: outcome.name } : null),
@@ -244,8 +244,6 @@ export class RecipeCreationApplication extends HandlebarsApplicationMixin(Applic
       toolUuids: this.formData.tools.map(tool => tool ? tool.uuid : null),
       toolImgs: this.formData.tools.map(tool => tool ? tool.img : null),
       toolNames: this.formData.tools.map(tool => tool ? tool.name : null),
-      dc,
-      goldCost,
       allowedGroups,
       isVisible: !hideFromPlayers
     };
@@ -271,7 +269,7 @@ export class RecipeCreationApplication extends HandlebarsApplicationMixin(Applic
       const saveButton = form.querySelector('.save-btn');
       if (saveButton) {
         saveButton.removeEventListener('click', this._handleSave);
-      };
+      }
       const cancelButton = form.querySelector('.cancel-btn');
       if (cancelButton) {
         cancelButton.removeEventListener('click', this._handleCancel);

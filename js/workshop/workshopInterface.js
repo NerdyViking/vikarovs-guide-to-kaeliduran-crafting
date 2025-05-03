@@ -138,7 +138,8 @@ export class WorkshopInterface extends HandlebarsApplicationMixin(ApplicationV2)
     context.selectedComponentUuid = this.selectedComponentUuid;
 
     if (game.user.isGM) {
-      context.campaigns = game.modules.get('vikarovs-guide-to-kaeliduran-crafting').api.groupManager.getActiveGroups().reduce((acc, group) => {
+      const activeGroups = game.modules.get('vikarovs-guide-to-kaeliduran-crafting').api.groupManager.getActiveGroups();
+      context.campaigns = activeGroups.reduce((acc, group) => {
         acc[group.id] = { name: group.name };
         return acc;
       }, {});
@@ -332,7 +333,7 @@ export class WorkshopInterface extends HandlebarsApplicationMixin(ApplicationV2)
 
     const enchantButton = this.element.querySelector('.enchant-btn');
     if (enchantButton) {
-      craftButton.addEventListener('click', async (event) => {
+      enchantButton.addEventListener('click', async (event) => {
         event.preventDefault();
         await performEnchanting(this, context);
         await this.render({ force: true });
@@ -351,7 +352,7 @@ export class WorkshopInterface extends HandlebarsApplicationMixin(ApplicationV2)
 
       const editButton = this.element.querySelector('.edit-btn');
       if (editButton) {
-        craftButton.addEventListener('click', async (event) => {
+        editButton.addEventListener('click', async (event) => {
           event.preventDefault();
           const { RecipeCreationApplication } = await import('./recipeCreationApplication.js');
           const recipe = context.selectedRecipe;

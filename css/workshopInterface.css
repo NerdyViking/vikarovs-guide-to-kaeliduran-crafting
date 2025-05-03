@@ -67,11 +67,11 @@
 
 .vikarovs-workshop-interface .campaign-selector {
   padding: 3px ;
-  background: white ;
-  color: black ;
-  border: 1px solid var(--border-color) ;
-  border-radius: 3px ;
   font-size: 0.9em ;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  background: var(--background-dark);
+  color: var(--text-color);
 }
 
 .vikarovs-workshop-interface .campaign-selector:focus {

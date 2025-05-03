@@ -121,7 +121,7 @@
   {{#if campaigns}}
     <div class="campaign-selector-container">
       <div class="campaign-selector-wrapper">
-        <select class="character-selector">
+        <select class="campaign-selector">
           <option value="">All Campaigns</option>
           {{#each campaigns as |campaign campaignId|}}
             <option value="{{campaignId}}" {{#if (eq ../activeGroup campaignId)}}selected{{/if}}>{{campaign.name}}</option>
