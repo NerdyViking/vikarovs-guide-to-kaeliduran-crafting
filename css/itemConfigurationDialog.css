@@ -14,13 +14,16 @@
   
   .vikarovs-item-configuration .drop-zone {
     border: 2px dashed #ccc;
-    padding: 10px;
     text-align: center;
     min-height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
+    height: 100px;
+    width: 100px;
+    transform: translateX(123px);
+    margin-bottom: 45px;
   }
   
   .vikarovs-item-configuration .drop-zone:hover {
@@ -28,14 +31,13 @@
   }
   
   .vikarovs-item-configuration .slot-image {
-    max-width: 40px;
-    max-height: 40px;
-    margin-right: 5px;
+    max-width: 98px;
+    max-height: 98px;
   }
   
   .vikarovs-item-configuration .slot-name {
-    flex: 1;
-    text-align: left;
+    width: 150px;
+    text-wrap: auto;
   }
   
   .vikarovs-item-configuration .slot-placeholder {

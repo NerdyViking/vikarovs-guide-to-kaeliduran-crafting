@@ -179,6 +179,17 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  min-height: 20px;
+}
+
+.alchemy-interface .outcome-cell .clear-outcome i {
+  font-size: 12px;
+}
+
+.alchemy-interface .outcome-cell .clear-outcome:hover {
+  background: #e60000;
 }
 
 /* Cauldron Section */
@@ -290,25 +301,6 @@
   border: none;
 }
 
-.alchemy-interface .details-btn {
-  margin-top: 5px;
-  padding: 3px 6px;
-  background: #252830;
-  color: #f0f0e0;
-  border: 1px solid #4b4a44;
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-.alchemy-interface .details-btn:hover {
-  border-color: #ff0000;
-}
-
-.alchemy-interface .details-btn:disabled {
-  color: #808080;
-  cursor: not-allowed;
-}
-
 .alchemy-interface .crafting-controls {
   display: flex;
   justify-content: center;
@@ -327,5 +319,28 @@
 
 .alchemy-interface .craft-btn:hover,
 .alchemy-interface .clear-btn:hover {
+  border-color: #ff0000;
+}
+
+/* Character Selector Styling */
+.alchemy-interface .character-selector-wrapper {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  left: 10px;
+  height: 36px;
+}
+
+.alchemy-interface .character-selector {
+  padding: 3px;
+  background: #252830;
+  color: #f0f0e0;
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.alchemy-interface .character-selector:focus {
+  outline: none;
   border-color: #ff0000;
 }

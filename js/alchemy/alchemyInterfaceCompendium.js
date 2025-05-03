@@ -1,8 +1,10 @@
-// js/alchemy/alchemyInterfaceCompendium.js
+console.log("alchemyInterfaceCompendium.js loaded");
+
 export function handleCompendiumListeners(alchemyInterface, html) {
   const editMode = alchemyInterface.editMode;
   const actor = alchemyInterface._actor;
 
+  // Handle clicking on consumable links to open item sheets
   html.find('.consumable-link').on("click", (event) => {
     if (editMode) return;
     const itemId = event.currentTarget.dataset.itemId;
@@ -11,12 +13,12 @@ export function handleCompendiumListeners(alchemyInterface, html) {
     else ui.notifications.error("Item not found.");
   });
 
+  // Handle tooltip on hover for known outcomes
   html.find('.consumable-link').on("mouseenter", async (event) => {
     const $target = $(event.currentTarget);
     const itemId = $target.data('itemId');
     const isUnknown = $target.hasClass('unknown-icon');
 
-    // Only show tooltip if the outcome is known (not unknown)
     if (!isUnknown && itemId) {
       const item = game.items.get(itemId) || actor.items.get(itemId) || (itemId ? await fromUuid(itemId) : null);
       let tooltipContent = '';
@@ -50,44 +52,6 @@ export function handleCompendiumListeners(alchemyInterface, html) {
   }).on("mouseleave", () => {
     $(".custom-tooltip").remove();
   });
-
-  if (editMode && game.user.isGM) {
-    html.find('.clear-outcome').on("click", async (event) => {
-      const sum = event.currentTarget.dataset.sum;
-      const category = event.currentTarget.dataset.category;
-      const outcomes = foundry.utils.deepClone(game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'consumableOutcomes'));
-      delete outcomes[category][sum];
-      await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'consumableOutcomes', outcomes);
-      alchemyInterface.render();
-    });
-
-    html.find('.outcome-cell').on('drop', async (event) => {
-      event.preventDefault();
-      try {
-        const data = JSON.parse(event.originalEvent.dataTransfer.getData('text/plain'));
-        if (data.type !== 'Item') {
-          ui.notifications.warn("Only items can be dropped here.");
-          return;
-        }
-        let item = await fromUuid(data.uuid);
-        if (!item) {
-          item = game.items.get(data.id) || actor.items.get(data.id);
-          if (!item) {
-            ui.notifications.error("Failed to resolve dropped item.");
-            return;
-          }
-        }
-        const sum = event.currentTarget.dataset.sum;
-        const category = event.currentTarget.dataset.category;
-        const outcomes = foundry.utils.deepClone(game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'consumableOutcomes'));
-        outcomes[category][sum] = data.uuid; // Store full UUID
-        await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'consumableOutcomes', outcomes);
-        alchemyInterface.render();
-      } catch (error) {
-        ui.notifications.error("Failed to link item to outcome: " + error.message);
-      }
-    });
-  }
 }
 
 export async function prepareCompendiumData(actor, editMode, craftingMemory) {
@@ -115,11 +79,10 @@ export async function prepareCompendiumData(actor, editMode, craftingMemory) {
         let isUnknown = true;
         let itemId = null;
 
-        // Fetch item using UUID if available
         if (itemUuid) {
           const item = await fromUuid(itemUuid);
           if (item) {
-            itemId = item.id; // Store raw ID for rendering
+            itemId = itemUuid; // Store UUID for rendering
             if (editMode || (craftingMemory[category] && craftingMemory[category].includes(sum))) {
               itemImg = item.img;
               isUnknown = false;
