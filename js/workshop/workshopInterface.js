@@ -46,6 +46,21 @@ export class WorkshopInterface extends HandlebarsApplicationMixin(ApplicationV2)
         type: Object,
         default: {}
       });
+
+      // Register socket handlers for permission updates
+      Hooks.once("ready", () => {
+        game.socket.on('module.vikarovs-guide-to-kaeliduran-crafting', async (data) => {
+          if (!game.user.isGM) return;
+
+          if (data.operation === "updateItemPermissions") {
+            const { itemUuid, ownershipUpdates } = data.payload;
+            const item = await fromUuid(itemUuid);
+            if (item) {
+              await item.update({ ownership: ownershipUpdates });
+            }
+          }
+        });
+      });
     });
   }
 
@@ -79,6 +94,13 @@ export class WorkshopInterface extends HandlebarsApplicationMixin(ApplicationV2)
       context.recipes = context.recipes.filter(recipe => actorGroups.some(group => recipe.allowedGroups?.includes(group.id)) && recipe.isVisible);
     } else if (this.activeGroup) {
       context.recipes = context.recipes.filter(recipe => recipe.allowedGroups?.includes(this.activeGroup));
+    }
+
+    // Compute ownership status for each recipe (GM-only)
+    if (context.isGM) {
+      for (const recipe of context.recipes) {
+        recipe.ownershipStatus = await this._computeOwnershipStatus(recipe);
+      }
     }
 
     context.selectedRecipe = this.selectedRecipeId
@@ -151,6 +173,64 @@ export class WorkshopInterface extends HandlebarsApplicationMixin(ApplicationV2)
     context.goldCostEnchant = this.goldCostEnchant;
 
     return context;
+  }
+
+  async _computeOwnershipStatus(recipe) {
+    const items = [];
+    // Add component
+    if (recipe.componentUuid) {
+      const component = await fromUuid(recipe.componentUuid);
+      if (component) items.push(component);
+    }
+    // Add outcomes
+    for (const outcome of recipe.outcomes || []) {
+      if (outcome?.uuid) {
+        const outcomeItem = await fromUuid(outcome.uuid);
+        if (outcomeItem) items.push(outcomeItem);
+      }
+    }
+
+    if (items.length === 0 || !recipe.allowedGroups?.length) {
+      return "Hidden";
+    }
+
+    let allHidden = true;
+    let allRevealed = true;
+
+    for (const groupId of recipe.allowedGroups) {
+      const group = game.actors.get(groupId);
+      if (!group) continue;
+      const members = group.system.members || [];
+      for (const member of members) {
+        if (member.actor?.uuid) {
+          const memberActor = await fromUuid(member.actor.uuid);
+          if (memberActor) {
+            const owningUsers = game.users.filter(user => memberActor.testUserPermission(user, "OWNER"));
+            for (const user of owningUsers) {
+              let userHasAccess = false;
+              let userHasNoAccess = false;
+              for (const item of items) {
+                const permission = item.ownership[user.id] || 0;
+                // Only consider permissions 0 (NONE) or 1 (LIMITED), ignore 2 (OBSERVER) or 3 (OWNER)
+                if (permission <= 1) {
+                  if (permission === 1) {
+                    userHasAccess = true;
+                  } else {
+                    userHasNoAccess = true;
+                  }
+                }
+              }
+              if (userHasAccess) allHidden = false;
+              if (userHasNoAccess) allRevealed = false;
+            }
+          }
+        }
+      }
+    }
+
+    if (allHidden) return "Hidden";
+    if (allRevealed) return "Revealed";
+    return "Mixed";
   }
 
   _configureRenderOptions(options) {

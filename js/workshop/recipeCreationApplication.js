@@ -212,29 +212,53 @@ export class RecipeCreationApplication extends HandlebarsApplicationMixin(Applic
       return;
     }
 
-    // Resolve the component's name from its UUID
-    const component = await fromUuid(this.formData.component.uuid);
-    const name = component ? component.name : "Unknown Component";
-
-    const hideFromPlayers = formData.get('hideFromPlayers') === 'on';
+    // Validate allowedGroups
     const allowedGroups = [];
     for (const [key, value] of formData.entries()) {
       if (key.startsWith('campaign-') && value) {
         allowedGroups.push(value);
       }
     }
+    if (allowedGroups.length === 0) {
+      ui.notifications.error("At least one campaign must be assigned to the recipe.", { recipient: "gm" });
+      return;
+    }
 
+    // Resolve the component's name from its UUID
+    const component = await fromUuid(this.formData.component.uuid);
+    if (!component) {
+      ui.notifications.error(`Invalid item UUID for component '${this.formData.component.name}'. Please assign a valid item.`, { recipient: "gm" });
+      return;
+    }
+    const name = component.name || "Unknown Component";
+
+    // Validate outcomes
+    const validOutcomes = [];
+    for (let i = 0; i < this.formData.outcomes.length; i++) {
+      const outcome = this.formData.outcomes[i];
+      if (outcome) {
+        const outcomeItem = await fromUuid(outcome.uuid);
+        if (!outcomeItem) {
+          ui.notifications.error(`Invalid item UUID for outcome '${outcome.name}'. Please assign a valid item.`, { recipient: "gm" });
+          return;
+        }
+        validOutcomes.push(outcome);
+      }
+    }
+
+    const hideFromPlayers = formData.get('hideFromPlayers') === 'on';
     const toolTypes = await Promise.all(this.formData.tools.map(async (tool) => {
       if (!tool) return null;
       const toolItem = await fromUuid(tool.uuid);
       return toolItem?.system?.type?.baseItem || null;
     }));
 
+    // Save the recipe
     const recipes = foundry.utils.deepClone(game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'workshopRecipes'));
     const recipeId = this.recipeId || foundry.utils.randomID();
     const newRecipe = {
       id: recipeId,
-      name, // Use the component's name
+      name,
       componentUuid: this.formData.component.uuid,
       componentImg: this.formData.component.img,
       outcomes: this.formData.outcomes.map(outcome => outcome ? { uuid: outcome.uuid, img: outcome.img, name: outcome.name } : null),
@@ -248,7 +272,72 @@ export class RecipeCreationApplication extends HandlebarsApplicationMixin(Applic
 
     recipes[recipeId] = newRecipe;
     await game.settings.set('vikarovs-guide-to-kaeliduran-crafting', 'workshopRecipes', recipes);
-    ui.notifications.info(`Recipe "${name}" ${this.recipeId ? 'updated' : 'created'} successfully.`);
+
+    // Update item permissions for component and outcomes
+    const itemsToUpdate = [{ item: component, name: this.formData.component.name, uuid: this.formData.component.uuid }];
+    for (const outcome of validOutcomes) {
+      const outcomeItem = await fromUuid(outcome.uuid);
+      itemsToUpdate.push({ item: outcomeItem, name: outcome.name, uuid: outcome.uuid });
+    }
+
+    for (const { item, name, uuid } of itemsToUpdate) {
+      if (!item) continue;
+
+      // Collect campaign members
+      const ownershipUpdates = {};
+      for (const groupId of allowedGroups) {
+        const group = game.actors.get(groupId);
+        if (!group) {
+          ui.notifications.warn(`Campaign with ID ${groupId} not found. Skipping permission updates for this campaign.`, { recipient: "gm" });
+          continue;
+        }
+        const members = group.system.members || [];
+        if (members.length === 0) {
+          ui.notifications.warn(`Campaign '${group.name}' has no members. No permissions updated for this campaign.`, { recipient: "gm" });
+          continue;
+        }
+
+        for (const member of members) {
+          if (member.actor?.uuid) {
+            const memberActor = await fromUuid(member.actor.uuid);
+            if (memberActor) {
+              const owningUsers = game.users.filter(user => memberActor.testUserPermission(user, "OWNER"));
+              for (const user of owningUsers) {
+                const currentPermission = item.ownership[user.id] || 0;
+                if (!hideFromPlayers) {
+                  // Grant LIMITED if current permission is NONE
+                  if (currentPermission === 0) {
+                    ownershipUpdates[user.id] = CONST.DOCUMENT_OWNERSHIP_LEVELS.LIMITED;
+                  }
+                } else {
+                  // Downgrade to NONE only if current permission is LIMITED
+                  if (currentPermission === 1) {
+                    ownershipUpdates[user.id] = CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Apply ownership updates
+      try {
+        if (game.user.isGM) {
+          await item.update({ ownership: ownershipUpdates });
+        } else {
+          await game.socket.emit('module.vikarovs-guide-to-kaeliduran-crafting', {
+            operation: "updateItemPermissions",
+            payload: { itemUuid: uuid, ownershipUpdates }
+          });
+        }
+      } catch (error) {
+        console.error(`Error updating permissions for item '${name}':`, error);
+        ui.notifications.error(`Failed to update permissions for item '${name}': ${error.message}`, { recipient: "gm" });
+      }
+    }
+
+    ui.notifications.info(`Recipe "${name}" ${this.recipeId ? 'updated' : 'created'} successfully and item permissions updated.`);
 
     if (this.workshopInterface && typeof this.workshopInterface.render === 'function') {
       await this.workshopInterface.render({ force: true });

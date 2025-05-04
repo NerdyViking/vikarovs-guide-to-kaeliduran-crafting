@@ -328,3 +328,7 @@
     opacity: 0.5;
     cursor: not-allowed;
   }
+
+  .vikarovs-workshop-interface .ownership-status {
+    padding: 5px;
+  }
