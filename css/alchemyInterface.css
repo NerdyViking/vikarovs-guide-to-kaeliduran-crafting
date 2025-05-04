@@ -111,8 +111,6 @@
 .alchemy-interface .rarity-group {
   flex: 1;
   min-width: 200px;
-  border: 1px solid #4b4a44;
-  border-radius: 3px;
   padding: 5px;
 }
 
@@ -192,10 +190,96 @@
   background: #e60000;
 }
 
-/* Cauldron Section */
-.alchemy-interface .cauldron {
+/* Alchemy Content (Inventory and Cauldron) */
+.alchemy-interface .alchemy-content {
+  display: flex;
+  gap: 10px;
+}
+
+/* Reagent Inventory Section */
+.alchemy-interface .reagent-inventory {
+  width: 33%;
+}
+
+.alchemy-interface .reagent-inventory-header {
+  margin-bottom: 5px;
+}
+
+.alchemy-interface .character-selector {
+  width: 100%;
+  padding: 3px;
+  background: #252830;
+  color: #f0f0e0;
   border: 1px solid #4b4a44;
   border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.alchemy-interface .character-selector:focus {
+  outline: none;
+  border-color: #ff0000;
+}
+
+.alchemy-interface .reagent-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.alchemy-interface .reagent-item {
+  display: flex;
+  align-items: center;
+  background: #252830;
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
+  margin-bottom: 5px;
+  cursor: move;
+}
+
+.alchemy-interface .reagent-item:hover {
+  border-color: #ff0000;
+}
+
+.alchemy-interface .reagent-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 5px;
+  border: none;
+}
+
+.alchemy-interface .reagent-item .reagent-name {
+  flex: 1;
+}
+
+.alchemy-interface .reagent-ip-values {
+  text-align: right;
+  font-size: 0.9em;
+}
+
+.alchemy-interface .ip-combat {
+  color: #ff0000;
+  margin-left: 5px;
+}
+
+.alchemy-interface .ip-utility {
+  color: #007bff;
+}
+
+.alchemy-interface .ip-entropy {
+  color: #d700d7;
+  margin-right: 5px;
+}
+
+.alchemy-interface .no-reagents,
+.alchemy-interface .no-character {
+  text-align: center;
+  color: #f0f0e0;
+  font-size: 0.9em;
+  padding: 10px;
+}
+
+/* Cauldron Section */
+.alchemy-interface .cauldron {
+  width: 75%;
   padding: 10px;
 }
 
@@ -217,7 +301,7 @@
   text-align: center;
 }
 
-.alchemy-interface .reagent-name {
+.alchemy-interface .reagent-slots .reagent-name {
   font-size: 0.9em;
   margin-bottom: 5px;
 }
@@ -320,53 +404,4 @@
 .alchemy-interface .craft-btn:hover,
 .alchemy-interface .clear-btn:hover {
   border-color: #ff0000;
-}
-
-/* Character Selector Styling */
-.alchemy-interface .character-selector-wrapper {
-  display: flex;
-  align-items: center;
-  position: absolute;
-  left: 10px;
-  height: 36px;
-}
-
-.alchemy-interface .character-selector {
-  padding: 3px;
-  background: #252830;
-  color: #f0f0e0;
-  border: 1px solid #4b4a44;
-  border-radius: 3px;
-  font-size: 0.9em;
-}
-
-.alchemy-interface .character-selector:focus {
-  outline: none;
-  border-color: #ff0000;
-}
-
-.alchemy-interface .outcome-cell .clear-outcome {
-  position: absolute;
-  top: 0;
-  right: 0;
-  background: #ff0000;
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-}
-
-.alchemy-interface .outcome-cell .clear-outcome i {
-  font-size: 12px;
-}
-
-.alchemy-interface .outcome-cell .clear-outcome:hover {
-  background: #e60000;
 }

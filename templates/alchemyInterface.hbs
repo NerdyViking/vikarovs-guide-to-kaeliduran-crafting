@@ -1,13 +1,5 @@
 <form class="{{cssClass}} {{#if editMode}}edit-mode{{/if}}" autocomplete="off">
   <nav class="tabs interface-tabs">
-    <div class="character-selector-wrapper">
-      <select class="character-selector">
-        <option value="">Select Character</option>
-        {{#each characters as |character|}}
-          <option value="{{character.id}}" {{#if (eq ../selectedCharacterId character.id)}}selected{{/if}}>{{character.name}}</option>
-        {{/each}}
-      </select>
-    </div>
     <a class="item {{#if (eq activeTab 'combat')}}active{{/if}}" data-tab="combat" title="Combat Outcomes"><i class="fas fa-swords"></i></a>
     <a class="item {{#if (eq activeTab 'utility')}}active{{/if}}" data-tab="utility" title="Utility Outcomes"><i class="fas fa-globe"></i></a>
     <a class="item {{#if (eq activeTab 'entropy')}}active{{/if}}" data-tab="entropy" title="Entropy Outcomes"><i class="fas fa-bomb"></i></a>
@@ -414,61 +406,82 @@
         </div>
       </div>
     </div>
-    <div class="cauldron">
-      <h3 class="cauldron-title">Cauldron</h3>
-      <div class="reagent-slots">
-        <div class="reagent-slot" data-slot="0">
-          <div class="reagent-name">{{reagentNames.[0]}}</div>
-          <div class="reagent-drop-zone" title="Drop an item here">
-            {{#if cauldronSlots.[0]}}
-              <img src="{{cauldronSlots.[0]}}" class="slotted-item-icon" alt="Slotted Item" />
-            {{/if}}
-          </div>
+    <div class="alchemy-content">
+      <div class="reagent-inventory">
+        <div class="reagent-inventory-header">
+          <select class="character-selector">
+            <option value="">Select Character</option>
+            {{#each characters as |character|}}
+              <option value="{{character.id}}" {{#if (eq ../selectedCharacterId character.id)}}selected{{/if}}>{{character.name}}</option>
+            {{/each}}
+          </select>
         </div>
-        <div class="reagent-slot" data-slot="1">
-          <div class="reagent-name">{{reagentNames.[1]}}</div>
-          <div class="reagent-drop-zone" title="Drop an item here">
-            {{#if cauldronSlots.[1]}}
-              <img src="{{cauldronSlots.[1]}}" class="slotted-item-icon" alt="Slotted Item" />
+        <div class="reagent-list">
+          {{#if selectedCharacterId}}
+            {{#if reagents.length}}
+              {{#each reagents}}
+                <div class="reagent-item" data-uuid="{{uuid}}" draggable="true">
+                  <img src="{{img}}" alt="{{name}}" class="reagent-icon" />
+                  <span class="reagent-name">{{name}}</span>
+                  <span class="reagent-ip-values">
+                    <span class="ip-combat">C:{{ipValues.combat}}</span>
+                    <span class="ip-utility">U:{{ipValues.utility}}</span>
+                    <span class="ip-entropy">E:{{ipValues.entropy}}</span>
+                  </span>
+                </div>
+              {{/each}}
+            {{else}}
+              <p class="no-reagents">No reagents in inventory.</p>
             {{/if}}
-          </div>
-        </div>
-        <div class="reagent-slot" data-slot="2">
-          <div class="reagent-name">{{reagentNames.[2]}}</div>
-          <div class="reagent-drop-zone" title="Drop an item here">
-            {{#if cauldronSlots.[2]}}
-              <img src="{{cauldronSlots.[2]}}" class="slotted-item-icon" alt="Slotted Item" />
-            {{/if}}
-          </div>
+          {{else}}
+            <p class="no-character">Please select a character.</p>
+          {{/if}}
         </div>
       </div>
-      <div class="ip-sums">
-        <div class="ip-sum {{#if highlight.combat}}highlight{{/if}}">
-          <span class="ip-label">Combat</span>
-          <span class="ip-value">{{ipSums.combat}}</span>
-        </div>
-        <div class="ip-sum {{#if highlight.utility}}highlight{{/if}}">
-          <span class="ip-label">Utility</span>
-          <span class="ip-value">{{ipSums.utility}}</span>
-        </div>
-        <div class="ip-sum {{#if highlight.entropy}}highlight{{/if}}">
-          <span class="ip-label">Entropy</span>
-          <span class="ip-value">{{ipSums.entropy}}</span>
-        </div>
-      </div>
-      <div class="outcome-icons">
-        {{#each outcomeIcons}}
-          <div class="outcome-container">
-            <div class="outcome-text">{{outcomeName}}</div>
-            <div class="outcome-icon {{#if isSelected}}selected{{/if}} {{#if hasItem}}has-item{{/if}} {{#if isUnknown}}unknown-icon{{/if}}" data-category="{{category}}" data-sum="{{sum}}" data-item-id="{{itemId}}" title="{{#if hasItem}}{{category}} {{sum}} (Shift+Click to View Item){{else}}Unknown Outcome{{/if}}">
-              <img src="{{img}}" alt="{{category}} Outcome" />
+      <div class="cauldron">
+        <h3 class="cauldron-title">Cauldron</h3>
+        <div class="reagent-slots">
+          {{#each slots as |slot index|}}
+            <div class="reagent-slot" data-slot="{{index}}">
+              <div class="reagent-name">{{slot.name}}</div>
+              <div class="reagent-drop-zone" title="Drop an item here">
+                {{#if slot.hasItem}}
+                  <img src="{{slot.img}}" class="slotted-item-icon" alt="{{slot.name}}" />
+                {{else}}
+                  <span class="slot-placeholder">Drop Reagent</span>
+                {{/if}}
+              </div>
             </div>
+          {{/each}}
+        </div>
+        <div class="ip-sums">
+          <div class="ip-sum {{#if highlight.combat}}highlight{{/if}}">
+            <span class="ip-label">Combat</span>
+            <span class="ip-value">{{ipSums.combat}}</span>
           </div>
-        {{/each}}
-      </div>
-      <div class="crafting-controls">
-        <button class="craft-btn">Craft</button>
-        <button class="clear-btn">Clear</button>
+          <div class="ip-sum {{#if highlight.utility}}highlight{{/if}}">
+            <span class="ip-label">Utility</span>
+            <span class="ip-value">{{ipSums.utility}}</span>
+          </div>
+          <div class="ip-sum {{#if highlight.entropy}}highlight{{/if}}">
+            <span class="ip-label">Entropy</span>
+            <span class="ip-value">{{ipSums.entropy}}</span>
+          </div>
+        </div>
+        <div class="outcome-icons">
+          {{#each outcomeIcons}}
+            <div class="outcome-container">
+              <div class="outcome-text">{{outcomeName}}</div>
+              <div class="outcome-icon {{#if isSelected}}selected{{/if}} {{#if hasItem}}has-item{{/if}} {{#if isUnknown}}unknown-icon{{/if}}" data-category="{{category}}" data-sum="{{sum}}" data-item-id="{{itemId}}" title="{{#if hasItem}}{{category}} {{sum}} (Shift+Click to View Item){{else}}Unknown Outcome{{/if}}">
+                <img src="{{img}}" alt="{{category}} Outcome" />
+              </div>
+            </div>
+          {{/each}}
+        </div>
+        <div class="crafting-controls">
+          <button class="craft-btn">Craft</button>
+          <button class="clear-btn">Clear</button>
+        </div>
       </div>
     </div>
   </section>
