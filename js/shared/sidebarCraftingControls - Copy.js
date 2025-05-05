@@ -1,5 +1,4 @@
 Hooks.on('getSceneControlButtons', (controls) => {
-  console.log("Adding Crafting buttons to token controls");
 
   // Access the tokens control group directly
   const tokenControls = controls.tokens;
@@ -48,6 +47,4 @@ Hooks.on('getSceneControlButtons', (controls) => {
       tokenControls.tools[key] = button;
     }
   }
-
-  console.log("Crafting buttons added to token controls");
 });

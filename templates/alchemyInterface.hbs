@@ -454,6 +454,19 @@
             </div>
           {{/each}}
         </div>
+        {{#if outcomeIcons.length}}
+          <div class="crafting-info" data-gold-cost="{{goldCost}}" data-base-quantity="{{baseQuantity}}">
+            <span class="crafting-cost">Cost: {{goldCost}} gp</span>
+            <span class="crafting-quantity" title="{{#each quantityBreakdown}}{{name}}: {{#if bonus}}+{{bonus}} consumable{{else}}No bonus{{/if}}{{#unless @last}}; {{/unless}}{{/each}}">
+              Quantity: {{baseQuantity}}
+            </span>
+          </div>
+        {{else}}
+          <div class="crafting-info" data-gold-cost="0" data-base-quantity="0">
+            <span class="crafting-cost">Cost: 0 gp</span>
+            <span class="crafting-quantity">Quantity: 0</span>
+          </div>
+        {{/if}}
         <div class="ip-sums">
           <div class="ip-sum {{#if highlight.combat}}highlight{{/if}}">
             <span class="ip-label">Combat</span>

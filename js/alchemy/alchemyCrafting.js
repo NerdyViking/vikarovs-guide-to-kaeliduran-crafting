@@ -1,6 +1,6 @@
 import { getCompendiumItem } from './alchemyInterfaceCompendium.js';
 
-// Perform crafting for an actor, handling reagents, tool checks, and outcome creation
+// Performs the crafting process for an actor, handling reagents, tool checks, and item creation
 export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutcome = null) {
   // Validate cauldron slots and actor gold data
   if (!cauldronSlots || Object.values(cauldronSlots).filter(uuid => uuid).length !== 3) {
@@ -19,6 +19,18 @@ export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutc
   const rarity = getRarityFromSum(maxSum);
   const dc = getDcFromRarity(rarity);
 
+  // Calculate base quantity based on reagent rarities
+  const reagents = await Promise.all(Object.values(cauldronSlots).map(async uuid => await fromUuid(uuid)));
+  const reagentNames = reagents.map(item => item?.name || "Unknown Reagent").join(", ");
+  const baseQuantity = await calculateBaseQuantity(reagents, rarity);
+
+  // Get flat gold cost based on rarity
+  const finalGoldCost = getBaseGoldCost(rarity);
+  if (actor.system.currency.gp < finalGoldCost) {
+    ui.notifications.warn(`Insufficient gold! Need ${finalGoldCost} gp, have ${actor.system.currency.gp} gp.`);
+    return { success: false, message: "Crafting aborted: Insufficient gold." };
+  }
+
   // Check for required crafting tools
   const tools = actor.items.filter(item => {
     if (item.type !== "tool") return false;
@@ -33,12 +45,13 @@ export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutc
   }
   const tool = tools[0];
 
-  // Perform tool check roll to determine crafting success
+  // Perform tool check roll to determine crafting success, suppressing default chat message
   const roll = await tool.rollToolCheck({
     dc: dc,
     rollMode: "roll",
     fastForward: false,
-    flavor: `Crafting Tool Check (DC ${dc}) using ${tool.name}`
+    flavor: `Crafting Tool Check (DC ${dc}) using ${tool.name}`,
+    chatMessage: false // Suppress the default tool check chat message
   });
   if (!roll || !roll[0]) {
     return { success: false, message: "Crafting aborted: Roll cancelled or invalid." };
@@ -49,9 +62,9 @@ export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutc
   // Adjust outcome based on tool check margin
   let finalSum = maxSum;
   let finalCategory = category;
-  let quantity = 1;
+  let quantity = baseQuantity;
   if (margin >= 10) {
-    quantity = 2;
+    quantity += 1; // Exceptional success: +1 consumable
   } else if (margin < 0) {
     const reductionDice = margin <= -10 ? "2d4" : "1d4";
     const reductionRoll = new Roll(reductionDice);
@@ -82,7 +95,8 @@ export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutc
   let item;
   try {
     if (existingItem) {
-      const newQuantity = (existingItem.system.quantity || 0) + quantity;
+      const currentQuantity = existingItem.system.quantity || 0;
+      const newQuantity = currentQuantity + quantity;
       await existingItem.update({ "system.quantity": newQuantity });
       item = existingItem;
     } else {
@@ -149,23 +163,45 @@ export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutc
     }
   }
 
-  // Calculate and consume crafting costs (gold and reagents)
-  const baseGoldCost = getBaseGoldCost(rarity);
-  const reagentCosts = await calculateReagentCosts(actor, cauldronSlots);
-  const baseCost = Math.max(0, baseGoldCost - reagentCosts);
-  const minGoldCost = baseGoldCost * 0.1;
-  const finalGoldCost = Math.max(minGoldCost, baseCost);
-  if (actor.system.currency.gp < finalGoldCost) {
-    ui.notifications.warn(`Insufficient gold! Need ${finalGoldCost} gp, have ${actor.system.currency.gp} gp.`);
-    return { success: false, message: "Crafting aborted: Insufficient gold." };
-  }
+  // Consume gold and reagents
   await consumeResources(actor, cauldronSlots, finalGoldCost);
 
-  // Send a chat message with the crafting result
+  // Send a styled chat message with the crafting result
   const itemName = itemData.name || `Unknown ${finalRarity} ${finalCategory} Consumable`;
+  let chatContent = `
+    <div>
+      <h3 style="margin: 0 0 5px 0">Crafting Result</h3>
+      <p style="margin: 5px 0;">
+        <strong>Outcome:</strong> Crafted ${quantity} <span>'${itemName}'</span> (Sum: ${finalSum})
+      </p>
+      <p style="margin: 5px 0;">
+        <strong>Reagents Used:</strong>
+        <ul style="margin: 5px 0 5px 20px; padding: 0; list-style-type: disc;">
+          ${reagents.map(reagent => `<li>${reagent?.name || "Unknown Reagent"}</li>`).join('')}
+        </ul>
+      </p>
+      <p style="margin: 5px 0;">
+        <strong>Cost:</strong> ${finalGoldCost} gp
+      </p>
+  `;
+  if (margin >= 10) {
+    chatContent += `
+      <p style="margin: 5px 0; color: #00ff00;">
+        <strong>Exceptional Success!</strong> Gained +1 consumable (Total: ${quantity}).
+      </p>
+    `;
+  } else if (margin < 0) {
+    chatContent += `
+      <p style="margin: 5px 0; color: #ff5555;">
+        <strong>Failure:</strong> Outcome shifted to ${finalRarity} ${finalCategory} (Sum: ${finalSum}).
+      </p>
+    `;
+  }
+  chatContent += `</div>`;
+
   try {
     await ChatMessage.create({
-      content: `<p>${itemName}</p>`,
+      content: chatContent,
       speaker: ChatMessage.getSpeaker({ actor }),
       style: CONST.CHAT_MESSAGE_STYLES.OTHER
     });
@@ -181,13 +217,11 @@ export async function performCrafting(actor, cauldronSlots, ipSums, selectedOutc
     sum: finalSum,
     quantity,
     item: itemData,
-    message: `Tool Check: ${total} vs DC ${dc} (${margin >= 0 ? "Success" : "Failed"}). ${margin >= 10 ? "Crafted 2" : "Crafted 1"} '${itemName}'.${margin < 0 ? ` Reduced ${category} ${maxSum} to ${finalSum}, shifted to ${finalCategory} ${finalSum}.` : ""}`
+    message: `Tool Check: ${total} vs DC ${dc} (${margin >= 0 ? "Success" : "Failed"}). Crafted ${quantity} '${itemName}'${margin >= 10 ? " (+1 for exceptional success)" : ""}${margin < 0 ? ` Reduced ${category} ${maxSum} to ${finalSum}, shifted to ${finalCategory}.` : ""}. Cost: ${finalGoldCost} gp.`
   };
 }
 
-// Utility Functions
-
-// Convert IP sum to item rarity
+// Converts IP sum to item rarity based on predefined ranges
 function getRarityFromSum(sum) {
   if (sum >= 31) return "Legendary";
   if (sum >= 28) return "Very Rare";
@@ -196,35 +230,41 @@ function getRarityFromSum(sum) {
   return "Common";
 }
 
-// Get the crafting DC based on item rarity
+// Determines the crafting DC based on the rarity of the outcome
 function getDcFromRarity(rarity) {
   const dcMap = { Common: 10, Uncommon: 15, Rare: 20, "Very Rare": 25, Legendary: 30 };
   return dcMap[rarity] || 10;
 }
 
-// Calculate the base gold cost for crafting based on rarity
+// Retrieves the flat gold cost for crafting based on rarity
 function getBaseGoldCost(rarity) {
   const costMap = { Common: 50, Uncommon: 200, Rare: 2000, "Very Rare": 20000, Legendary: 100000 };
   return costMap[rarity] || 50;
 }
 
-// Calculate the total gold value of reagents in the cauldron slots
-async function calculateReagentCosts(actor, slots) {
-  let totalCost = 0;
-  for (const slotUuid of Object.values(slots)) {
-    if (slotUuid) {
-      const item = await fromUuid(slotUuid);
-      if (item) {
-        const rarity = item.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'rarity') || "Common";
-        const costMap = { Common: 10, Uncommon: 50, Rare: 600, "Very Rare": 6000, Legendary: 50000 };
-        totalCost += costMap[rarity] || 10;
-      }
+// Calculates the base quantity of consumables based on reagent rarities relative to the outcome rarity
+async function calculateBaseQuantity(reagents, outcomeRarity) {
+  const rarityTiers = ["Common", "Uncommon", "Rare", "Very Rare", "Legendary"];
+  const outcomeTier = rarityTiers.indexOf(outcomeRarity);
+  let quantity = 1;
+
+  for (const reagent of reagents) {
+    if (!reagent) continue;
+    let reagentRarity = reagent.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'rarity');
+    if (!reagentRarity) {
+      reagentRarity = reagent.system.rarity || "Common";
+      reagentRarity = reagentRarity.charAt(0).toUpperCase() + reagentRarity.slice(1).toLowerCase();
+    }
+    const reagentTier = rarityTiers.indexOf(reagentRarity);
+    if (reagentTier > outcomeTier) {
+      quantity += (reagentTier - outcomeTier);
     }
   }
-  return totalCost;
+
+  return Math.max(1, quantity);
 }
 
-// Consume gold and reagents from the actor after crafting
+// Deducts gold and consumes reagents from the actor after crafting
 async function consumeResources(actor, slots, goldCost) {
   await actor.update({ "system.currency.gp": actor.system.currency.gp - goldCost });
   for (const slotUuid of Object.values(slots)) {
@@ -242,7 +282,7 @@ async function consumeResources(actor, slots, goldCost) {
   }
 }
 
-// Create a placeholder consumable item if no linked item is found
+// Creates a placeholder consumable item if no linked item is found in the compendium
 function createPlaceholderItem(rarity, category) {
   return {
     name: `${rarity} ${category.charAt(0).toUpperCase() + category.slice(1)} Consumable`,

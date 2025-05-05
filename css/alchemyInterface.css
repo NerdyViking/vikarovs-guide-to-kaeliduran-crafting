@@ -324,6 +324,27 @@
   border: none;
 }
 
+.alchemy-interface .crafting-info {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 0;
+  font-size: 0.9em;
+}
+
+.alchemy-interface .crafting-cost,
+.alchemy-interface .crafting-quantity {
+  background: #252830;
+  padding: 5px;
+  border: 1px solid #4b4a44;
+  border-radius: 3px;
+  color: #f0f0e0;
+}
+
+.alchemy-interface .crafting-quantity:hover {
+  border-color: #ff0000;
+  cursor: help;
+}
+
 .alchemy-interface .ip-sums {
   display: flex;
   justify-content: space-around;

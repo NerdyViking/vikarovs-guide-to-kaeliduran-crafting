@@ -1,10 +1,9 @@
 import { highlightOutcome } from './alchemyInterfaceCompendium.js';
-import { performCrafting } from './alchemyCrafting.js';
 import { isReagent } from '../shared/utils.js';
 
+// Prepares the cauldron data for the Alchemy Interface, including slots, IP sums, and crafting outcomes
 export async function prepareCauldronData(actor) {
   if (!actor) {
-    console.log("No actor provided, returning default cauldron data");
     return {
       slots: [
         { img: null, name: "Drop Reagent", hasItem: false },
@@ -13,7 +12,10 @@ export async function prepareCauldronData(actor) {
       ],
       ipSums: { combat: 0, utility: 0, entropy: 0 },
       highlight: { combat: false, utility: false, entropy: false },
-      outcomeIcons: []
+      outcomeIcons: [],
+      goldCost: 0,
+      baseQuantity: 1,
+      quantityBreakdown: []
     };
   }
 
@@ -21,6 +23,7 @@ export async function prepareCauldronData(actor) {
   const slots = [];
   let ipSums = { combat: 0, utility: 0, entropy: 0 };
   let allSlotsFilled = true;
+  const reagents = [];
 
   for (let i = 0; i < 3; i++) {
     const itemUuid = cauldronSlots[i.toString()];
@@ -37,8 +40,8 @@ export async function prepareCauldronData(actor) {
           ipSums.combat += flags.combat || 0;
           ipSums.utility += flags.utility || 0;
           ipSums.entropy += flags.entropy || 0;
+          reagents[i] = item;
         } else {
-          console.warn(`Failed to resolve item with UUID: ${itemUuid} for slot ${i}. Item:`, item, `User permissions:`, game.user);
           const itemId = itemUuid.split('.').pop();
           let fallbackItem = actor.items.get(itemId) || game.items.get(itemId);
           if (fallbackItem && isReagent(fallbackItem)) {
@@ -51,8 +54,8 @@ export async function prepareCauldronData(actor) {
             ipSums.combat += flags.combat || 0;
             ipSums.utility += flags.utility || 0;
             ipSums.entropy += flags.entropy || 0;
+            reagents[i] = fallbackItem;
           } else {
-            console.warn(`Fallback failed for UUID: ${itemUuid}, slot ${i}`);
             slots[i] = {
               img: null,
               name: "Unknown Reagent",
@@ -62,7 +65,6 @@ export async function prepareCauldronData(actor) {
           }
         }
       } catch (error) {
-        console.error(`Error resolving UUID ${itemUuid} for slot ${i}:`, error);
         slots[i] = {
           img: null,
           name: "Unknown Reagent",
@@ -82,6 +84,10 @@ export async function prepareCauldronData(actor) {
 
   const highlight = { combat: false, utility: false, entropy: false };
   let outcomeIcons = [];
+  let goldCost = 0;
+  let baseQuantity = 1;
+  let quantityBreakdown = [];
+
   if (allSlotsFilled) {
     const sums = [
       { category: 'combat', value: ipSums.combat },
@@ -126,12 +132,66 @@ export async function prepareCauldronData(actor) {
       const isSelected = selectedOutcome && selectedOutcome.category === category && selectedOutcome.sum === sum;
       return { category, sum, img: itemImg, outcomeName, itemId, hasItem, isSelected, isUnknown };
     }));
+
+    // Calculate gold cost and quantity
+    const rarity = getRarityFromSum(maxSum);
+    goldCost = getBaseGoldCost(rarity);
+    const quantityData = await calculateBaseQuantity(reagents, rarity);
+    baseQuantity = quantityData.quantity;
+    quantityBreakdown = quantityData.breakdown;
   }
 
   return {
     slots: slots,
     ipSums: ipSums,
     highlight: highlight,
-    outcomeIcons: outcomeIcons
+    outcomeIcons: outcomeIcons,
+    goldCost: goldCost,
+    baseQuantity: baseQuantity,
+    quantityBreakdown: quantityBreakdown
   };
+}
+
+// Converts IP sum to item rarity based on predefined ranges
+function getRarityFromSum(sum) {
+  if (sum >= 31) return "Legendary";
+  if (sum >= 28) return "Very Rare";
+  if (sum >= 22) return "Rare";
+  if (sum >= 13) return "Uncommon";
+  return "Common";
+}
+
+// Retrieves the flat gold cost for crafting based on rarity
+function getBaseGoldCost(rarity) {
+  const costMap = { Common: 50, Uncommon: 200, Rare: 2000, "Very Rare": 20000, Legendary: 100000 };
+  return costMap[rarity] || 50;
+}
+
+// Calculates the base quantity of consumables and breakdown based on reagent rarities
+async function calculateBaseQuantity(reagents, outcomeRarity) {
+  const rarityTiers = ["Common", "Uncommon", "Rare", "Very Rare", "Legendary"];
+  const outcomeTier = rarityTiers.indexOf(outcomeRarity);
+  let quantity = 1;
+  const breakdown = [];
+
+  for (const reagent of reagents) {
+    if (!reagent) {
+      breakdown.push({ name: "Unknown Reagent", bonus: 0 });
+      continue;
+    }
+    let reagentRarity = reagent.getFlag('vikarovs-guide-to-kaeliduran-crafting', 'rarity');
+    if (!reagentRarity) {
+      reagentRarity = reagent.system.rarity || "Common";
+      reagentRarity = reagentRarity.charAt(0).toUpperCase() + reagentRarity.slice(1).toLowerCase();
+    }
+    const reagentTier = rarityTiers.indexOf(reagentRarity);
+    let bonus = 0;
+    if (reagentTier > outcomeTier) {
+      bonus = reagentTier - outcomeTier;
+      quantity += bonus;
+    }
+    breakdown.push({ name: reagent.name || "Unknown Reagent", bonus });
+  }
+
+  return { quantity: Math.max(1, quantity), breakdown };
 }

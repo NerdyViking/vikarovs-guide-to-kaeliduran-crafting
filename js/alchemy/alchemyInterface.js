@@ -5,7 +5,7 @@ import { isReagent } from '../shared/utils.js';
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
-// Alchemy Interface Application for crafting management
+// Manages the Alchemy Interface application for crafting in Foundry VTT
 export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) {
   constructor(actor, options = {}) {
     super(options);
@@ -37,6 +37,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     }
   };
 
+  // Initializes settings and socket listeners for the Alchemy Interface
   static init() {
     Hooks.once("init", () => {
       game.settings.register('vikarovs-guide-to-kaeliduran-crafting', 'consumableOutcomes', {
@@ -102,6 +103,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     });
   }
 
+  // Prepares the context data for rendering the Alchemy Interface template
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
 
@@ -141,6 +143,9 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     context.ipSums = cauldronData.ipSums;
     context.highlight = cauldronData.highlight;
     context.outcomeIcons = cauldronData.outcomeIcons;
+    context.goldCost = cauldronData.goldCost;
+    context.baseQuantity = cauldronData.baseQuantity;
+    context.quantityBreakdown = cauldronData.quantityBreakdown;
 
     context.characters = game.actors.filter(actor => 
       actor.type === 'character' && actor.testUserPermission(game.user, "OWNER")
@@ -197,6 +202,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     return context;
   }
 
+  // Retrieves the crafting memory for a specific group, initializing if necessary
   async _getCraftingMemory(groupId) {
     const craftingMemory = game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory') || {};
     if (!craftingMemory[groupId]) {
@@ -213,6 +219,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     return craftingMemory[groupId];
   }
 
+  // Updates the crafting memory by adding a new outcome for a group
   async _setCraftingMemory(groupId, category, sum) {
     if (game.user.isGM) {
       const craftingMemory = foundry.utils.deepClone(game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory') || {});
@@ -232,6 +239,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     }
   }
 
+  // Resets the crafting memory for a specific group
   async _resetCraftingMemory(groupId) {
     if (game.user.isGM) {
       const craftingMemory = foundry.utils.deepClone(game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory') || {});
@@ -245,6 +253,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     }
   }
 
+  // Resets a specific outcome in the crafting memory for a group
   async _resetOutcomeMemory(groupId, category, sum) {
     if (game.user.isGM) {
       const craftingMemory = foundry.utils.deepClone(game.settings.get('vikarovs-guide-to-kaeliduran-crafting', 'craftingMemory') || {});
@@ -260,6 +269,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     }
   }
 
+  // Renders the sheet for a given item
   async _renderItemSheet(item) {
     try {
       await item.sheet.render(true);
@@ -269,6 +279,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     }
   }
 
+  // Configures rendering options for the application
   _configureRenderOptions(options) {
     super._configureRenderOptions(options);
     if (options.isFirstRender) {
@@ -276,6 +287,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     }
   }
 
+  // Safely renders the application, preventing concurrent renders
   async _safeRender(options = {}) {
     if (this.isRendering) return;
     this.isRendering = true;
@@ -288,6 +300,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     }
   }
 
+  // Handles rendering logic and sets up event listeners for the interface
   _onRender(context, options) {
     super._onRender(context, options);
 
@@ -427,7 +440,6 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
 
       try {
         const cauldronData = await prepareCauldronData(craftingActor);
-        console.log("Cauldron data for crafting:", cauldronData);
         const { outcomeIcons, ipSums } = cauldronData;
 
         if (!outcomeIcons || outcomeIcons.length === 0) {
@@ -467,12 +479,6 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
           } else {
             ui.notifications.warn("This character is not assigned to a campaign. Crafting memory will not be saved.");
           }
-
-          await ChatMessage.create({
-            content: craftingResult.message,
-            speaker: ChatMessage.getSpeaker({ actor: craftingActor }),
-            style: CONST.CHAT_MESSAGE_STYLES.OTHER
-          });
 
           const clearedSlots = { 0: null, 1: null, 2: null };
           await craftingActor.setFlag('vikarovs-guide-to-kaeliduran-crafting', 'cauldronSlots', clearedSlots);
@@ -610,6 +616,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     }
   }
 
+  // Prompts the GM to reset the crafting memory for a selected campaign group
   async _onResetCraftingMemory(event) {
     event.preventDefault();
     if (!this.editMode || !game.user.isGM) return;
@@ -669,6 +676,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     }
   }
 
+  // Prompts the GM to reset a specific outcome in the crafting memory for a group
   async _onResetOutcomeMemory(event) {
     event.preventDefault();
     if (!this.editMode || !game.user.isGM) return;
@@ -743,6 +751,7 @@ export class AlchemyInterface extends HandlebarsApplicationMixin(ApplicationV2) 
     }
   }
 
+  // Closes the interface and clears cauldron state
   async close(options = {}) {
     try {
       const clearedSlots = { 0: null, 1: null, 2: null };
