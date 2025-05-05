@@ -293,12 +293,13 @@
 
 .alchemy-interface .reagent-slots {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   margin: 10px 0;
 }
 
 .alchemy-interface .reagent-slot {
   text-align: center;
+  justify-items: center;
 }
 
 .alchemy-interface .reagent-slots .reagent-name {
@@ -370,9 +371,10 @@
 }
 
 .alchemy-interface .outcome-icons {
-  display: flex;
-  justify-content: space-around;
+  display: grid;
+  justify-content: center;
   margin: 10px 0;
+  justify-items: center;
 }
 
 .alchemy-interface .outcome-container {
