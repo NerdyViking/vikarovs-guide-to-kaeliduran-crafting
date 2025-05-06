@@ -2,7 +2,7 @@
   "id": "vikarovs-guide-to-kaeliduran-crafting",
   "title": "Vikarov's Guide to Kaeliduran Crafting",
   "description": "A modular crafting system for Foundry VTT, featuring alchemy and future magic item crafting.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "authors": [
     {
       "name": "RealNerdyViking"
@@ -46,8 +46,8 @@
         "id": "dnd5e",
         "type": "system",
         "compatibility": {
-          "minimum": "5.0.1",
-          "verified": "5.0.1"
+          "minimum": "5.0.0",
+          "verified": "5.0.2"
         }
       }
     ]
